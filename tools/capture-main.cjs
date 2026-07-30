@@ -162,10 +162,17 @@ async function main() {
   // Every shot starts from a clean slate: overlays left open by the previous one
   // would otherwise stack up and the later screenshots would show four dialogs at
   // once instead of the single surface they are supposed to document.
+  // Every piece of overlay state the app can hold. A key missing from this list is an
+  // overlay from the previous shot photobombing the next one — the light-theme capture
+  // shipped with the calendar popover floating over the Config panel because `calOpen`
+  // was added to the app after this list was written.
   const RESET = {
     regexOpen: false, appearOpen: false, bulkOpen: false, centreOpen: false,
-    dimSum: null, menu: null, dd: null, paletteOpen: false, slashOpen: false,
-    theme: "dark", clogQuery: "", clogRegex: "", studioQuery: "", healthView: "doctor",
+    calOpen: null, dimSum: null, menu: null, dd: null, paletteOpen: false, slashOpen: false,
+    theme: "dark", clogQuery: "", clogRegex: "", clogFrom: "", clogTo: "", clogPreset: "all",
+    studioQuery: "", studioRegex: null, listQuery: "", listRegex: null,
+    extQuery: "", extRegex: null, setQuery: "", setRegex: null,
+    healthView: "doctor", thinking: false,
   };
 
   for (const shot of list) {

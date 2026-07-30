@@ -1535,6 +1535,48 @@
     },
 
     /* ---- local history ---- */
+    "history.search": {
+      en: ["Search revisions", "Search revisions", "Search revisions",
+        "Search every revision", "Search every revision — message, action or hash"],
+      yue: ["搵版本", "搵版本", "搵版本", "搵勻所有版本", "搵勻所有版本 —— 訊息、動作、hash 都得"]
+    },
+    "history.actions": {
+      en: ["Filter by action", "Filter by action", "Filter by action",
+        "Filter by what happened", "Filter by what actually happened"],
+      yue: ["按動作篩選", "按動作篩選", "按動作篩選", "按發生咗咩嚟篩", "按真係發生咗咩嚟篩"]
+    },
+    "history.actionHint": {
+      en: ["{count} {action} revisions", "{count} {action} revisions", "{count} {action} revisions",
+        "{count} revisions recorded as {action}", "{count} revisions recorded as {action}"],
+      yue: ["{count} 個 {action} 版本", "{count} 個 {action} 版本", "{count} 個 {action} 版本",
+        "有 {count} 個版本記做 {action}", "有 {count} 個版本記做 {action}"]
+    },
+    "history.status": {
+      en: ["Showing {shown} of {total} revisions.", "Showing {shown} of {total} revisions.",
+        "Showing {shown} of {total} revisions.", "{shown} of {total} revisions match.",
+        "{shown} of {total} revisions match. The rest are still there, just filtered out."],
+      yue: ["顯示緊 {total} 個版本入面嘅 {shown} 個。", "顯示緊 {total} 個版本入面嘅 {shown} 個。",
+        "{total} 個版本，顯示緊 {shown} 個。", "{total} 個入面有 {shown} 個夾到。",
+        "{total} 個入面有 {shown} 個夾到。其餘嗰啲仲喺度，只係畀篩走咗。"]
+    },
+    "history.noMatch": {
+      en: ["No revision matches this filter.", "No revision matches this filter.",
+        "No revision matches this filter.", "No revision matches — try widening the dates or clearing an action.",
+        "No revision matches. Widen the dates, drop an action, or clear the search."],
+      yue: ["冇版本夾到呢個篩選。", "冇版本夾到呢個篩選。", "冇版本夾到。",
+        "冇版本夾到 —— 試下放寬日期或者取消一個動作。", "冇版本夾到。放寬日期、取消一個動作，或者清走個搜尋。"]
+    },
+    "history.empty": {
+      en: ["Nothing has been recorded yet.", "Nothing has been recorded yet.",
+        "Nothing recorded yet.", "Nothing recorded yet — change something and it appears here.",
+        "Nothing recorded yet. Change something and it turns up here."],
+      yue: ["仲未記低過任何嘢。", "仲未記低過任何嘢。", "未有紀錄。",
+        "未有紀錄 —— 改樣嘢就會出現喺度。", "未有紀錄。改樣嘢，佢就會喺度出現。"]
+    },
+    "history.clearFilters": {
+      en: ["Clear filters", "Clear filters", "Clear filters", "Clear every filter", "Clear the lot"],
+      yue: ["清除篩選", "清除篩選", "清走啲篩選", "清晒所有篩選", "全部清走佢"]
+    },
     "history.pruned": {
       en: ["Pruned {count} revisions, kept {kept}.", "Pruned {count} revisions, kept {kept}.",
         "Pruned {count} revisions, kept {kept}.", "Pruned {count} revisions and kept the newest {kept}.",

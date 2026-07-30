@@ -81,6 +81,13 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **The History panel filters**: a date range on the same anchored calendar the
+  changelog uses, multi-select filtering by action, and a text search wired to the
+  regex builder — all three composing rather than overriding one another. The actions
+  are derived from the log itself with a count beside each, so they cannot drift from
+  what the app records; the previous hard-coded list offered four of the eight kinds
+  the log actually holds. The sidebar and the chips drive the same selection.
+
 - **Changelog viewer** (`app/cx-changelog.js`): Keep-a-Changelog parsing that never
   throws, a date filter with named presets, typed ISO/locale dates that report an
   invalid entry inline without discarding what was typed, and an anchored calendar

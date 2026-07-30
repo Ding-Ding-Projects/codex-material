@@ -460,6 +460,29 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
               <div style="flex:1 1 260px;min-width:0;font-size:12.5px;color:var(--m3-on-surface-variant);line-height:1.6">{{ historyIntro }}</div>
               <button onClick="{{ undoLatest }}" style="flex:0 0 auto;height:36px;padding:0 20px;border:none;border-radius:18px;background:var(--m3-primary);color:var(--m3-on-primary);cursor:pointer;font-size:12.5px;font-weight:500">↺ Undo last change</button>
             </div>
+            <div data-appear="History filters" style="background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <div data-anchor="hist" style="flex:1 1 220px;min-width:0;display:flex;align-items:center;gap:6px;height:38px;padding:0 6px 0 14px;border-radius:19px;background:var(--m3-surface-high);border:1px solid {{ histBorder }}">
+                  <input value="{{ histQuery }}" onInput="{{ setHistQuery }}" onContextMenu="{{ histSearchMenu }}" placeholder="{{ histPlaceholder }}" aria-label="{{ histPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;font-size:13px" />
+                  <button onClick="{{ openHistRegex }}" title="{{ regexBuilderHint }}" style="flex:0 0 auto;height:26px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ histRegexBg }};color:{{ histRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+                </div>
+                <div data-anchor="calhistfrom" style="flex:1 1 150px;min-width:0;display:flex;align-items:center;gap:4px;height:38px;padding:0 4px 0 10px;border-radius:19px;border:1px solid {{ histFromBorder }};background:var(--m3-surface-high)">
+                  <input value="{{ histFrom }}" onInput="{{ setHistFrom }}" placeholder="{{ clogFromPlaceholder }}" aria-label="{{ clogFromPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;font-family:'Roboto Mono',monospace;font-size:11.5px" />
+                  <button onClick="{{ openHistCalFrom }}" title="{{ calOpenHint }}" aria-label="{{ calOpenHint }}" style="flex:0 0 auto;width:26px;height:26px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:12px">&#128197;</button>
+                </div>
+                <div data-anchor="calhistto" style="flex:1 1 150px;min-width:0;display:flex;align-items:center;gap:4px;height:38px;padding:0 4px 0 10px;border-radius:19px;border:1px solid {{ histToBorder }};background:var(--m3-surface-high)">
+                  <input value="{{ histTo }}" onInput="{{ setHistTo }}" placeholder="{{ clogToPlaceholder }}" aria-label="{{ clogToPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;font-family:'Roboto Mono',monospace;font-size:11.5px" />
+                  <button onClick="{{ openHistCalTo }}" title="{{ calOpenHint }}" aria-label="{{ calOpenHint }}" style="flex:0 0 auto;width:26px;height:26px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:12px">&#128197;</button>
+                </div>
+              </div>
+              <div role="group" aria-label="{{ histActionsLabel }}" style="display:flex;gap:6px;flex-wrap:wrap">
+                <sc-for list="{{ histActionChips }}" as="a" hint-placeholder-count="6">
+                  <button onClick="{{ a.toggle }}" aria-pressed="{{ a.on }}" title="{{ a.hint }}" style="height:28px;padding:0 12px;border-radius:14px;border:1px solid {{ a.border }};background:{{ a.bg }};color:{{ a.fg }};cursor:pointer;font-size:11.5px;white-space:nowrap">{{ a.label }} <span style="opacity:.7">{{ a.count }}</span></button>
+                </sc-for>
+                <button onClick="{{ clearHistFilters }}" style="height:28px;padding:0 12px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11.5px;white-space:nowrap">{{ histClearLabel }}</button>
+              </div>
+              <div style="font-size:11px;color:{{ histStatusFg }};line-height:1.5">{{ histStatus }}</div>
+            </div>
             <sc-for list="{{ historyRows }}" as="h" hint-placeholder-count="5">
               <div onContextMenu="{{ h.context }}" data-appear="Commit row" style="background:var(--m3-surface-container);border:1px solid {{ h.border }};border-radius:16px;padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-width:0">
                 <div style="flex:0 0 auto;font-family:'Roboto Mono',monospace;font-size:11.5px;color:var(--m3-primary)">{{ h.sha }}</div>
@@ -471,6 +494,9 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
                 <button onClick="{{ h.restore }}" style="flex:0 0 auto;height:30px;padding:0 14px;border-radius:15px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:12px">Restore</button>
               </div>
             </sc-for>
+            <sc-if value="{{ historyEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="background:var(--m3-surface-container);border:1px dashed var(--m3-outline-variant);border-radius:16px;padding:24px;text-align:center;font-size:12.5px;color:var(--m3-on-surface-variant);line-height:1.6">{{ historyEmptyText }}</div>
+            </sc-if>
           </div>
         </sc-if>
 
@@ -1017,6 +1043,9 @@ class Component extends DCLogic {
     extCat: "mcp", extQuery: "", extRegex: null,
     setSection: "model", setQuery: "", setRegex: null,
     healthView: "doctor", historyKind: "all",
+    /* history filtering: a date range, a set of actions, and a text query that all
+       compose rather than override one another */
+    histFrom: "", histTo: "", histActions: [], histQuery: "", histRegex: null,
     savedAt: null, copiedToml: false,
     cost: CX.store.get("cost", { inTok: 1200000, outTok: 180000, turns: 40, plan: 200 }),
     cacheRate: CX.store.get("cacheRate", 75),
@@ -1748,12 +1777,33 @@ class Component extends DCLogic {
         context: (e) => this.menuAt(e, g.title, [this.copyItem(g.title)].concat(this.filterItems("list", g.title)).concat([this.appearItem(e)]))
       })));
     }
-    const kinds = [{ id: "all", title: "All commits" }, { id: "profile", title: "Profile changes" }, { id: "config", title: "Config writes" }, { id: "revert", title: "Undos" }];
-    return mk("History filter", "Search commits", "Undo", kinds.filter((k) => match(k.title)).map((k) => ({
-      key: k.id, title: k.title, subtitle: (() => { const log = (this._gitLog && this._gitLog.length) ? this._gitLog : CX.vcs.log; return (k.id === "all" ? log.length : log.filter((c) => c.kind === k.id).length) + " commits"; })(),
-      meta: "", initial: "↺", active: st.historyKind === k.id,
-      go: () => this.setState({ historyKind: k.id }),
-      context: (e) => this.menuAt(e, k.title, this.filterItems("list", k.title).concat([this.appearItem(e)]))
+    /* The sidebar drives the SAME histActions state the chips do — two filters that
+       disagree about what is selected is worse than one. Both are derived from the
+       log's real kinds, so neither can drift from what the app records. */
+    const log = this.historyLog();
+    const counts = {};
+    log.forEach((c) => { counts[c.kind] = (counts[c.kind] || 0) + 1; });
+    const kinds = [{ id: "__all", title: "Every action", n: log.length }]
+      .concat(Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b))
+        .map((k) => ({ id: k, title: k, n: counts[k] })));
+    const chosen = st.histActions || [];
+    return mk("History filter", "Search actions", "Clear", kinds.filter((k) => match(k.title)).map((k) => ({
+      key: k.id,
+      title: k.title,
+      subtitle: k.n + " revision" + (k.n === 1 ? "" : "s"),
+      meta: "",
+      initial: k.id === "__all" ? "↺" : k.title[0].toUpperCase(),
+      active: k.id === "__all" ? chosen.length === 0 : chosen.indexOf(k.id) !== -1,
+      go: () => {
+        if (k.id === "__all") { this.setState({ histActions: [] }); return; }
+        const next = chosen.slice();
+        const at = next.indexOf(k.id);
+        if (at === -1) next.push(k.id); else next.splice(at, 1);
+        this.setState({ histActions: next });
+      },
+      context: (e) => this.menuAt(e, k.title, [
+        { key: "only", icon: "⌕", label: "Show only " + k.title, click: () => this.setState({ menu: null, histActions: k.id === "__all" ? [] : [k.id] }) }
+      ].concat(this.filterItems("list", k.title)).concat([this.appearItem(e)]))
     })));
   }
 
@@ -2396,11 +2446,12 @@ class Component extends DCLogic {
 
       healthCards: this.healthCards(st.healthView),
 
+      ...this.historyVals(),
       historyIntro: "Every profile, session and config change is committed to a local git repo in $CODEX_HOME/studio. Undo writes a revert commit instead of popping a stack, so an undo can itself be undone — as many times as you like.",
-      historyRows: (this._gitLog && this._gitLog.length ? this._gitLog : CX.vcs.log).filter((c) => st.historyKind === "all" || c.kind === st.historyKind).slice(0, 60).map((c, i) => ({
+      historyRows: this.historyFiltered().slice(0, 60).map((c, i) => ({
         key: c.id, sha: c.id, message: c.message,
-        meta: new Date(c.at).toLocaleString() + " · " + c.kind + (i === 0 && st.historyKind === "all" ? " · HEAD" : ""),
-        border: i === 0 && st.historyKind === "all" ? "var(--m3-primary)" : "var(--m3-outline-variant)",
+        meta: new Date(c.at).toLocaleString() + " · " + c.kind + (i === 0 && !this.historyFilterActive() ? " · HEAD" : ""),
+        border: i === 0 && !this.historyFilterActive() ? "var(--m3-primary)" : "var(--m3-outline-variant)",
         revertLabel: c.kind === "revert" ? "Undo this undo" : "Undo this",
         revert: () => { const nc = CX.vcs.revert(c.id); if (nc) { this.reloadFromStore(); this.toast(nc.message); } },
         restore: () => { const nc = CX.vcs.checkout(c.id); if (nc) { this.reloadFromStore(); this.toast(nc.message); } },
@@ -2408,7 +2459,8 @@ class Component extends DCLogic {
           { key: "u", icon: "↺", label: c.kind === "revert" ? "Undo this undo" : "Undo this change", click: () => { this.setState({ menu: null }); const nc = CX.vcs.revert(c.id); if (nc) { this.reloadFromStore(); this.toast(nc.message); } } },
           { key: "r", icon: "⤺", label: "Restore this snapshot", click: () => { this.setState({ menu: null }); CX.vcs.checkout(c.id); this.reloadFromStore(); } },
           this.copyItem(c.id + " " + c.message),
-          { key: "k", icon: "⌕", label: "Filter to " + c.kind + " commits", click: () => this.setState({ menu: null, historyKind: c.kind }) },
+          { key: "k", icon: "⌕", label: "Show only " + c.kind + " revisions", click: () => this.setState({ menu: null, histActions: [c.kind] }) },
+          { key: "d", icon: "📅", label: "Show only that day", click: () => { const day = this.isoLocal(new Date(c.at)); this.setState({ menu: null, histFrom: day, histTo: day }); } },
           this.appearItem(e)
         ])
       })),
@@ -2836,6 +2888,85 @@ class Component extends DCLogic {
     };
   }
 
+  /* ------------------------------------------------------- history bindings */
+  historyFilterActive() {
+    const st = this.state;
+    return !!(st.histFrom || st.histTo || (st.histActions && st.histActions.length) || st.histQuery);
+  }
+
+  historyVals() {
+    const st = this.state;
+    const eng = window.CX_CHANGELOG;
+    const log = this.historyLog();
+    const shown = this.historyFiltered();
+
+    /* The actions come from the log, not from a hard-coded list. The old sidebar
+       offered four; the log actually records eight, so half of them were
+       unreachable and the list drifted every time a new kind was committed. */
+    const counts = {};
+    log.forEach((c) => { counts[c.kind] = (counts[c.kind] || 0) + 1; });
+    const kinds = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
+
+    const badFrom = st.histFrom && eng && !eng.parseDate(st.histFrom).ok;
+    const badTo = st.histTo && eng && !eng.parseDate(st.histTo).ok;
+
+    return {
+      histQuery: st.histQuery,
+      setHistQuery: (e) => this.setState({ histQuery: e.target.value, histRegex: null }),
+      histPlaceholder: CX.i18n.t("history.search"),
+      histBorder: st.histRegex ? "var(--m3-primary)" : "var(--m3-outline-variant)",
+      histRegexBg: st.histRegex ? "var(--m3-primary)" : "transparent",
+      histRegexFg: st.histRegex ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+      openHistRegex: () => this.openRegexFor("hist", st.histQuery),
+      histSearchMenu: (e) => this.menuAt(e, "History search", this.filterItems("hist", st.histQuery)),
+
+      histFrom: st.histFrom,
+      histTo: st.histTo,
+      setHistFrom: (e) => this.setState({ histFrom: e.target.value }),
+      setHistTo: (e) => this.setState({ histTo: e.target.value }),
+      histFromBorder: badFrom ? "var(--m3-error)" : "var(--m3-outline-variant)",
+      histToBorder: badTo ? "var(--m3-error)" : "var(--m3-outline-variant)",
+      openHistCalFrom: (e) => this.openCalendar("from", e),
+      openHistCalTo: (e) => this.openCalendar("to", e),
+
+      histActionsLabel: CX.i18n.t("history.actions"),
+      histActionChips: kinds.map((kind) => {
+        const on = (st.histActions || []).indexOf(kind) !== -1;
+        return {
+          key: kind,
+          label: kind,
+          count: counts[kind],
+          on: on ? "true" : "false",
+          hint: CX.i18n.t("history.actionHint", { action: kind, count: counts[kind] }),
+          bg: on ? "var(--m3-secondary-container)" : "transparent",
+          fg: on ? "var(--m3-on-secondary-container)" : "var(--m3-on-surface-variant)",
+          border: on ? "var(--m3-primary)" : "var(--m3-outline-variant)",
+          /* Multi-select: an action toggles in and out rather than replacing the
+             selection, so "config and settings" is expressible. */
+          toggle: () => {
+            const next = (st.histActions || []).slice();
+            const at = next.indexOf(kind);
+            if (at === -1) next.push(kind); else next.splice(at, 1);
+            this.setState({ histActions: next });
+          }
+        };
+      }),
+      histClearLabel: CX.i18n.t("history.clearFilters"),
+      clearHistFilters: () => this.setState({ histFrom: "", histTo: "", histActions: [], histQuery: "", histRegex: null }),
+
+      histStatusFg: badFrom || badTo ? "var(--m3-error)" : "var(--m3-on-surface-variant)",
+      histStatus: badFrom
+        ? CX.i18n.t("changelog.badDate", { value: st.histFrom })
+        : badTo
+          ? CX.i18n.t("changelog.badDate", { value: st.histTo })
+          : CX.i18n.t("history.status", { shown: shown.length, total: log.length }),
+      historyEmpty: shown.length === 0,
+      historyEmptyText: log.length
+        ? CX.i18n.t("history.noMatch")
+        : CX.i18n.t("history.empty")
+    };
+  }
+
   /* ------------------------------------------------------ calendar bindings */
   calendarVals() {
     const st = this.state;
@@ -2852,8 +2983,9 @@ class Component extends DCLogic {
       const r = eng.parseDate(text);
       return r && r.ok && r.date ? new Date(r.date) : null;
     };
-    const from = parse(st.clogFrom);
-    const to = parse(st.clogTo);
+    const hist = st.calTarget === "hist";
+    const from = parse(hist ? st.histFrom : st.clogFrom);
+    const to = parse(hist ? st.histTo : st.clogTo);
     const sameDay = (a, b) => a && b && this.isoLocal(a) === this.isoLocal(b);
     const inRange = (d) => from && to && d >= from && d <= to;
 
@@ -2881,13 +3013,17 @@ class Component extends DCLogic {
         pick: () => {
           /* Setting one end never clears the other, and picking a "from" after the
              current "to" swaps them rather than producing an empty range. */
-          const patch = { calOpen: null, clogPreset: "custom" };
+          const hist = st.calTarget === "hist";
+          const F = hist ? "histFrom" : "clogFrom";
+          const T = hist ? "histTo" : "clogTo";
+          const patch = { calOpen: null };
+          if (!hist) patch.clogPreset = "custom";
           if (st.calOpen === "from") {
-            patch.clogFrom = iso;
-            if (to && d > to) { patch.clogTo = this.isoLocal(d); patch.clogFrom = this.isoLocal(to); }
+            patch[F] = iso;
+            if (to && d > to) { patch[T] = this.isoLocal(d); patch[F] = this.isoLocal(to); }
           } else {
-            patch.clogTo = iso;
-            if (from && d < from) { patch.clogFrom = this.isoLocal(d); patch.clogTo = this.isoLocal(from); }
+            patch[T] = iso;
+            if (from && d < from) { patch[F] = this.isoLocal(d); patch[T] = this.isoLocal(from); }
           }
           this.setState(patch);
         }
@@ -2937,9 +3073,10 @@ class Component extends DCLogic {
       },
       calTodayLabel: CX.i18n.t("changelog.calToday"),
       calClear: () => {
-        const patch = { calOpen: null, clogPreset: "custom" };
-        if (st.calOpen === "from") patch.clogFrom = "";
-        else patch.clogTo = "";
+        const isHist = st.calTarget === "hist";
+        const patch = { calOpen: null };
+        if (!isHist) patch.clogPreset = "custom";
+        patch[st.calOpen === "from" ? (isHist ? "histFrom" : "clogFrom") : (isHist ? "histTo" : "clogTo")] = "";
         this.setState(patch);
       },
       calClearLabel: CX.i18n.t("changelog.calClear"),
@@ -3254,6 +3391,41 @@ class Component extends DCLogic {
     this.setState({ bulkOpen: true, bulkScope: scope || { kind: "strip" }, bulkInvert: !!invert, bulkQuery: "", bulkRegex: null, bulkPinned: false });
   }
 
+  /* ----------------------------------------------------------- history */
+
+  /** The log the panel filters: the real git history when the backend answered,
+   *  otherwise the in-page one. */
+  historyLog() {
+    return this._gitLog && this._gitLog.length ? this._gitLog : CX.vcs.log;
+  }
+
+  /** Apply the date range, the action set and the text query together. Each is
+   *  independent; none overrides another, which is the whole point of composing. */
+  historyFiltered() {
+    const st = this.state;
+    const eng = window.CX_CHANGELOG;
+    const parse = (text) => {
+      if (!text || !eng) return null;
+      const r = eng.parseDate(text);
+      return r && r.ok && r.date ? new Date(r.date) : null;
+    };
+    const from = parse(st.histFrom);
+    const to = parse(st.histTo);
+    /* An end date means the whole of that day, not midnight at its start —
+       otherwise "to 2026-07-30" hides everything that happened on the 30th. */
+    const end = to ? new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59, 59, 999) : null;
+    const match = this.matcher(st.histQuery, st.histRegex);
+    const actions = st.histActions || [];
+
+    return this.historyLog().filter((c) => {
+      if (from && c.at < from.getTime()) return false;
+      if (end && c.at > end.getTime()) return false;
+      if (actions.length && actions.indexOf(c.kind) === -1) return false;
+      if (!match(c.message + " " + c.kind + " " + c.id)) return false;
+      return true;
+    });
+  }
+
   /* ---------------------------------------------------------- calendar */
 
   /** ISO yyyy-mm-dd in LOCAL time. `toISOString` converts to UTC first, which moves
@@ -3265,9 +3437,15 @@ class Component extends DCLogic {
   }
 
   openCalendar(field, e) {
-    const anchor = document.querySelector('[data-anchor="cal' + field + '"]');
+    /* One calendar serves both the changelog and the history panel — the global rule
+       asks for the same advanced control in both, and two implementations would drift. */
+    const target = this.state.nav === "history" ? "hist" : "clog";
+    const anchor = document.querySelector('[data-anchor="cal' + target + field + '"]')
+      || document.querySelector('[data-anchor="cal' + field + '"]');
     const r = anchor ? anchor.getBoundingClientRect() : null;
-    const typed = field === "from" ? this.state.clogFrom : this.state.clogTo;
+    const typed = target === "hist"
+      ? (field === "from" ? this.state.histFrom : this.state.histTo)
+      : (field === "from" ? this.state.clogFrom : this.state.clogTo);
     const eng = window.CX_CHANGELOG;
     /* Open on the month the user already typed, so the calendar and the field agree
        rather than arguing. */
@@ -3276,6 +3454,7 @@ class Component extends DCLogic {
     month.setDate(1);
     this.setState({
       calOpen: field,
+      calTarget: target,
       calMonth: month.getTime(),
       calAt: {
         x: r ? Math.max(8, Math.min(r.left, window.innerWidth - 312)) : 200,
