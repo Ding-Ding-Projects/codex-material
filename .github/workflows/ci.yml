@@ -6,7 +6,21 @@ name: CI
 
 on:
   push:
+    # BRANCHES ONLY. A bare `push:` also fires on tag pushes, and the release job
+    # below creates a tag — so every release triggered another run, which published
+    # another release, which triggered another run. That loop produced 500+ releases
+    # before it was caught. Never widen this without re-reading that sentence.
+    branches:
+      - "**"
+    tags-ignore:
+      - "**"
   workflow_dispatch:
+
+# One run at a time per branch. A queue of runs racing to claim the next build number
+# is how two releases end up with the same dim sum code name.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -124,7 +138,13 @@ jobs:
           # Derived from the monotonic build number, never claimed by writing a file
           # back to the branch — a release job that pushes to its own trigger is an
           # infinite loop. The tag reproduces the choice, so it stays auditable.
-          $json = node tools/release-codename.mjs --derive $env:GITHUB_RUN_NUMBER | ConvertFrom-Json
+          # Index by how many releases already exist, not by the run number. The two
+          # diverge the moment a run is cancelled, re-run, or fired by something other
+          # than a branch push — and a sparse index burns through the catalog while
+          # most of it is still unused.
+          $existing = (gh release list --limit 1000 --json tagName | ConvertFrom-Json).Count
+          $index = $existing + 1
+          $json = node tools/release-codename.mjs --derive $index | ConvertFrom-Json
           $blank = @('assigned=false', 'codeName=', 'slug=', 'asset=', 'alt=')
           if (-not $json.assigned) {
             # A code name is decoration with a purpose, not a gate. Ship anyway.
