@@ -165,44 +165,19 @@ grep -c "CX.i18n.t(" app/index.html
 > like it had coverage it did not have. Those three are reconciled; assume others like them
 > exist. A key that resolves to itself is a key nothing is using.
 
-### 2. Level 2 of the funny sliders is inert for most sentence-length copy
-
-Measured at this commit, across **320** keys in `app/cx-i18n.js`:
-
-| | Count |
-| --- | ---: |
-| Levels 1 and 2 differ | 74 |
-| Levels 1 and 2 identical | 246 |
-| …of which the English is **≤ 18 characters** | 106 |
-| …of which the English is **longer** | **140** |
-
-**The real gap is 140 keys, not 246.** The other 106 are one- or two-word labels — "Chats",
-"Console", "Config", "Hue", "Open", "Codex Studio" — where a distinct level 2 would have to be
-invented rather than written, and inventing one makes the interface worse. A product name must
-never vary at all. Forcing variation on a label with no room for it is not compliance, it is
-padding.
-
-For the 140 sentence-length entries, moving either slider from 1 to 2 changes nothing the user
-can see, and a slider step that does nothing is a broken control. Every key added during this
-session's work differentiates the two.
-
-```bash
-node -e "…"   # the measurement above; see the git history of this file for the script
-```
-
-### 3. The appearance editor's typography is eight properties deep
+### 2. The appearance editor's typography is eight properties deep
 
 Family, size, weight, italic, underline, strike, a letter-spacing toggle and colour. The rules
 describe a word-processor standard — variable axes, small caps, super/subscript, highlight,
 outline, shadow, baseline offset, direction and the rest — with unsupported properties staying
 visible and explained rather than absent.
 
-### 4. The installers are unsigned
+### 3. The installers are unsigned
 
 `electron-builder` signs with whatever certificate the host offers; there is no code-signing
 identity configured, so Windows SmartScreen will warn on first run.
 
-### 5. Content-Security-Policy is set but permissive
+### 4. Content-Security-Policy is set but permissive
 
 `unsafe-eval` is required: the design-compiler runtime compiles the template with
 `new Function`. Removing it stops the app from starting. This is the source of the one console
@@ -218,6 +193,8 @@ message every capture reports, and it is expected.
 | Appearance presets were a stub | Export and import are implemented and file-backed |
 | History's Undo and Restore silently did nothing after the first launch | Both resolve a git-sourced row to its local revision, and say so when a revision has no snapshot |
 | A restored snapshot never reached `config.toml` | `restore()` applies it as a dotted diff via `codex_config_restore` |
+| Level 2 of the funny sliders was inert | 140 sentence-length keys now have a distinct level 2 in both languages. The 106 still identical are one- or two-word labels ("Chats", "Hue", "Codex Studio") where a level 2 would have to be invented, which makes the interface worse rather than more compliant |
+| Three keys were defined twice in the string table | `tab.closed`, `tab.overflow` and `tab.unsaved`. In a JS object literal the later definition wins, so the earlier was dead data that read exactly like coverage. Removed |
 | MCP servers and hooks were outside the snapshot, so deleting one could not be undone | The real `config.toml` is cached and rides in the snapshot as `configToml`; the cache refreshes at the bridge funnel after any command that can change the file |
 | The colour translator was one-way — it printed twelve representations and read back only hex | `CX.color.parse` reads all twelve plus named colours, preserving alpha. Proven by a round trip: every space emitted, parsed back, worst channel drift 1 |
 | Appearance changes could not be undone from the History panel | `patchAppear` and both resets commit a revision now — debounced by 900 ms so a colour drag records one entry, not one per frame |

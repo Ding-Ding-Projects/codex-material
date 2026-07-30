@@ -81,6 +81,21 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **The funny slider's second step does something now.** 140 sentence-length keys had
+  a level 2 that was a byte-for-byte copy of level 1 in both languages, so moving
+  either slider from 1 to 2 changed nothing. They have a distinct, still-professional
+  level 2. The 106 keys left identical are one- or two-word labels — "Chats", "Hue",
+  "Codex Studio" — where a level 2 would have to be invented rather than written, and
+  a product name must never vary at all.
+- **Three keys were defined twice in the string table.** `tab.closed`, `tab.overflow`
+  and `tab.unsaved`. In a JS object literal the later definition silently wins, so the
+  earlier one was dead data that read exactly like coverage — the same shape as the
+  `nav.chats`/`nav.chat` mismatch found earlier.
+- **`tab.reorder` described a gesture and a key that do not exist.** It said "Drag to
+  reorder, or press Alt+Shift+Arrow" at every level. There is no drag-to-reorder, and
+  the binding is <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>←</kbd>/<kbd>→</kbd>. It went
+  unnoticed because nothing referenced the key.
+
 - **The context menus speak Cantonese too.** Fifty-one menu and button labels moved out
   of hard-coded English and into the string table, five levels in each language — tab
   management, the destructive actions, and the copy/export/open group. Hard-coded
