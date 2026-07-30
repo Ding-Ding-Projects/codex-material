@@ -168,6 +168,20 @@ earlier within this same unreleased version — not in any shipped release.
   panel's path label said `~/.codex/<profile>.config.toml`, which the backend never
   wrote; it now names the real file.
 
+- **Stop actually stops.** The composer's send button becomes a stop button while a
+  run is in flight, and `codex_cancel` kills the process tree with `taskkill /T` —
+  `codex` spawns its own children, and killing only the parent left those running.
+  Pressing Stop after a run has already finished says so rather than erroring.
+- **Appearance presets are files**, not clipboard JSON: export, import through a file
+  picker, and named presets that can be saved, applied and deleted. Anything an
+  imported file asks for that this build cannot represent is listed by name with a
+  reason and offered as an undo — never dropped in silence.
+- **An accessibility and layout audit harness** (`tools/audit-ui.mjs`) that renders the
+  real app across three widths, four zoom levels, two language modes and every nav
+  section, then measures overflow, clipping, pointer-target size, accessible names, tab
+  semantics, contrast and focus visibility. It exits non-zero on any high-severity
+  finding. Its results live in `assets/audit/ui-audit.json`.
+
 ### Changed
 
 - The desktop shell moved from Tauri 2 to Electron 40. The Tauri build produced

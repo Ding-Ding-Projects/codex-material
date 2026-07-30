@@ -72,6 +72,8 @@ button,input,textarea,select{font-family:inherit;color:inherit;max-width:100%}
    signal at all that focus moved — the audit measured outline:none and box-shadow:none
    on the session search and the composer. :focus-visible keeps it off the mouse path. */
 :focus-visible{outline:2px solid var(--m3-primary);outline-offset:2px;border-radius:4px}
+[data-composer="wrap"]{padding:0 24px 16px}
+@media (max-width:640px){[data-composer="wrap"]{padding:0 6px 10px}}
 input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);outline-offset:1px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
 </style>
@@ -193,9 +195,9 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
           <div style="font-size:15.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ headerTitle }}</div>
           <div style="font-size:11.5px;color:var(--m3-on-surface-variant);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ headerSubtitle }}</div>
         </div>
-        <div style="flex:0 1 auto;min-width:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+        <div style="flex:1 1 auto;min-width:0;max-width:100%;display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;overflow-x:auto">
           <sc-for list="{{ headerChips }}" as="c" hint-placeholder-count="3">
-            <button onClick="{{ c.click }}" onContextMenu="{{ c.context }}" title="{{ c.hint }}" style="flex:0 0 auto;height:30px;padding:0 12px;border-radius:15px;border:1px solid var(--m3-outline-variant);background:{{ c.bg }};color:{{ c.fg }};cursor:pointer;font-size:11.5px;white-space:nowrap">{{ c.label }}</button>
+            <button onClick="{{ c.click }}" onContextMenu="{{ c.context }}" title="{{ c.hint }}" style="flex:0 1 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;height:30px;padding:0 12px;border-radius:15px;border:1px solid var(--m3-outline-variant);background:{{ c.bg }};color:{{ c.fg }};cursor:pointer;font-size:11.5px;white-space:nowrap">{{ c.label }}</button>
           </sc-for>
         </div>
       </div>
@@ -355,7 +357,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
                     <div style="font-size:13px;font-weight:500">{{ c.label }}</div>
                     <div style="font-size:11.5px;color:var(--m3-on-surface-variant);margin-top:2px;line-height:1.5">{{ c.desc }}</div>
                   </div>
-                  <input value="{{ c.value }}" onInput="{{ c.set }}" type="number" style="flex:0 1 170px;height:38px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;outline:none;font-family:'Roboto Mono',monospace" />
+                  <input value="{{ c.value }}" onInput="{{ c.set }}" type="number" style="flex:1 1 170px;min-width:96px;height:38px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;font-family:'Roboto Mono',monospace" />
                 </div>
               </sc-for>
               <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px solid var(--m3-outline-variant);padding-top:11px">
@@ -389,10 +391,10 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
                     <div style="font-family:'Roboto Mono',monospace;font-size:12.5px;color:{{ c.nameFg }};overflow-wrap:anywhere">{{ c.model }}</div>
                     <div style="font-size:11px;color:var(--m3-on-surface-variant);margin-top:2px;line-height:1.5">{{ c.breakdown }}</div>
                   </div>
-                  <input value="{{ c.priceIn }}" onInput="{{ c.setIn }}" type="number" step="0.01" title="Input $ / 1M" style="flex:0 0 76px;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 8px;font-size:12px;outline:none;font-family:'Roboto Mono',monospace" />
-                  <input value="{{ c.priceCached }}" onInput="{{ c.setCached }}" type="number" step="0.01" title="Cached input $ / 1M" style="flex:0 0 76px;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 8px;font-size:12px;outline:none;font-family:'Roboto Mono',monospace" />
-                  <input value="{{ c.priceOut }}" onInput="{{ c.setOut }}" type="number" step="0.01" title="Output $ / 1M" style="flex:0 0 76px;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 8px;font-size:12px;outline:none;font-family:'Roboto Mono',monospace" />
-                  <div style="flex:0 0 84px;text-align:right;font-size:14px;font-weight:500;color:{{ c.costFg }}">{{ c.cost }}</div>
+                  <input value="{{ c.priceIn }}" onInput="{{ c.setIn }}" type="number" step="0.01" title="Input $ / 1M" style="flex:1 1 84px;min-width:84px;max-width:120px;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 8px;font-size:12px;font-family:'Roboto Mono',monospace" />
+                  <input value="{{ c.priceCached }}" onInput="{{ c.setCached }}" type="number" step="0.01" title="Cached input $ / 1M" style="flex:1 1 84px;min-width:84px;max-width:120px;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 8px;font-size:12px;font-family:'Roboto Mono',monospace" />
+                  <input value="{{ c.priceOut }}" onInput="{{ c.setOut }}" type="number" step="0.01" title="Output $ / 1M" style="flex:1 1 84px;min-width:84px;max-width:120px;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 8px;font-size:12px;font-family:'Roboto Mono',monospace" />
+                  <div style="flex:1 1 84px;min-width:64px;text-align:right;font-size:14px;font-weight:500;color:{{ c.costFg }}">{{ c.cost }}</div>
                 </div>
               </sc-for>
               <div style="font-size:11px;color:var(--m3-on-surface-variant);padding-top:10px;line-height:1.6">{{ costDisclaimer }}</div>
@@ -566,7 +568,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
       </div>
 
       <sc-if value="{{ isChat }}" hint-placeholder-val="{{ true }}">
-        <div style="flex:0 0 auto;padding:0 24px 16px;position:relative;min-width:0">
+        <div data-composer="wrap" style="flex:0 0 auto;position:relative;min-width:0">
           <sc-if value="{{ slashOpen }}" hint-placeholder-val="{{ false }}">
             <div onClick="{{ stop }}" data-appear="Command catalog" style="position:absolute;bottom:calc(100% + 6px);left:24px;right:24px;max-width:880px;margin:0 auto;background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:18px;box-shadow:0 14px 36px rgba(0,0,0,.45);z-index:30;display:flex;flex-direction:column;overflow:hidden">
               <div data-anchor="slash" style="flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 10px 10px 16px;border-bottom:1px solid var(--m3-outline-variant)">
@@ -624,10 +626,10 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
               </sc-if>
             </div>
           </sc-if>
-          <div data-appear="Composer" style="display:flex;gap:8px;align-items:flex-end;background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:24px;padding:8px 8px 8px 14px;max-width:880px;margin:0 auto;min-width:0">
+          <div data-appear="Composer" style="display:flex;gap:8px;align-items:flex-end;background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:24px;padding:8px 8px 8px 14px;max-width:min(880px,100%);margin:0 auto;min-width:0;box-sizing:border-box">
             <button onClick="{{ openSlash }}" title="Slash commands" style="flex:0 0 auto;width:34px;height:34px;border-radius:17px;border:none;background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:16px">/</button>
             <textarea value="{{ chatInput }}" onInput="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" rows="1" placeholder="{{ composerPlaceholder }}" aria-label="{{ composerPlaceholder }}" style="flex:1;min-width:0;resize:none;border:none;background:transparent;font-size:13.5px;line-height:1.6;padding:8px 0;max-height:140px"></textarea>
-            <button onClick="{{ sendChat }}" title="Send" style="flex:0 0 auto;width:38px;height:38px;border-radius:19px;border:none;background:var(--m3-primary);color:var(--m3-on-primary);cursor:pointer;font-size:15px">↑</button>
+            <button onClick="{{ composerAction }}" title="{{ composerActionHint }}" aria-label="{{ composerActionHint }}" style="flex:0 0 auto;width:38px;height:38px;border-radius:19px;border:none;background:{{ composerActionBg }};color:{{ composerActionFg }};cursor:pointer;font-size:15px">{{ composerActionIcon }}</button>
           </div>
         </div>
       </sc-if>
@@ -1444,10 +1446,11 @@ class Component extends DCLogic {
     const o = opts || {};
     this._runs = this._runs || {};
     this._runs[id] = { onLine: o.onLine || (() => {}) };
+    this._activeRun = id;
     return CX.bridge
       .invoke("codex_run", { id: id, args: argv, cwd: o.cwd || null, stream: "codex://stdout" })
-      .then((res) => { delete this._runs[id]; return Object.assign({ id: id }, res); })
-      .catch((e) => { delete this._runs[id]; throw e; });
+      .then((res) => { delete this._runs[id]; if (this._activeRun === id) this._activeRun = null; return Object.assign({ id: id }, res); })
+      .catch((e) => { delete this._runs[id]; if (this._activeRun === id) this._activeRun = null; throw e; });
   }
   toggleRow(on) {
     return { track: on ? "var(--m3-primary)" : "transparent", trackBorder: on ? "var(--m3-primary)" : "var(--m3-outline)",
@@ -2050,6 +2053,11 @@ class Component extends DCLogic {
       }),
       thinking: st.thinking,
       chatInput: st.chatInput,
+      composerAction: () => (st.thinking ? v.stopChat() : v.sendChat()),
+      composerActionIcon: st.thinking ? "\u25a0" : "\u2191",
+      composerActionHint: st.thinking ? CX.i18n.t("act.stop") : CX.i18n.t("act.send"),
+      composerActionBg: st.thinking ? "var(--m3-error)" : "var(--m3-primary)",
+      composerActionFg: st.thinking ? "var(--m3-on-error-container)" : "var(--m3-on-primary)",
       composerPlaceholder: st.lang === "yue" ? "同 Codex 講你想點，打 / 開指令目錄" : st.lang === "bi" ? "Message Codex · 打 / 開指令目錄" : "Message Codex — type / for the command catalog",
       onChatInput: (e) => {
         const value = e.target.value;
@@ -2179,10 +2187,22 @@ class Component extends DCLogic {
             this.notifyError("run", e);
           });
       },
-      /** Stopping is honest about what it can do: the composer unblocks immediately,
-       *  and the line says the process is still finishing rather than pretending it
-       *  was killed. */
-      stopChat: () => this.setState({ thinking: false }),
+      /** Stop now kills the process tree, not just the spinner. `codex` spawns its
+       *  own children — a bare kill on the parent leaves those running, which is why
+       *  the backend uses `taskkill /T`. A run that already finished is not an error:
+       *  pressing Stop a moment late should say so, not throw. */
+      stopChat: () => {
+        const id = this._activeRun;
+        this.setState({ thinking: false });
+        if (!id) return;
+        CX.bridge.invoke("codex_cancel", { id: id })
+          .then((r) => {
+            this._activeRun = null;
+            if (r && r.cancelled) this.toast(CX.i18n.t("chat.stopped", { pid: r.pid }), "info");
+            else this.toast(CX.i18n.t("chat.alreadyDone"), "info");
+          })
+          .catch((e) => this.notifyError("cancel", e));
+      },
 
       consoleSubDesc: sub.desc,
       consoleFlags: this.flagList().map((f, i) => {
@@ -3420,8 +3440,12 @@ class Component extends DCLogic {
               options: [{ value: "dark", label: "Dark" }, { value: "light", label: "Light" }],
               onPick: (o) => { document.documentElement.setAttribute("data-theme", o.value); CX.store.set("theme", o.value); this.setState({ theme: o.value, dd: null }); }
             })),
-          action("Export appearance presets", "Writes every saved element style to a file you can re-import after a reinstall.", "appexport", "Export", "var(--m3-on-surface)",
-            () => { const blob = JSON.stringify({ version: 1, appearance: CX.store.get("appearance", {}) }, null, 2); navigator.clipboard.writeText(blob); this.toast(CX.i18n.t("appearance.exported"), "success"); }),
+          action("Export appearance to a file", "Every saved element style, as a file you can keep, share or re-import after a reinstall.", "appexport", "Export", "var(--m3-on-surface)",
+            () => this.exportAppearance()),
+          action("Import an appearance file", "Anything the file asks for that this build cannot represent is reported, never dropped in silence.", "appimport", "Import", "var(--m3-on-surface)",
+            () => this.importAppearance()),
+          pick("Named presets", this.presetSummary(), "apppresets", this.presetSummary(),
+            (e) => this.openPresetMenu(e)),
           action("Reset every element", "Clears all per-element appearance overrides. Recorded in History, so it is undoable.", "appreset", "Reset all", "var(--m3-error)",
             () => { CX.store.set("appearance", {}); CX.vcs.commit("Reset every element appearance", "appearance"); this.setState({ appearance: {} }); })
         ]
@@ -3458,6 +3482,125 @@ class Component extends DCLogic {
     CX.bridge.invoke("codex_fonts")
       .then((r) => { this._fonts = (r && r.fonts) || []; this._fontsPending = false; this.setState({ tick: this.state.tick + 1 }); })
       .catch((e) => { this._fontsPending = false; this.notifyError("fonts", e); });
+  }
+
+  /* ---------------------------------------------------- appearance presets */
+
+  presetSummary() {
+    const A = window.CX_APPEARANCE;
+    if (!A) return "unavailable in this build";
+    const names = A.listPresets(CX.store) || [];
+    return names.length ? names.length + " saved" : "none saved yet";
+  }
+
+  exportAppearance() {
+    const A = window.CX_APPEARANCE;
+    if (!A) { this.toast(CX.i18n.t("err.appearanceImport", { detail: "cx-appearance.js is missing from this build" }), "error"); return; }
+    const doc = A.export(CX.store.get("appearance", {}), { presets: A.listPresets(CX.store) });
+    const text = JSON.stringify(doc, null, 2);
+    const blob = new Blob([text], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = A.filename("appearance");
+    a.click();
+    URL.revokeObjectURL(a.href);
+    this.toast(CX.i18n.t("appearance.exportedFile", { file: a.download }), "success");
+  }
+
+  /** A file picker rather than a paste box: an appearance travels between machines
+   *  as a file, and asking someone to paste 40 lines of JSON is not sharing. */
+  importAppearance() {
+    const A = window.CX_APPEARANCE;
+    if (!A) { this.toast(CX.i18n.t("err.appearanceImport", { detail: "cx-appearance.js is missing from this build" }), "error"); return; }
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json,.json";
+    input.addEventListener("change", () => {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onerror = () => this.toast(CX.i18n.t("err.appearanceParse", { detail: "the file could not be read" }), "error");
+      reader.onload = () => {
+        const parsed = A.parse(String(reader.result || ""));
+        if (!parsed.ok) {
+          CX.notify.error(CX.i18n.t("err.appearanceParse", { detail: parsed.error }), parsed.error, { detail: parsed.error });
+          return;
+        }
+        const result = A.import(parsed.document);
+        if (!result.ok) {
+          CX.notify.error(CX.i18n.t("err.appearanceImport", { detail: result.error || "nothing usable in that file" }), result.error || "");
+          return;
+        }
+        const before = CX.store.get("appearance", {});
+        CX.store.set("appearance", result.appearance);
+        CX.vcs.commit("Imported an appearance file", "appearance");
+        this.setState({ appearance: result.appearance, tick: this.state.tick + 1 });
+
+        const count = Object.keys(result.appearance).length;
+        if (result.dropped && result.dropped.length) {
+          /* Never silently drop a value it cannot represent — name every one. */
+          CX.notify.warn(
+            CX.i18n.t("appearance.importedPartial", { count: count, dropped: result.dropped.length }),
+            result.dropped.map((d) => d.key + ": " + d.reason).join("\n"),
+            { actions: [{ label: CX.i18n.t("act.undo"), run: () => { CX.store.set("appearance", before); this.setState({ appearance: before }); } }] }
+          );
+        } else {
+          this.toast(CX.i18n.t("appearance.imported", { count: count }), "success");
+        }
+      };
+      reader.readAsText(file);
+    });
+    input.click();
+  }
+
+  openPresetMenu(e) {
+    const A = window.CX_APPEARANCE;
+    if (!A) return;
+    const names = A.listPresets(CX.store) || [];
+    const options = names.map((n) => ({ value: "apply:" + n, label: n }))
+      .concat([{ value: "__save", label: "Save the current appearance as a preset\u2026" }])
+      .concat(names.map((n) => ({ value: "delete:" + n, label: "Delete \u201c" + n + "\u201d" })));
+    this.openDropdown(e, {
+      title: "Named presets", value: "", width: 320, options: options,
+      onPick: (o) => {
+        this.setState({ dd: null });
+        if (o.value === "__save") { this.savePresetPrompt(); return; }
+        const [verb, name] = [o.value.slice(0, o.value.indexOf(":")), o.value.slice(o.value.indexOf(":") + 1)];
+        if (verb === "apply") {
+          const r = A.applyPreset(CX.store, name);
+          if (!r.ok) { this.toast(r.error, "error"); return; }
+          CX.store.set("appearance", r.appearance);
+          CX.vcs.commit("Applied the appearance preset " + name, "appearance");
+          this.setState({ appearance: r.appearance, tick: this.state.tick + 1 });
+          this.toast(CX.i18n.t("appearance.presetApplied", { name: name }), "success");
+        } else if (verb === "delete") {
+          A.deletePreset(CX.store, name);
+          CX.vcs.commit("Deleted the appearance preset " + name, "appearance");
+          this.setState({ tick: this.state.tick + 1 });
+          this.toast(CX.i18n.t("appearance.presetDeleted", { name: name }), "success");
+        }
+      }
+    });
+  }
+
+  savePresetPrompt() {
+    const A = window.CX_APPEARANCE;
+    const stamp = new Date();
+    const suggestion = "Preset " + (A.listPresets(CX.store).length + 1);
+    this.openDropdown({ stopPropagation: () => {}, currentTarget: { getBoundingClientRect: () => ({ left: 200, bottom: 120, width: 300 }) } }, {
+      title: "Name this preset",
+      value: suggestion,
+      width: 340,
+      allowFree: true,
+      options: [suggestion, "Dark, larger text", "High contrast", this.state.theme + " " + stamp.getFullYear()].map((x) => ({ value: x, label: x })),
+      onPick: (o) => {
+        const r = A.savePreset(CX.store, o.value, CX.store.get("appearance", {}));
+        this.setState({ dd: null, tick: this.state.tick + 1 });
+        if (!r.ok) { this.toast(r.error, "error"); return; }
+        CX.vcs.commit("Saved the appearance preset " + r.name, "appearance");
+        this.toast(CX.i18n.t("appearance.presetSaved", { name: r.name }), "success");
+      }
+    });
   }
 
   patchAppear(patch) {

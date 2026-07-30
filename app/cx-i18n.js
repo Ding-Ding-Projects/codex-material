@@ -1549,6 +1549,36 @@
       en: ["Opened {path}", "Opened {path}", "Opened {path}", "Opened {path} in your editor", "Opened {path} — go look at your editor"],
       yue: ["開咗 {path}", "開咗 {path}", "開咗 {path}", "喺你個編輯器開咗 {path}", "開咗 {path} — 望下你個編輯器啦"]
     },
+    "act.stop": {
+      en: ["Stop", "Stop", "Stop", "Stop it", "Stop it right there"],
+      yue: ["停止", "停止", "停佢", "叫停佢", "即刻停佢"]
+    },
+    "chat.stopped": {
+      en: ["Stopped the run (pid {pid}) and everything it started.",
+        "Stopped the run (pid {pid}) and everything it started.",
+        "Stopped the run (pid {pid}) and everything under it.",
+        "Stopped the run (pid {pid}) and every process it started.",
+        "Stopped the run (pid {pid}) and every process it started — nothing is left running."],
+      yue: ["已停止呢個 run（pid {pid}）同佢開嘅所有嘢。",
+        "已停止呢個 run（pid {pid}）同佢開嘅所有嘢。",
+        "停咗呢個 run（pid {pid}）同佢底下嗰啲。",
+        "停咗呢個 run（pid {pid}）同埋佢開過嘅每一個 process。",
+        "停咗呢個 run（pid {pid}）同佢開過嘅每一個 process —— 冇嘢仲喺度行。"]
+    },
+    "chat.alreadyDone": {
+      en: ["That run had already finished.", "That run had already finished.",
+        "That run had already finished on its own.", "That run finished on its own a moment ago.",
+        "That run finished on its own a moment ago — nothing to stop."],
+      yue: ["嗰個 run 已經行完咗。", "嗰個 run 已經行完咗。", "嗰個 run 自己行完咗。",
+        "嗰個 run 頭先自己行完咗。", "嗰個 run 頭先自己行完咗，冇嘢好停。"]
+    },
+    "err.cancel": {
+      en: ["The run could not be stopped: {detail}", "The run could not be stopped: {detail}",
+        "Could not stop the run — {detail}", "Could not stop the run. It said: {detail}",
+        "Could not stop the run, so it may still be going. It said: {detail}"],
+      yue: ["停唔到呢個 run：{detail}", "停唔到呢個 run：{detail}", "停唔到 — {detail}",
+        "停唔到呢個 run，佢話：{detail}", "停唔到呢個 run，可能仲行緊。佢話：{detail}"]
+    },
     "chat.busy": {
       en: ["A run is already in flight.", "A run is already in flight.", "A run is already in flight.",
         "One run at a time — this thread is still working.", "One at a time. This thread is still busy."],

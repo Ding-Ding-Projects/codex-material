@@ -77,6 +77,41 @@ function redact(text) {
   return out;
 }
 
+/** Which tree this run measured. The frontend is edited by other work in parallel,
+ *  so a finding without the exact commit and file digest behind it is unfalsifiable:
+ *  a reader cannot tell a fixed defect from a stale report. */
+function provenance() {
+  const crypto = require("node:crypto");
+  const digest = (rel) => {
+    try {
+      return crypto.createHash("sha256").update(fs.readFileSync(path.join(ROOT, rel))).digest("hex").slice(0, 16);
+    } catch {
+      return "missing";
+    }
+  };
+  let head = "unknown";
+  let dirty = null;
+  try {
+    const { execFileSync } = require("node:child_process");
+    const opts = { cwd: ROOT, encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "ignore"] };
+    head = execFileSync("git", ["rev-parse", "--short", "HEAD"], opts).trim();
+    dirty = execFileSync("git", ["status", "--porcelain", "app", "electron"], opts).trim().length > 0;
+  } catch {
+    /* not a checkout, or no git on PATH — the digests below still pin the files */
+  }
+  return {
+    head: head,
+    frontendUncommitted: dirty,
+    sha256: {
+      "app/index.html": digest("app/index.html"),
+      "app/codex-core.js": digest("app/codex-core.js"),
+      "app/cx-i18n.js": digest("app/cx-i18n.js"),
+      "app/cx-tabs.js": digest("app/cx-tabs.js"),
+      "app/support.js": digest("app/support.js"),
+    },
+  };
+}
+
 function list(env, fallback) {
   const raw = String(process.env[env] || "").trim() || fallback;
   return raw.split(",").map((s) => s.trim()).filter(Boolean);
@@ -212,12 +247,28 @@ function auditInPage(opts) {
     const r = el.getBoundingClientRect();
     if (cs(el).position === "fixed" && r.left >= vw) continue;
     const clip = clipper(el);
+    // Three ways to run off the edge, and only one of them is a defect: an ancestor
+    // that scrolls leaves the content reachable, an ancestor that ellipsises it
+    // truncates on purpose, and an ancestor that just hides it loses it silently.
+    let ellipsis = false;
+    let reachable = false;
+    for (let n = el; n && n !== clip && n.nodeType === 1; n = n.parentElement) {
+      if (cs(n).textOverflow === "ellipsis") ellipsis = true;
+    }
+    if (clip) {
+      const cstyle = cs(clip);
+      if (cstyle.textOverflow === "ellipsis") ellipsis = true;
+      reachable = cstyle.overflowX === "auto" || cstyle.overflowX === "scroll";
+    }
     const measured = {
       right: Math.round(r.right * 10) / 10,
       viewportRight: vw,
       overhang: Math.round((r.right - vw) * 10) / 10,
       documentScrollWidth: docWidth,
       clippedBy: clip ? sel(clip) : null,
+      clipperOverflowX: clip ? cs(clip).overflowX : null,
+      ellipsisTruncated: ellipsis,
+      scrollable: reachable,
     };
     if (pageOverflows && !clip) {
       escaped++;
@@ -227,9 +278,13 @@ function auditInPage(opts) {
     } else {
       cut++;
       add("offscreen", "medium", el,
-        clip
-          ? "Rendered past the right edge of the viewport and silently cut off by an ancestor's overflow. The page does not scroll, so this content is unreachable unless that ancestor offers its own overflow surface."
-          : "Rendered past the right edge of the viewport. The page does not overflow — html and body both set overflow: hidden — so the content is simply cut away with nothing to scroll to it.",
+        ellipsis
+          ? "Rendered past the right edge of the viewport, but an ancestor truncates it with text-overflow: ellipsis. Deliberate truncation rather than silent loss — read this one as evidence the label no longer fits, not as a defect on its own."
+          : reachable
+            ? "Rendered past the right edge of the viewport, inside an ancestor that scrolls. The content is still reachable, but only by scrolling sideways to it."
+            : clip
+              ? "Rendered past the right edge of the viewport and silently cut off by an ancestor's hidden overflow, with no ellipsis and nothing to scroll. The content is simply gone."
+              : "Rendered past the right edge of the viewport. The page does not overflow — html and body both set overflow: hidden — so the content is cut away with nothing to scroll to it.",
         measured);
     }
   }
@@ -428,6 +483,7 @@ function auditInPage(opts) {
 
   let unparsed = 0;
   let contrastChecked = 0;
+  let minRatio = null;
   if (opts.contrast) {
     for (const el of shown) {
       if (!ownsText(el)) continue;
@@ -447,6 +503,9 @@ function auditInPage(opts) {
       const large = size >= 18.66 || (size >= 14 && weight >= 700);
       const need = large ? 3 : 4.5;
       const ratio = contrast(ink, bg);
+      // The margin matters as much as the verdict: "no failures" reads very
+      // differently when the closest pair sits at 4.6:1 than at 12:1.
+      if (minRatio === null || ratio < minRatio) minRatio = Math.round(ratio * 100) / 100;
       if (ratio + 0.005 >= need) continue;
       add("contrast", "medium", el,
         "Text contrast " + (Math.round(ratio * 100) / 100) + ":1 against its composited background is below the " + need + ":1 WCAG 2.1 AA minimum for this size.",
@@ -551,7 +610,9 @@ function auditInPage(opts) {
       elements: all.length,
       visible: shown.length,
       interactive: interactive.length,
+      targets: targets.length,
       tablists: tablists.length,
+      tabs: seenTabs.size + orphanTabs.length,
       innerWidth: vw,
       innerHeight: window.innerHeight,
       documentScrollWidth: docWidth,
@@ -559,6 +620,7 @@ function auditInPage(opts) {
       escapedRight: escaped,
       cutOffRight: cut,
       contrastChecked: contrastChecked,
+      minContrastRatio: minRatio,
       documentHasFocus: hasFocus,
       focusChecked: focusChecked,
       focusIndicated: focusIndicated,
@@ -722,6 +784,7 @@ async function main() {
     auditedFrom: "the real app — app/index.html with electron/preload.js and electron/commands.js",
     electron: process.versions.electron,
     chrome: process.versions.chrome,
+    tree: provenance(),
     matrix: {
       widths: WIDTHS,
       zooms: ZOOMS,
@@ -747,6 +810,7 @@ async function main() {
       contrast: "computed colour composited over the nearest opaque background ancestor, WCAG 2.1 relative-luminance ratio, flagged under 4.5:1 (3:1 at >= 18.66px, or >= 14px bold). severity: medium",
       "focus-visible": "each interactive element focused in turn; flagged when outline-style is none or zero-width, box-shadow is none, and no border, background or colour changed. severity: medium",
     },
+    coverage: coverage(cells),
     summary: summarise(findings),
     findings,
     cells,
@@ -772,6 +836,25 @@ function worseOf(check, a, b) {
   if (check === "target-size") return (b.shortfall || 0) > (a.shortfall || 0) ? b : a;
   if (check === "contrast") return (b.ratio || 99) < (a.ratio || 99) ? b : a;
   return a;
+}
+
+/** How much was actually looked at. A check that reports nothing is only reassuring
+ *  next to the number of elements it examined to get there. */
+function coverage(cells) {
+  const deep = cells.filter((c) => c.deep);
+  const sum = (rows, pick) => rows.reduce((n, c) => n + (pick(c) || 0), 0);
+  const ratios = deep.map((c) => c.stats.minContrastRatio).filter((v) => typeof v === "number");
+  return {
+    visibleElementsMeasured: sum(cells, (c) => c.stats.visible),
+    pointerTargetsMeasured: sum(cells, (c) => c.stats.targets),
+    interactiveElementsMeasured: sum(cells, (c) => c.stats.interactive),
+    tabsMeasured: sum(cells, (c) => c.stats.tabs),
+    cellsWhereThePageOverflowed: cells.filter((c) => c.stats.pageOverflows).length,
+    textRunsMeasuredForContrast: sum(deep, (c) => c.stats.contrastChecked),
+    lowestContrastRatioSeen: ratios.length ? Math.min(...ratios) : null,
+    elementsFocused: sum(deep, (c) => c.stats.focusChecked),
+    elementsThatShowedFocus: sum(deep, (c) => c.stats.focusIndicated),
+  };
 }
 
 function tally(rows, pick) {
@@ -819,6 +902,15 @@ function printSummary(report, highTotal) {
   process.stdout.write("\n" + table("zoom factor", s.byZoom));
   process.stdout.write("\n" + table("language mode", s.byLang));
   process.stdout.write(`\nWritten to ${path.join(OUT, "ui-audit.json")}\n`);
+  const m = report.matrix;
+  if (m.cells < 240) {
+    // The committed report is the full sweep. A filtered run writes to the same path,
+    // and a partial report that looks complete is worse than no report.
+    process.stdout.write(
+      `\n! This was a filtered run (${m.cells} cell(s), not 240) and it has REPLACED the full report.\n` +
+        "! Re-run `node tools/audit-ui.mjs` with no filters before committing assets/audit/ui-audit.json.\n",
+    );
+  }
   if (report.consoleErrors.length) {
     process.stdout.write(`\nRenderer / harness reported ${report.consoleErrors.length} message(s):\n`);
     report.consoleErrors.slice(0, 10).forEach((e) => process.stdout.write(`  ${e}\n`));
