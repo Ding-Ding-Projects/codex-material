@@ -81,6 +81,13 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **Deleting an MCP server can be undone.** The snapshot was a list of `localStorage`
+  keys, so everything the app owns that lives in the CLI's own file — MCP servers,
+  hooks, the profile sections — sat outside it. That is the exact failure the
+  version-control rule names when it lists connected services. The real `config.toml`
+  is cached and travels in the snapshot now, and the cache refreshes in the one place
+  every backend call passes through, so a future call site cannot forget to.
+
 - **The colour translator reads back what it writes.** It printed twelve
   representations of the current colour — hex, rgb, hsl, hsv, hwb, lab, lch, oklab,
   oklch, cmyk — and could parse exactly one of them, so the panel would show you

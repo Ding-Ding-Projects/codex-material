@@ -15,13 +15,27 @@
      commands, not a generic escape hatch. Opened in a plain browser the same build
      falls through to the simulation below, which is what makes this file openable as
      a design preview without a shell around it. */
+  /** Commands that can change config.toml. `codex_config_restore` is deliberately
+   *  absent: it refreshes the cache itself, and re-reading here would race it. */
+  const WRITES_CONFIG = /^codex_(set_config|write_config|set_feature|mcp_(add|remove|toggle)|hook_toggle|plugin_(install|uninstall|toggle)|skill_toggle|marketplace_(add|remove))$/;
+
   const bridge = {
     get host() { return g.CODEX_BRIDGE || null; },
     get available() { return !!g.CODEX_BRIDGE; },
     get mode() { return this.available ? "electron" : "browser"; },
     async invoke(cmd, args) {
-      if (this.available) return await g.CODEX_BRIDGE.invoke(cmd, args || {});
-      return await sim(cmd, args || {});
+      const out = this.available
+        ? await g.CODEX_BRIDGE.invoke(cmd, args || {})
+        : await sim(cmd, args || {});
+      /* Refresh the cached config.toml after anything that can change it, in the one
+         place every backend call passes through. Doing it at each call site instead
+         works exactly until someone adds the next call site and forgets — and the
+         symptom would be a snapshot quietly holding the previous state, which is the
+         hardest kind of wrong for a version history to be. */
+      if (WRITES_CONFIG.test(cmd)) {
+        try { await refreshRealConfig(); } catch (_) { /* a stale cache is not worth failing the write */ }
+      }
+      return out;
     },
     /** Returns an unsubscribe function in both modes, so a caller never has to ask
         which one it is running under. */
@@ -805,6 +819,22 @@
   /* ------------------------------------------------ local git-backed history
      Every profile / config / session change is committed. `undo` does not pop the
      stack — it writes a *revert commit*, so an undo is itself undoable, forever. */
+  /* A cached copy of the REAL config.toml.
+   *
+   *  The snapshot was a list of localStorage keys, so everything the app owns that
+   *  lives in the CLI's own file was outside it: MCP servers, hooks, and the profile
+   *  sections themselves. Delete an MCP server by mistake and there was nothing to
+   *  undo, which is precisely the failure the version-control rule is written to
+   *  prevent — it names connected services explicitly. snapshot() is synchronous, so
+   *  the file is cached here and refreshed after every write that could change it. */
+  let realConfig = null;
+  function refreshRealConfig() {
+    if (!bridge || !bridge.invoke) return Promise.resolve(null);
+    return bridge.invoke("codex_read_config")
+      .then((cfg) => { realConfig = cfg && typeof cfg === "object" ? cfg : null; return realConfig; })
+      .catch(() => null);
+  }
+
   const vcs = {
     log: store.get("vcs.log", []),
     head: store.get("vcs.head", null),
@@ -836,7 +866,10 @@
            offering no undo at all. */
         theme: store.get("theme", null),
         cacheRate: store.get("cacheRate", null),
-        lifetime: store.get("lifetime", null)
+        lifetime: store.get("lifetime", null),
+        /* The real config.toml, so MCP servers, hooks and the profile sections are
+           inside the snapshot rather than beside it. */
+        configToml: realConfig
       };
     },
     /** Put a snapshot back.
@@ -849,8 +882,13 @@
      *  backend call reports and carries on. */
     restore(snap) {
       Object.keys(snap).forEach((k) => { if (snap[k] !== null && snap[k] !== undefined) store.set(k, snap[k]); });
-      if (snap && snap.config && bridge && bridge.invoke) {
-        bridge.invoke("codex_config_restore", { config: snap.config })
+      /* Prefer the real file when the snapshot carries one. Snapshots taken before
+         configToml existed only have the app's own mirror, and restoring that is still
+         better than restoring nothing — so fall back rather than refuse. */
+      const cfg = (snap && snap.configToml) || (snap && snap.config);
+      if (cfg && bridge && bridge.invoke) {
+        bridge.invoke("codex_config_restore", { config: cfg })
+          .then(() => refreshRealConfig())
           .catch((e) => notifyBackendFailure("history", e));
       }
     },
@@ -1018,9 +1056,13 @@
     }
   };
 
+  /* Populate the cache once at startup so the very first snapshot of a session already
+     carries the real file, rather than a null that quietly restores nothing. */
+  refreshRealConfig();
+
   g.CX = {
     bridge, store, toToml, evaluate, CONSTRUCTS, FLAGS, LIMITS, color, i18n, narrator, vcs,
-    notify, tabs, settings, dimsum, live, notifyBackendFailure,
+    notify, tabs, settings, dimsum, live, notifyBackendFailure, refreshRealConfig,
     sim: state
   };
 })(window);
