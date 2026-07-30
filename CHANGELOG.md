@@ -31,7 +31,7 @@ system is reimplemented.
   Codex works on first launch. Binary resolution is `CODEX_BIN`, then whatever `codex`
   is on PATH, then the bundled copy — the user's own install always wins, because it
   owns their login and their `~/.codex`. The app reports which one it is using.
-- **50 IPC commands** across `electron/lib/`: `cli.js` (find and run the binary,
+- **52 IPC commands** across `electron/lib/`: `cli.js` (find and run the binary,
   stream both pipes concurrently), `config.js` (`config.toml` read/write with a backup
   before every write, dotted-path edits), `catalog.js` (MCP servers, plugins,
   marketplaces, skills, hooks, feature flags, saved sessions, auth, doctor), `wsl.js`
@@ -70,7 +70,7 @@ system is reimplemented.
   history so a dismissed message is not a lost one. Blocking dialogs are reserved for
   decisions — the bulk-close gate is the only one.
 - **Three language modes** (English, playful Hong Kong Cantonese, bilingual) and two
-  independent funny-level sliders from 1 to 5, one per language, over a 199-key table
+  independent funny-level sliders from 1 to 5, one per language, over a 200-key table
   (`app/cx-i18n.js`). The level changes voice only: every `err.*` and `warn.*` string
   carries the same `{placeholder}` facts at level 1 and level 5, and the test suite
   asserts it.
@@ -107,16 +107,16 @@ system is reimplemented.
   font, size, weight, style, colour, and a colour translator across HEX, HEX8, RGB,
   RGBA, HSL, HSV, HWB, LAB, LCH, OKLab, OKLCH and CMYK with a WCAG contrast ratio.
 - **Dim sum surprise**: a 1-in-100 draw per launch showing a randomly chosen dish named
-  in both languages with its photograph, from a 20-dish slice of the shared Hong Kong
-  catalog bundled locally in `app/dimsum/`. Non-blocking, auto-dismissing, never on a
+  in both languages with its photograph, from the shared Hong Kong catalog — all 72 dishes it
+  currently holds, bundled locally in `app/dimsum/`. Non-blocking, auto-dismissing, never on a
   first run, and switchable off.
 - **Dim sum release code names**: every build carries a dish name beside its version,
-  derived from the monotonic build number so no two builds share one, with the dish's
+  derived from how many releases exist so no two builds share one, with the dish's
   photograph attached to the GitHub release.
 - **Bundled assets only**: Roboto and Roboto Mono (`app/fonts/`, 10 woff2 faces,
   Apache-2.0) and React 18.3.1 UMD (`app/vendor/`, MIT). The app makes no network
   request at runtime.
-- **Screenshot harness** (`tools/capture.mjs`): drives the real app through sixteen
+- **Screenshot harness** (`tools/capture.mjs`): drives the real app through eighteen
   surfaces in a composited off-screen window and writes real PNGs, so documentation
   images come from the built artifact rather than a mock.
 - **CI** (`.github/workflows/ci.yml`) on every push and `workflow_dispatch`: the test

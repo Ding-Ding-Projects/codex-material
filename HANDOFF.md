@@ -288,6 +288,13 @@ Both were live earlier in this session and were re-tested after `5ed6e5c`:
 
 ---
 
+## Skipped by decision
+
+**GitHub Projects.** The available `gh` token lacks `read:project`, and adding it means
+running `gh auth refresh` against someone's GitHub account. The user was asked and chose
+to skip it, so no Project item exists for this work and none is expected. Nothing else
+depends on it.
+
 ## External-state blockers
 
 These are not to-do items. Each needs an action an agent must not take on someone's
@@ -295,7 +302,6 @@ account, or an API that does not exist.
 
 | Blocker | Evidence | Smallest unblocking action |
 | --- | --- | --- |
-| **GitHub Projects is unreachable** | The available `gh` token carries `gist, read:org, repo, workflow`. `gh project list --owner Ding-Ding-Projects` returns `your authentication token is missing required scopes [read:project]`. | Run `gh auth refresh -s project` interactively. An agent must not re-authenticate someone's account. |
 | **The wiki has no git repository yet** | `has_wiki` is `true`, but cloning `…/codex-material.wiki.git` returns `Repository not found`. GitHub creates the wiki's repo only when the first page is saved through the web UI; no REST or GraphQL endpoint creates it. | Open the repository's Wiki tab and save any page once. The intended first page is written and waiting at `docs/handoff/wiki-home.md`; every later edit can then be pushed by git. |
 | **~520 junk releases and their tags** | `on: push:` with no filter also fires on tag pushes, and the release job creates a tag. The loop published 533 releases; 11 were intended. The trigger is fixed in `aadfce1` and the loop is stopped, but the artifacts remain. | Deleting several hundred published releases and immutable tags is destructive and was not asked for. On confirmation it is a loop over `gh release delete --cleanup-tag`. |
 
