@@ -1089,6 +1089,39 @@
         "列唔到啲字體 — {detail}", "讀唔到你部機啲字體，佢話：{detail}",
         "讀唔到你部機啲字體，所以淨係得打包嗰五隻。佢話：{detail}"]
     },
+    "config.written": {
+      en: ["Wrote {count} settings to {path}.", "Wrote {count} settings to {path}.",
+        "Wrote {count} settings into {path}.", "Wrote {count} settings into {path} — everything else in it is untouched.",
+        "Wrote {count} settings into {path}. Everything else in that file is exactly where you left it."],
+      yue: ["寫咗 {count} 個設定入 {path}。", "寫咗 {count} 個設定入 {path}。",
+        "{count} 個設定寫咗入 {path}。", "{count} 個設定寫咗入 {path} —— 入面其他嘢一律冇郁過。",
+        "{count} 個設定寫咗入 {path}。份檔入面其他嘢，你點擺佢就仲喺度。"]
+    },
+    "config.nothingToWrite": {
+      en: ["This profile has no overrides to write.", "This profile has no overrides to write.",
+        "Nothing to write — this profile overrides nothing.", "Nothing to write: this profile overrides nothing yet.",
+        "Nothing to write. This profile overrides nothing, so the file stays as it is."],
+      yue: ["呢個 profile 冇嘢要寫。", "呢個 profile 冇嘢要寫。",
+        "冇嘢寫 —— 呢個 profile 咩都冇改。", "冇嘢寫，呢個 profile 暫時乜都冇 override。",
+        "冇嘢寫。呢個 profile 咩都冇改，份檔照舊。"]
+    },
+    "err.configWrite": {
+      en: ["The settings could not be written: {detail}", "The settings could not be written: {detail}",
+        "Could not write the settings — {detail}", "Could not write the settings. It said: {detail}",
+        "Could not write the settings. Nothing after the failure was applied. It said: {detail}"],
+      yue: ["寫唔到啲設定：{detail}", "寫唔到啲設定：{detail}", "寫唔到設定 — {detail}",
+        "寫唔到設定，佢話：{detail}", "寫唔到設定，出事之後嗰啲一個都冇寫入。佢話：{detail}"]
+    },
+    "warn.configPartial": {
+      en: ["{count} settings were written before it stopped: {keys}",
+        "{count} settings were written before it stopped: {keys}",
+        "{count} settings landed before it stopped — {keys}",
+        "{count} settings landed before it stopped. These are in the file: {keys}",
+        "{count} settings landed before it gave up. These are in the file, the rest are not: {keys}"],
+      yue: ["停之前寫咗 {count} 個設定：{keys}", "停之前寫咗 {count} 個設定：{keys}",
+        "停之前有 {count} 個寫咗入去 — {keys}", "停之前有 {count} 個入咗檔：{keys}",
+        "佢放棄之前有 {count} 個入咗檔，其餘冇：{keys}"]
+    },
     "err.editor": {
       en: ["The editor could not be opened: {detail}", "The editor could not be opened: {detail}",
         "Could not open the editor — {detail}", "Could not open the editor. It said: {detail}",

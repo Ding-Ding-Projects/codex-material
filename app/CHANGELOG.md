@@ -156,6 +156,14 @@ earlier within this same unreleased version — not in any shipped release.
   revision, leaving the History panel with nothing to undo for those two settings.
 - The screenshot harness captured a window created with `show: false`, which Chromium
   never paints, so every image was one state behind the surface it documented.
+- Config ▸ Write file sent only the active profile's overrides to a backend command
+  that replaces the whole of `config.toml`. Pressing it with three settings changed
+  would have deleted every MCP server, hook and marketplace in the file — the
+  automatic backup was the only thing between that button and a wiped configuration.
+  Each override is now applied as a dotted-path merge, and a non-default profile's
+  values are written under `profiles.<name>.<key>` where the CLI reads them. The
+  panel's path label said `~/.codex/<profile>.config.toml`, which the backend never
+  wrote; it now names the real file.
 
 ### Changed
 

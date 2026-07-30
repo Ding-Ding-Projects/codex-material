@@ -1206,6 +1206,54 @@ class Component extends DCLogic {
     if (value === "" || value == null) delete cfg[key]; else cfg[key] = value;
     this.patchProfile({ config: cfg }, "Set " + key + " = " + JSON.stringify(value) + " on " + this.profile().name);
   }
+  /** Write the active profile's overrides into config.toml without touching
+   *  anything else in it. Returns a promise so a caller can await the result. */
+  writeProfileConfig() {
+    const p = this.profile();
+    const cfg = p.config || {};
+    const prefix = p.id === "personal" ? "" : "profiles." + p.id + ".";
+    const keys = Object.keys(cfg).filter((k) => cfg[k] !== "" && cfg[k] != null);
+
+    if (!keys.length) {
+      this.toast(CX.i18n.t("config.nothingToWrite"), "info");
+      return Promise.resolve(null);
+    }
+
+    /* Sequential rather than parallel: each set re-reads, edits and rewrites the
+       document, so two in flight at once would race and one would win. */
+    let chain = Promise.resolve();
+    const written = [];
+    keys.forEach((key) => {
+      chain = chain.then(() =>
+        CX.bridge.invoke("codex_set_config", { key: prefix + key, value: cfg[key] })
+          .then((r) => { written.push(prefix + key); return r; })
+      );
+    });
+
+    return chain
+      .then((last) => {
+        this.setState({ savedAt: Date.now() });
+        CX.vcs.commit("Wrote " + written.length + " config key" + (written.length === 1 ? "" : "s") + " for " + p.name, "config");
+        this.toast(CX.i18n.t("config.written", {
+          count: written.length,
+          path: (last && last.path) || (CX.sim.codexHome + "\\config.toml")
+        }), "success");
+        return CX.live.hydrate(this.expandPath(p.cwd));
+      })
+      .then(() => this.setState({ tick: this.state.tick + 1 }))
+      .catch((e) => {
+        /* Partway through is the dangerous state to be quiet about: say which keys
+           landed before it stopped. */
+        this.notifyError("configWrite", e);
+        if (written.length) {
+          CX.notify.warn(
+            CX.i18n.t("warn.configPartial", { count: written.length, keys: written.join(", ") }),
+            written.join(", ")
+          );
+        }
+      });
+  }
+
   setCost(patch) {
     const cost = Object.assign({}, this.state.cost, patch);
     CX.store.set("cost", cost);
@@ -2224,16 +2272,19 @@ class Component extends DCLogic {
           ].concat(this.filterItems("set", f.key)).concat([this.appearItem(e)]))
         }, this.toggleRow(on));
       }),
-      tomlPath: "~/.codex/" + (p.id === "personal" ? "config.toml" : p.id + ".config.toml"),
+      tomlPath: CX.sim.codexHome + "\\config.toml" + (p.id === "personal" ? "" : "  \u00b7  under [profiles." + p.id + "]"),
       tomlText: toml,
       copyTomlLabel: st.copiedToml ? "Copied" : "Copy",
       copyToml: () => { navigator.clipboard.writeText(toml); this.setState({ copiedToml: true }); setTimeout(() => this.setState({ copiedToml: false }), 1400); },
       saveLabel: st.savedAt ? "Saved" : "Write file",
-      saveConfig: () => CX.bridge.invoke("codex_write_config", { config: cfg, toml_text: toml, toml }).then((r) => {
-        this.setState({ savedAt: Date.now() });
-        CX.vcs.commit("Write " + ("~/.codex/" + (p.id === "personal" ? "config.toml" : p.id + ".config.toml")), "config");
-        this.toast("Wrote " + (r.bytes || toml.length) + " bytes · previous file backed up · commit added to History");
-      }),
+      /* Each override is applied as a dotted-path set, MERGED into the existing
+         document. Sending this panel's TOML to codex_write_config would replace the
+         whole file — deleting every MCP server, hook and marketplace the user has,
+         because this panel only ever knew about its own handful of keys.
+
+         A non-default profile's values go under `profiles.<name>.<key>`, which is
+         where the CLI reads them. */
+      saveConfig: () => this.writeProfileConfig(),
 
       costIntro: "Codex on a ChatGPT plan does not bill per token. This prices the same workload as if it ran on the API.",
       costInputs: [
