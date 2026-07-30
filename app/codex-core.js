@@ -690,7 +690,14 @@
         lang: store.get("lang", "en"),
         funny: store.get("funny", null),
         settings: store.get("settings", null),
-        yolo: store.get("yolo", false)
+        yolo: store.get("yolo", false),
+        /* These three are written by the app and were missing from the snapshot, so a
+           restore reverted some of the user's preferences and left others exactly where
+           they were — a half-restored state, which the rules call out as worse than
+           offering no undo at all. */
+        theme: store.get("theme", null),
+        cacheRate: store.get("cacheRate", null),
+        lifetime: store.get("lifetime", null)
       };
     },
     /** Put a snapshot back.

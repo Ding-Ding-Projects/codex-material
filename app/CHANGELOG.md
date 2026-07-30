@@ -81,6 +81,14 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **A restore restores all of it.** `theme`, `cacheRate` and `lifetime` were written by
+  the app but absent from the snapshot, so an undo reverted some preferences and left
+  others untouched. And `reloadFromStore()` refreshed six fields, so after an undo the
+  restored language mode, funny levels, feature flags, theme and window length sat
+  correctly in storage while the interface carried on showing the previous ones until
+  the next launch. A half-restored state is worse than no undo, because the user cannot
+  see which half took.
+
 - **Tabs can be reordered.** `CX.tabs.move()` had existed since the tab strip was
   written and nothing had ever called it, so the strip could not be rearranged by any
   means at all. <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>←</kbd>/<kbd>→</kbd> moves the
