@@ -1479,31 +1479,82 @@ class Component extends DCLogic {
   healthCards(view) {
     const s = CX.sim;
     const mk = (title, rows, actions) => ({ key: title, title, rows, actions: actions || [], context: (e) => this.menuAt(e, title, [this.copyItem(title), this.appearItem(e)]) });
-    if (view === "account") return [
-      mk("Authentication", [
-        { key: "m", name: "Method", detail: s.auth.method, dot: "var(--m3-ok)" },
-        { key: "a", name: "Account", detail: s.auth.account || "logged out", dot: s.auth.account ? "var(--m3-ok)" : "var(--m3-error)" },
-        { key: "p", name: "Plan", detail: s.auth.plan || "—", dot: "var(--m3-ok)" },
-        { key: "e", name: "Token expires", detail: s.auth.expires || "—", dot: "var(--m3-warn)" },
-        { key: "s", name: "Credential store", detail: "file · ~/.codex/auth.json", dot: "var(--m3-ok)" }
-      ], [
+    if (view === "account") {
+      const a = s.auth || {};
+      const u = this._usage;
+      const known = a.method && a.method !== "none" && a.method !== "unknown";
+      /* Only what `codex login status` and the rollout's rate-limit block actually
+         report. The plan comes from a real token_count event or not at all — there is
+         no CLI command that answers "what plan is this account on". */
+      const rows = [
+        { key: "m", name: "Method", detail: a.method || "unknown", dot: known ? "var(--m3-ok)" : "var(--m3-error)" },
+        { key: "d", name: "Reported by `codex login status`", detail: a.detail || "no output", dot: known ? "var(--m3-ok)" : "var(--m3-warn)" },
+        { key: "s", name: "Credential store", detail: (a.store || "unknown") + (a.authFile ? " · " + a.authFile : ""), dot: "var(--m3-ok)" }
+      ];
+      if (a.account) rows.push({ key: "a", name: "Account", detail: a.account, dot: "var(--m3-ok)" });
+      if (u && u.available && u.plan) {
+        rows.push({ key: "p", name: "Plan", detail: u.plan + (u.limitId ? " · limit " + u.limitId : ""), dot: "var(--m3-ok)" });
+      } else {
+        rows.push({ key: "p", name: "Plan", detail: "not reported by the CLI — it appears in a session's rate-limit block once a turn has run", dot: "var(--m3-on-surface-variant)" });
+      }
+      return [
+      mk("Authentication", rows, [
         { key: "login", label: "codex login", fg: "var(--m3-on-surface)", click: () => CX.bridge.invoke("codex_login", { method: "chatgpt" }).then(() => { this.toast("Logged in with ChatGPT"); this.setState({ tick: this.state.tick + 1 }); }) },
         { key: "api", label: "Login with API key", fg: "var(--m3-on-surface)", click: () => CX.bridge.invoke("codex_login", { method: "api" }).then(() => { this.toast("API key stored"); this.setState({ tick: this.state.tick + 1 }); }) },
         { key: "out", label: "codex logout", fg: "var(--m3-error)", click: () => CX.bridge.invoke("codex_logout").then(() => { this.toast("Credentials removed"); this.setState({ tick: this.state.tick + 1 }); }) }
       ])
-    ];
-    if (view === "usage") {
-      const u = s.usage;
-      return [mk("Token usage", [
-        { key: "i", name: "Input", detail: u.input.toLocaleString(), dot: "var(--m3-primary)" },
-        { key: "c", name: "Cached input", detail: u.cached.toLocaleString(), dot: "var(--m3-primary)" },
-        { key: "o", name: "Output", detail: u.output.toLocaleString(), dot: "var(--m3-primary)" },
-        { key: "w", name: "Context window", detail: u.used.toLocaleString() + " / " + u.contextWindow.toLocaleString() + " (" + Math.round((u.used / u.contextWindow) * 100) + "%)", dot: "var(--m3-warn)" },
-        { key: "r", name: "Limit resets", detail: u.limitResets, dot: "var(--m3-ok)" }
-      ], [{ key: "cost", label: "Price this in Cost", fg: "var(--m3-primary)", click: () => { this.setCost({ inTok: u.input, outTok: u.output }); this.setState({ nav: "cost" }); } }])];
+      ];
     }
-    if (view === "cloud") return [mk("Cloud tasks", s.cloudTasks.map((t) => ({ key: t.id, name: t.title, detail: t.id + " · " + t.status + " · " + t.env + " · " + t.updated, dot: t.status === "ready" ? "var(--m3-ok)" : "var(--m3-on-surface-variant)" })),
-      [{ key: "open", label: "codex cloud", fg: "var(--m3-on-surface)", click: () => this.setState({ nav: "console", consoleSub: "cloud" }) }])];
+    if (view === "usage") {
+      const u = this._usage;
+      if (!u) {
+        CX.bridge.invoke("codex_usage").then((res) => { this._usage = res; this.setState({ tick: this.state.tick + 1 }); })
+          .catch((e) => { this._usage = { available: false, reason: e && e.message ? e.message : String(e) }; this.setState({ tick: this.state.tick + 1 }); });
+        return [mk("Token usage", [{ key: "l", name: "Reading the newest session…", detail: "", dot: "var(--m3-warn)" }])];
+      }
+      if (!u.available) {
+        return [mk("Token usage", [{ key: "n", name: "Nothing recorded yet", detail: u.reason, dot: "var(--m3-on-surface-variant)" }],
+          [{ key: "re", label: "Look again", fg: "var(--m3-primary)", click: () => { this._usage = null; this.setState({ tick: this.state.tick + 1 }); } }])];
+      }
+      const n = (v) => (typeof v === "number" ? v.toLocaleString() : "—");
+      const pct = u.last && u.last.all && u.contextWindow ? Math.round((u.last.all / u.contextWindow) * 100) : null;
+      return [mk("Token usage", [
+        { key: "src", name: "From", detail: u.from.name + (u.from.cwd ? " · " + u.from.cwd : ""), dot: "var(--m3-ok)" },
+        { key: "i", name: "Input (total)", detail: n(u.total.input), dot: "var(--m3-primary)" },
+        { key: "c", name: "Cached input (total)", detail: n(u.total.cached), dot: "var(--m3-primary)" },
+        { key: "o", name: "Output (total)", detail: n(u.total.output), dot: "var(--m3-primary)" },
+        { key: "rz", name: "Reasoning output (total)", detail: n(u.total.reasoning), dot: "var(--m3-primary)" },
+        { key: "t", name: "All tokens (total)", detail: n(u.total.all), dot: "var(--m3-primary)" },
+        { key: "w", name: "Last turn vs context window", detail: n(u.last.all) + " / " + n(u.contextWindow) + (pct == null ? "" : " (" + pct + "%)"), dot: pct != null && pct > 80 ? "var(--m3-warn)" : "var(--m3-ok)" },
+        { key: "p", name: "Plan", detail: (u.plan || "—") + (u.rateLimitReached ? " · rate limit reached: " + u.rateLimitReached : ""), dot: u.rateLimitReached ? "var(--m3-error)" : "var(--m3-ok)" }
+      ], [
+        { key: "cost", label: "Price this in Cost", fg: "var(--m3-primary)", click: () => { this.setCost({ inTok: u.total.input || 0, outTok: u.total.output || 0 }); this.setState({ nav: "cost" }); } },
+        { key: "re", label: "Re-read", fg: "var(--m3-on-surface)", click: () => { this._usage = null; this.setState({ tick: this.state.tick + 1 }); } }
+      ])];
+    }
+    if (view === "cloud") {
+      const c = this._cloud;
+      if (!c) {
+        CX.bridge.invoke("codex_cloud_tasks", { limit: 20 }).then((res) => { this._cloud = res; this.setState({ tick: this.state.tick + 1 }); })
+          .catch((e) => { this._cloud = { available: false, reason: e && e.message ? e.message : String(e) }; this.setState({ tick: this.state.tick + 1 }); });
+        return [mk("Cloud tasks", [{ key: "l", name: "Running `codex cloud list`…", detail: "", dot: "var(--m3-warn)" }])];
+      }
+      const reload = { key: "re", label: "Try again", fg: "var(--m3-primary)", click: () => { this._cloud = null; this.setState({ tick: this.state.tick + 1 }); } };
+      if (!c.available) {
+        /* `codex cloud` is EXPERIMENTAL and refuses outright without cloud access.
+           Saying what it said beats an empty list that looks like "you have none". */
+        return [mk("Cloud tasks", [{ key: "n", name: "`codex cloud list` could not answer", detail: c.reason, dot: "var(--m3-warn)" }], [reload])];
+      }
+      if (!c.tasks.length) {
+        return [mk("Cloud tasks", [{ key: "e", name: "No cloud tasks", detail: "`codex cloud list` returned an empty list.", dot: "var(--m3-on-surface-variant)" }], [reload])];
+      }
+      return [mk("Cloud tasks", c.tasks.map((t, i) => ({
+        key: t.id || ("t" + i),
+        name: t.title || t.id || "untitled",
+        detail: [t.id, t.status, t.env, t.updated].filter(Boolean).join(" · "),
+        dot: t.status === "ready" || t.status === "completed" ? "var(--m3-ok)" : "var(--m3-on-surface-variant)"
+      })), [reload, { key: "open", label: "codex cloud", fg: "var(--m3-on-surface)", click: () => this.setState({ nav: "console", consoleSub: "cloud" }) }])];
+    }
     const d = this._doctor;
     if (!d) {
       CX.bridge.invoke("codex_doctor").then((res) => { this._doctor = res; this.setState({ tick: this.state.tick + 1 }); }).catch(() => {});
@@ -2366,25 +2417,20 @@ class Component extends DCLogic {
       appearTop: st.appearAt.y + "px",
       appearLeft: st.appearAt.x + "px",
       closeAppear: () => this.setState({ appearOpen: false }),
-      fontRows: [
-        { key: "d", value: "", label: "Default (Roboto)" },
-        { key: "m", value: "'Roboto Mono', monospace", label: "Roboto Mono" },
-        { key: "g", value: "Georgia, serif", label: "Georgia" },
-        { key: "h", value: "'Helvetica Neue', Helvetica, sans-serif", label: "Helvetica Neue" },
-        { key: "s", value: "system-ui, sans-serif", label: "System UI" }
-      ],
-      appearFontLabel: (([{ v: "", l: "Default (Roboto)" }, { v: "'Roboto Mono', monospace", l: "Roboto Mono" }, { v: "Georgia, serif", l: "Georgia" }, { v: "'Helvetica Neue', Helvetica, sans-serif", l: "Helvetica Neue" }, { v: "system-ui, sans-serif", l: "System UI" }].find((x) => x.v === (appear.font || "")) || { l: "Default (Roboto)" }).l),
-      openFontMenu: (e) => this.openDropdown(e, {
-        title: "Font family", value: appear.font || "", width: 300,
-        options: [
-          { value: "", label: "Default (Roboto)" },
-          { value: "'Roboto Mono', monospace", label: "Roboto Mono" },
-          { value: "Georgia, serif", label: "Georgia" },
-          { value: "'Helvetica Neue', Helvetica, sans-serif", label: "Helvetica Neue" },
-          { value: "system-ui, sans-serif", label: "System UI" }
-        ],
-        onPick: (o) => { this.patchAppear({ font: o.value }); this.setState({ dd: null }); }
-      }),
+      fontRows: this.fontOptions().map((f, i) => ({ key: "f" + i, value: f.value, label: f.label })),
+      appearFontLabel: (this.fontOptions().find((f) => f.value === (appear.font || "")) || { label: appear.font || "Default (Roboto)" }).label,
+      openFontMenu: (e) => {
+        /* The dropdown carries its own filter and regex builder, which is what makes
+           a list of several hundred installed families usable rather than a wall. */
+        this.loadFonts();
+        this.openDropdown(e, {
+          title: "Font family — " + this.fontOptions().length + " available",
+          value: appear.font || "",
+          width: 340,
+          options: this.fontOptions(),
+          onPick: (o) => { this.patchAppear({ font: o.value }); this.setState({ dd: null }); }
+        });
+      },
       appearFont: appear.font || "",
       setAppearFont: (e) => this.patchAppear({ font: e.target.value }),
       appearSize: String(appear.size || 100),
@@ -3074,6 +3120,37 @@ class Component extends DCLogic {
         ]
       }
     ];
+  }
+
+  /** The bundled faces first — they are the ones guaranteed to render — then every
+   *  family the machine actually has, from `codex_fonts`. Until that call returns the
+   *  list is just the bundled five, which is a smaller truth rather than a wrong one. */
+  fontOptions() {
+    const base = [
+      { value: "", label: "Default (Roboto, bundled)" },
+      { value: "'Roboto Mono', monospace", label: "Roboto Mono (bundled)" },
+      { value: "Georgia, serif", label: "Georgia" },
+      { value: "'Helvetica Neue', Helvetica, sans-serif", label: "Helvetica Neue" },
+      { value: "system-ui, sans-serif", label: "System UI" }
+    ];
+    const installed = this._fonts || [];
+    const seen = {};
+    base.forEach((f) => { seen[f.label] = true; });
+    installed.forEach((name) => {
+      if (seen[name]) return;
+      seen[name] = true;
+      /* Quoted because a family name with a space is otherwise parsed as a list. */
+      base.push({ value: "'" + String(name).replace(/'/g, "") + "', sans-serif", label: name });
+    });
+    return base;
+  }
+
+  loadFonts() {
+    if (this._fonts || this._fontsPending) return;
+    this._fontsPending = true;
+    CX.bridge.invoke("codex_fonts")
+      .then((r) => { this._fonts = (r && r.fonts) || []; this._fontsPending = false; this.setState({ tick: this.state.tick + 1 }); })
+      .catch((e) => { this._fontsPending = false; this.notifyError("fonts", e); });
   }
 
   patchAppear(patch) {

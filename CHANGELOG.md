@@ -90,6 +90,16 @@ system is reimplemented.
   execute inside it, and stop or kill it independently of the other tabs. `wsl -l -q`
   output is decoded as UTF-16LE.
 - **Cost tab** with an API-equivalent cost calculator over the session's token counts.
+- **Health ▸ Usage** reads the newest session's last `token_count` event: total and
+  last-turn input, cached, output and reasoning tokens, the model's context window and
+  the account's plan and rate-limit state. Nothing is estimated; a machine with no
+  recorded turn says so.
+- **Health ▸ Cloud tasks** runs `codex cloud list --json`. That subcommand is
+  experimental and refuses outright without cloud access, so its refusal is shown
+  verbatim rather than rendered as an empty list.
+- **Appearance ▸ font family** lists every family installed on the machine via
+  `codex_fonts`, filtered through the dropdown's own regex builder, with the bundled
+  faces first.
 - **External editor integration**: VS Code, VS Code Insiders, Cursor, Windsurf, Zed,
   Sublime Text, Notepad++, IntelliJ IDEA and Notepad, detected by executable rather
   than assumed, with Reveal in File Explorer as the always-available fallback.

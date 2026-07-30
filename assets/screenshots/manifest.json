@@ -44,6 +44,18 @@
       "note": "Health — doctor, account, usage"
     },
     {
+      "id": "usage",
+      "file": "07b-usage.png",
+      "applied": true,
+      "note": "Health ▸ Usage — real token counts read from the newest session's last token_count event"
+    },
+    {
+      "id": "cloud",
+      "file": "07c-cloud.png",
+      "applied": true,
+      "note": "Health ▸ Cloud tasks — what `codex cloud list` actually reported"
+    },
+    {
       "id": "history",
       "file": "08-history.png",
       "applied": true,

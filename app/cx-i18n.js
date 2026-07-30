@@ -1081,6 +1081,14 @@
       yue: ["搵唔到 WSL：{detail}", "搵唔到 WSL：{detail}", "搵唔到 WSL — {detail}",
         "搵唔到 WSL，裝咗未？佢話：{detail}", "搵唔到 WSL。可能未裝，可能佢扭計：{detail}"]
     },
+    "err.fonts": {
+      en: ["The installed fonts could not be listed: {detail}", "The installed fonts could not be listed: {detail}",
+        "Could not list the installed fonts — {detail}", "Could not list your installed fonts. It said: {detail}",
+        "Could not list your installed fonts, so you get the bundled five. It said: {detail}"],
+      yue: ["讀唔到你部機裝咗嘅字體：{detail}", "讀唔到你部機裝咗嘅字體：{detail}",
+        "列唔到啲字體 — {detail}", "讀唔到你部機啲字體，佢話：{detail}",
+        "讀唔到你部機啲字體，所以淨係得打包嗰五隻。佢話：{detail}"]
+    },
     "err.editor": {
       en: ["The editor could not be opened: {detail}", "The editor could not be opened: {detail}",
         "Could not open the editor — {detail}", "Could not open the editor. It said: {detail}",

@@ -381,6 +381,111 @@ async function sessionAction(id, action) {
   return sessionList();
 }
 
+/** Real token usage, read from the newest rollout's last `token_count` event.
+ *
+ *  Codex writes one of these per turn carrying the running totals, the last turn's
+ *  figures, the model's context window and the account's rate-limit state — so the
+ *  newest event in the newest session is the current picture. Nothing here is
+ *  computed or estimated; if no session has one, that is reported rather than
+ *  filled in with a plausible number. */
+/** Rollouts are written on Windows, so lines end CRLF; splitting on "\n" alone
+ *  leaves a trailing carriage return that breaks the JSON parse. */
+const SPLIT_LINES = /\r?\n/;
+
+function readLastTokenCount(file) {
+  let text;
+  try {
+    text = fs.readFileSync(file, "utf8");
+  } catch {
+    return null;
+  }
+  // Scan backwards: the newest event is the one that matters and these files run to
+  // several megabytes.
+  const lines = text.split(SPLIT_LINES);
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i];
+    if (!line || line.indexOf('"token_count"') === -1) continue;
+    try {
+      const parsed = JSON.parse(line);
+      const payload = parsed && parsed.payload;
+      if (payload && payload.type === "token_count") return payload;
+    } catch {
+      /* a partially written line is skipped, not fatal */
+    }
+  }
+  return null;
+}
+
+async function usage() {
+  const sessions = await sessionList(12);
+  for (const session of sessions) {
+    if (session.archived) continue;
+    const payload = readLastTokenCount(session.path);
+    if (!payload) continue;
+    const info = payload.info || {};
+    const total = info.total_token_usage || {};
+    const last = info.last_token_usage || {};
+    const limits = payload.rate_limits || {};
+    return {
+      available: true,
+      from: { id: session.id, name: session.name, cwd: session.cwd, updatedAt: session.updatedAt },
+      total: {
+        input: total.input_tokens ?? null,
+        cached: total.cached_input_tokens ?? null,
+        cacheWrite: total.cache_write_input_tokens ?? null,
+        output: total.output_tokens ?? null,
+        reasoning: total.reasoning_output_tokens ?? null,
+        all: total.total_tokens ?? null,
+      },
+      last: {
+        input: last.input_tokens ?? null,
+        cached: last.cached_input_tokens ?? null,
+        output: last.output_tokens ?? null,
+        all: last.total_tokens ?? null,
+      },
+      contextWindow: info.model_context_window ?? null,
+      plan: limits.plan_type ?? null,
+      limitId: limits.limit_id ?? null,
+      credits: limits.credits ?? null,
+      rateLimitReached: limits.rate_limit_reached_type ?? null,
+    };
+  }
+  return {
+    available: false,
+    reason:
+      "No saved session on this machine has recorded a token_count event yet. Run one turn and this fills in.",
+  };
+}
+
+/* ---------------------------------------------------------- cloud tasks */
+
+/** `codex cloud list --json`. The subcommand is EXPERIMENTAL and fails outright when
+ *  the account has no cloud access, so the failure is returned rather than thrown —
+ *  a panel that cannot list cloud tasks should say why, not blank the whole screen. */
+async function cloudTasks(limit) {
+  const out = await cli.run(["cloud", "list", "--json", "--limit", String(limit || 20)], {
+    timeout: 60_000,
+  });
+  const parsed = cli.parseLooseJson(out.stdout);
+  if (!parsed) {
+    return {
+      available: false,
+      reason: (out.stderr || out.stdout).trim().split(SPLIT_LINES)[0] || "`codex cloud list` returned nothing.",
+    };
+  }
+  const rows = Array.isArray(parsed) ? parsed : parsed.tasks || parsed.items || [];
+  return {
+    available: true,
+    tasks: rows.map((t) => ({
+      id: str(t, "id") || str(t, "taskId"),
+      title: str(t, "title") || str(t, "name") || str(t, "summary"),
+      status: str(t, "status") || str(t, "state"),
+      env: str(t, "environmentId") || str(t, "env") || str(t, "repo"),
+      updated: str(t, "updatedAt") || str(t, "updated") || str(t, "createdAt"),
+    })),
+  };
+}
+
 /* ----------------------------------------------------------------- auth */
 
 async function authStatus() {
@@ -466,4 +571,6 @@ module.exports = {
   sessionAction,
   authStatus,
   doctor,
+  usage,
+  cloudTasks,
 };

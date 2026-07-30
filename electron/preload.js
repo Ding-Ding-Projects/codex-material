@@ -37,6 +37,8 @@ const COMMANDS = [
   "codex_hook_toggle",
   "codex_features",
   "codex_set_feature",
+  "codex_usage",
+  "codex_cloud_tasks",
   "codex_session_list",
   "codex_session_action",
   "codex_login",

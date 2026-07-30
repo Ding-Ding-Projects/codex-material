@@ -162,6 +162,8 @@ command("codex_hook_list", async () => catalog.hookList());
 command("codex_hook_toggle", async (a) => catalog.hookToggle(a.event, a.index || 0));
 command("codex_features", () => catalog.featureList());
 command("codex_set_feature", (a) => catalog.featureSet(a.key, !!a.value));
+command("codex_usage", () => catalog.usage());
+command("codex_cloud_tasks", (a) => catalog.cloudTasks(a.limit || 20));
 command("codex_session_list", () => catalog.sessionList(300));
 command("codex_session_action", (a) => catalog.sessionAction(a.id, a.action));
 

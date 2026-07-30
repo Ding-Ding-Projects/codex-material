@@ -27,6 +27,8 @@ const SHOTS = [
   { id: "cost", file: "05-cost.png", nav: "cost", note: "Cost — API-equivalent calculator" },
   { id: "runtime", file: "06-runtime.png", nav: "runtime", note: "Runtime — per-tab WSL instances" },
   { id: "health", file: "07-health.png", nav: "health", note: "Health — doctor, account, usage" },
+  { id: "usage", file: "07b-usage.png", nav: "health", note: "Health ▸ Usage — real token counts read from the newest session's last token_count event", state: { healthView: "usage" } },
+  { id: "cloud", file: "07c-cloud.png", nav: "health", note: "Health ▸ Cloud tasks — what `codex cloud list` actually reported", state: { healthView: "cloud" } },
   { id: "history", file: "08-history.png", nav: "history", note: "History — local git-backed, append-only" },
   { id: "changelog", file: "09-changelog.png", nav: "changelog", note: "Changelog viewer — date filter + regex search" },
   { id: "studio", file: "10-studio.png", nav: "studio", note: "Studio settings — language, funny sliders, narrator, dim sum, editor" },
@@ -156,7 +158,7 @@ async function main() {
   const RESET = {
     regexOpen: false, appearOpen: false, bulkOpen: false, centreOpen: false,
     dimSum: null, menu: null, dd: null, paletteOpen: false, slashOpen: false,
-    theme: "dark", clogQuery: "", clogRegex: "", studioQuery: "",
+    theme: "dark", clogQuery: "", clogRegex: "", studioQuery: "", healthView: "doctor",
   };
 
   for (const shot of list) {

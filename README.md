@@ -198,8 +198,6 @@ Stated here rather than left for you to discover.
 | Area | What is actually true |
 | --- | --- |
 | **Releases** | Published on every green build, unsigned. Builds 2–9 are the Tauri shell and render blank; they carry a warning and are superseded. Nothing installs and launches the artifact on a clean machine, so "it installs" is not among the things CI verifies. |
-| **Health ▸ Usage and Health ▸ Cloud tasks** | Still rendered from the in-page sample data. `codex_state` hydrates auth, MCP, plugins, marketplaces, skills, hooks, features, sessions, config and WSL distros — token usage and cloud tasks are not among them. |
-| **Appearance ▸ font family** | The picker offers five families. `codex_fonts` enumerates the machine's installed fonts and is registered and reachable, but the frontend does not call it yet. |
 | **Stopping a chat run** | Releases the composer; it does not kill the process. The UI says so rather than pretending otherwise. |
 | **Chats are one-shot** | Each message is its own `codex exec` invocation. There is no resumed interactive thread yet. |
 | **Config ▸ Write file** | Writes the active profile's overrides as the whole of `$CODEX_HOME/config.toml` (the previous file is backed up first). The panel's path label also says `~/.codex/<profile>.config.toml` for a non-default profile, but the backend always writes `config.toml`. Treat the button as "replace config.toml with what this panel holds" until that is fixed. |
