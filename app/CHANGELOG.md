@@ -81,6 +81,24 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **Notifications were invisible, and the cause was the app building itself twice.**
+  The module scripts sat inside the template block, so the browser ran them once when
+  it parsed the document and the dc runtime ran them again when it re-appended the
+  template helmet to `<head>`. That produced two of everything — two stores, two
+  notification instances, two sets of IPC listeners — with the mounted UI holding the
+  first and `window.CX` pointing at the second. Anything raised through the global
+  never reached the UI. They now load from the document head, exactly once.
+- **The toast stack clears the notification centre.** Both were fixed to the same
+  corner, the centre at the higher z-index, so an error raised while the centre was
+  open was painted behind it — at the one moment the user is watching for news.
+- **The changelog viewer renders its Markdown.** Every entry arrived on screen wearing
+  its own asterisks and backticks; bold and code spans are now bold and code spans.
+  An unmatched marker stays literal rather than swallowing the rest of the line.
+- **The regex builder and appearance screenshots drive the app's own openers.** They
+  used to assemble the popover state by hand, which put the builder on top of the
+  field it claims to be anchored beside and left its sample box empty — a screenshot
+  of neither thing it exists to demonstrate.
+
 - **An unpriced model no longer reports as free.** The Cost panel priced the active
   model by lookup and treated a miss as zero, so a model the price table has never
   heard of produced a confident `$0.000` headline, the verdict "API would be cheaper",

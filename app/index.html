@@ -15,6 +15,24 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./support.js"></script>
+
+<!-- These must load here, in the document head, and NOT inside the template block
+     below. The dc runtime finds that block by scanning this file's text, and it
+     re-appends the template helmet's script elements to the head when it mounts — so
+     a script tag placed inside the template runs twice: once when the browser parses
+     this document and once more on mount. That built window.CX twice over: two
+     stores, two notification instances, two sets of IPC listeners. The mounted
+     component kept a reference to the first while window.CX pointed at the second,
+     so a notification raised through the global was invisible to the UI whose job
+     was to display it. Note also that this comment must not contain the literal
+     template tag, for the same scanning reason. -->
+<script src="codex-data.js"></script>
+<script src="cx-i18n.js"></script>
+<script src="cx-dimsum.js"></script>
+<script src="cx-changelog.js"></script>
+<script src="cx-notify.js"></script>
+<script src="cx-tabs.js"></script>
+<script src="codex-core.js"></script>
 </head>
 <body>
 <x-dc>
@@ -77,13 +95,6 @@ button,input,textarea,select{font-family:inherit;color:inherit;max-width:100%}
 input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);outline-offset:1px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
 </style>
-<script src="codex-data.js"></script>
-<script src="cx-i18n.js"></script>
-<script src="cx-dimsum.js"></script>
-<script src="cx-changelog.js"></script>
-<script src="cx-notify.js"></script>
-<script src="cx-tabs.js"></script>
-<script src="codex-core.js"></script>
 </helmet>
 
 <div style="display:flex;flex-direction:column;height:100vh;overflow:hidden" onContextMenu="{{ onContextMenu }}" onClick="{{ onRootClick }}">
@@ -536,7 +547,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
                   <div style="min-width:0">
                     <div style="font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--m3-on-surface-variant);margin-bottom:3px">{{ sec.title }}</div>
                     <sc-for list="{{ sec.entries }}" as="e" hint-placeholder-count="2">
-                      <div style="font-size:12.5px;line-height:1.65;padding-left:12px;overflow-wrap:anywhere">&#8226; {{ e.text }}</div>
+                      <div style="font-size:12.5px;line-height:1.65;padding-left:12px;overflow-wrap:anywhere">&#8226; <sc-for list="{{ e.parts }}" as="w" hint-placeholder-count="3"><span style="font-weight:{{ w.weight }};font-family:{{ w.family }};font-size:{{ w.size }};background:{{ w.bg }};border-radius:4px;padding:{{ w.pad }}">{{ w.text }}</span></sc-for></div>
                     </sc-for>
                   </div>
                 </sc-for>
@@ -823,7 +834,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
     </div>
   </sc-if>
 
-  <div aria-live="polite" aria-atomic="false" style="position:fixed;right:18px;bottom:18px;z-index:96;display:flex;flex-direction:column-reverse;gap:8px;max-width:min(420px,calc(100vw - 36px));pointer-events:none">
+  <div aria-live="polite" aria-atomic="false" style="position:fixed;right:18px;bottom:{{ toastBottom }};z-index:96;display:flex;flex-direction:column-reverse;gap:8px;max-width:min(420px,calc(100vw - 36px));pointer-events:none">
     <sc-for list="{{ toasts }}" as="n" hint-placeholder-count="1">
       <div data-appear="Notification" role="{{ n.role }}" style="pointer-events:auto;background:var(--m3-surface-highest);color:var(--m3-on-surface);border:1px solid {{ n.border }};border-left:3px solid {{ n.accent }};border-radius:14px;padding:11px 13px;box-shadow:0 10px 30px rgba(0,0,0,.4);display:flex;gap:10px;align-items:flex-start;min-width:0;animation:cxin .18s ease-out">
         <span style="flex:0 0 18px;font-size:13px;color:{{ n.accent }};line-height:1.4">{{ n.icon }}</span>
@@ -2739,6 +2750,10 @@ class Component extends DCLogic {
         actions: (n.actions || []).map((a, i) => ({ key: "a" + i, label: a.label, run: () => { a.run(); CX.notify.dismiss(n.id); } }))
       })),
       centreOpen: !!st.centreOpen,
+      /* The centre occupies the same corner at a higher z-index. Without this the
+         stack renders behind it, so an error raised while the centre is open is
+         invisible — the one moment the user is actually watching for news. */
+      toastBottom: st.centreOpen ? "min(596px, calc(100vh - 54px))" : "18px",
       centreTitle: CX.i18n.t("notify.centre", { count: CX.notify.unread() }),
       centreClearLabel: CX.i18n.t("notify.clear"),
       closeLabel: CX.i18n.t("act.close"),
@@ -2889,7 +2904,7 @@ class Component extends DCLogic {
         sections: (r.sections || []).map((sec) => ({
           key: sec.title,
           title: sec.title,
-          entries: (sec.entries || []).map((text, i) => ({ key: i, text: text }))
+          entries: (sec.entries || []).map((text, i) => ({ key: i, text: text, parts: this.mdParts(text) }))
         }))
       })),
       clogEmpty: shown.length === 0,
@@ -3433,6 +3448,49 @@ class Component extends DCLogic {
 
   openBulk(scope, invert) {
     this.setState({ bulkOpen: true, bulkScope: scope || { kind: "strip" }, bulkInvert: !!invert, bulkQuery: "", bulkRegex: null, bulkPinned: false });
+  }
+
+  /** Split one changelog line into styled runs.
+   *
+   *  CHANGELOG.md is Markdown, and the viewer used to print it verbatim — every
+   *  entry arrived on screen wearing its own asterisks and backticks
+   *  ("**Windows desktop shell on Electron 40** (`electron/`)"). Only bold and
+   *  code spans are handled, because those are the only two the file uses; an
+   *  unmatched marker is left as literal text rather than swallowed, so a stray
+   *  asterisk shows up as an asterisk instead of silently eating the rest of the
+   *  line. */
+  mdParts(text) {
+    const parts = [];
+    const push = (t, kind) => {
+      if (!t) return;
+      parts.push({
+        key: parts.length,
+        text: t,
+        weight: kind === "bold" ? "600" : "400",
+        family: kind === "code" ? "'Roboto Mono',monospace" : "inherit",
+        size: kind === "code" ? "11.5px" : "inherit",
+        bg: kind === "code" ? "var(--m3-surface-high)" : "transparent",
+        pad: kind === "code" ? "1px 5px" : "0"
+      });
+    };
+    /* One pass, leftmost-match: whichever marker opens first wins, so `**a**`
+       inside code and `` `a` `` inside bold cannot both claim the same run. */
+    let rest = String(text == null ? "" : text);
+    while (rest) {
+      const b = rest.indexOf("**");
+      const c = rest.indexOf("`");
+      if (b === -1 && c === -1) { push(rest, "plain"); break; }
+      const bold = b !== -1 && (c === -1 || b < c);
+      const open = bold ? b : c;
+      const mark = bold ? "**" : "`";
+      const close = rest.indexOf(mark, open + mark.length);
+      if (close === -1) { push(rest, "plain"); break; }
+      push(rest.slice(0, open), "plain");
+      push(rest.slice(open + mark.length, close), bold ? "bold" : "code");
+      rest = rest.slice(close + mark.length);
+    }
+    if (!parts.length) push("", "plain");
+    return parts;
   }
 
   /* ----------------------------------------------------------- history */

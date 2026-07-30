@@ -44,14 +44,27 @@ const SHOTS = [
     file: "11-regex-builder.png",
     nav: "ext",
     note: "Regex builder anchored beside the search bar that opened it",
-    state: { regexOpen: true, regexTarget: "ext", regexPattern: "^(mcp|plugin)-", regexFlags: ["g", "i"], regexAt: { x: 360, y: 150 } },
+    /* The pattern has to match something. "^(mcp|plugin)" matched none of the three
+       real server names, so the shot showed a live-match panel reading "0 matches" —
+       a screenshot of the feature not doing the thing it is there to do. */
+    after: `window.__cxRoot.openRegexFor("ext", ""); window.__cxRoot.setState({ regexPattern: "^\w+[-_]\w+" });`,
   },
   {
     id: "appearance",
     file: "12-appearance.png",
     nav: "chat",
     note: "Per-element appearance editor with the colour translator",
-    state: { appearOpen: true, appearTarget: "Message bubble", appearAt: { x: 420, y: 120 } },
+    after: `
+      (() => {
+        const host = document.querySelector('[data-appear="Composer"]') || document.querySelector('[data-appear]');
+        const r = host.getBoundingClientRect();
+        window.__cxRoot.setState({
+          appearOpen: true,
+          appearTarget: host.getAttribute("data-appear"),
+          appearAt: { x: Math.min(r.left, window.innerWidth - 350), y: Math.max(8, Math.min(r.top, window.innerHeight - 470)) },
+        });
+      })()
+    `,
   },
   {
     id: "notifications",
@@ -60,7 +73,6 @@ const SHOTS = [
     note: "Corner notification stack and the reviewable centre",
     after: `
       CX.notify.error("MCP server could not be added", "codex mcp add postgres — exit 1: name already exists");
-      CX.notify.warning && CX.notify.warning("YOLO mode is on", "approvals off, sandbox off on Personal");
       CX.notify.warn("YOLO mode is on", "approvals off, sandbox off on Personal — it survives a restart");
       CX.notify.success("Installed secrets-guard", "codex plugin add secrets-guard");
     `,

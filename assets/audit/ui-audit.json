@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-07-30T17:27:47.720Z",
+  "generatedAt": "2026-07-30T17:41:03.800Z",
   "harness": "tools/audit-ui.mjs + tools/audit-ui-main.cjs",
   "auditedFrom": "the real app — app/index.html with electron/preload.js and electron/commands.js",
   "electron": "40.10.6",
   "chrome": "144.0.7559.236",
   "tree": {
-    "head": "6097c37",
+    "head": "ae8d80a",
     "frontendUncommitted": true,
     "sha256": {
-      "app/index.html": "f7828fcd23240117",
-      "app/codex-core.js": "342cf395ff3abc69",
+      "app/index.html": "0151c48d8128bd90",
+      "app/codex-core.js": "3e3f693cecb9b63c",
       "app/cx-i18n.js": "54ae0085f8614bb6",
       "app/cx-tabs.js": "62a1f5095c8c8910",
       "app/support.js": "8fe7df74405f3c55"
@@ -65,19 +65,19 @@
     "focus-visible": "each interactive element focused in turn; flagged when outline-style is none or zero-width, box-shadow is none, and no border, background or colour changed. severity: medium"
   },
   "coverage": {
-    "visibleElementsMeasured": 79206,
+    "visibleElementsMeasured": 89454,
     "pointerTargetsMeasured": 13188,
     "interactiveElementsMeasured": 13210,
     "tabsMeasured": 740,
     "cellsWhereThePageOverflowed": 0,
-    "textRunsMeasuredForContrast": 2820,
+    "textRunsMeasuredForContrast": 3206,
     "lowestContrastRatioSeen": 4.85,
     "elementsFocused": 1018,
     "elementsThatShowedFocus": 972
   },
   "summary": {
     "uniqueFindings": 228,
-    "totalOccurrences": 1642,
+    "totalOccurrences": 1646,
     "bySeverity": {
       "medium": 228
     },
@@ -102,18 +102,18 @@
     },
     "byWidth": {
       "960": 201,
-      "1280": 91,
+      "1280": 93,
       "1920": 57
     },
     "byZoom": {
       "1": 84,
       "2": 201,
       "1.25": 61,
-      "1.5": 64
+      "1.5": 66
     },
     "byLang": {
-      "en": 212,
-      "bi": 214
+      "en": 213,
+      "bi": 213
     }
   },
   "findings": [
@@ -2003,7 +2003,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "Search the changelog",
+      "text": "Search every release note ever written",
       "message": "Focusing this element changes nothing a sighted keyboard user can see: outline-style is \"none\", box-shadow is \"none\", and no border, background or colour moved.",
       "measured": {
         "outlineStyle": "none",
@@ -2044,7 +2044,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "From (yyyy-mm-dd)",
+      "text": "From — yyyy-mm-dd",
       "message": "Focusing this element changes nothing a sighted keyboard user can see: outline-style is \"none\", box-shadow is \"none\", and no border, background or colour moved.",
       "measured": {
         "outlineStyle": "none",
@@ -2085,7 +2085,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "To (yyyy-mm-dd)",
+      "text": "To — yyyy-mm-dd",
       "message": "Focusing this element changes nothing a sighted keyboard user can see: outline-style is \"none\", box-shadow is \"none\", and no border, background or colour moved.",
       "measured": {
         "outlineStyle": "none",
@@ -2126,7 +2126,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "Search every setting here",
+      "text": "Type a setting name — it is in here somewhere",
       "message": "Focusing this element changes nothing a sighted keyboard user can see: outline-style is \"none\", box-shadow is \"none\", and no border, background or colour moved.",
       "measured": {
         "outlineStyle": "none",
@@ -2167,7 +2167,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "Search the changelog · 搵勻所有版本紀錄",
+      "text": "Search every release note ever written · 搵勻由頭到尾所有版本紀錄",
       "message": "Focusing this element changes nothing a sighted keyboard user can see: outline-style is \"none\", box-shadow is \"none\", and no border, background or colour moved.",
       "measured": {
         "outlineStyle": "none",
@@ -2208,7 +2208,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "From (yyyy-mm-dd) · 由邊日 — yyyy-mm-dd",
+      "text": "From — yyyy-mm-dd · 由邊日開始 — yyyy-mm-dd",
       "message": "Focusing this element changes nothing a sighted keyboard user can see: outline-style is \"none\", box-shadow is \"none\", and no border, background or colour moved.",
       "measured": {
         "outlineStyle": "none",
@@ -2249,7 +2249,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "To (yyyy-mm-dd) · 到邊日 — yyyy-mm-dd",
+      "text": "To — yyyy-mm-dd · 去到邊日 — yyyy-mm-dd",
       "message": "Focusing this element changes nothing a sighted keyboard user can see: outline-style is \"none\", box-shadow is \"none\", and no border, background or colour moved.",
       "measured": {
         "outlineStyle": "none",
@@ -2290,7 +2290,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "Search every setting here · 搵呢度所有設定",
+      "text": "Type a setting name — it is in here somewhere · 打個設定名 — 一定喺度嘅",
       "message": "Focusing this element changes nothing a sighted keyboard user can see: outline-style is \"none\", box-shadow is \"none\", and no border, background or colour moved.",
       "measured": {
         "outlineStyle": "none",
@@ -2801,6 +2801,108 @@
         "width": 960,
         "zoom": 2,
         "lang": "en"
+      }
+    },
+    {
+      "check": "offscreen",
+      "severity": "medium",
+      "selector": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2) > div > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2) > span",
+      "tag": "span",
+      "role": "",
+      "appear": "",
+      "text": "Export exactly what I see · 睇到咩就匯出咩",
+      "message": "Rendered past the right edge of the viewport, inside an ancestor that scrolls. The content is still reachable, but only by scrolling sideways to it.",
+      "measured": {
+        "right": 653.3,
+        "viewportRight": 641,
+        "overhang": 12.3,
+        "documentScrollWidth": 641,
+        "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
+        "clipperOverflowX": "auto",
+        "ellipsisTruncated": false,
+        "scrollable": true
+      },
+      "worst": {
+        "right": 653.5,
+        "viewportRight": 480,
+        "overhang": 173.5,
+        "documentScrollWidth": 480,
+        "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
+        "clipperOverflowX": "auto",
+        "ellipsisTruncated": false,
+        "scrollable": true
+      },
+      "count": 3,
+      "sections": [
+        "changelog"
+      ],
+      "widths": [
+        960,
+        1280
+      ],
+      "zooms": [
+        1.5,
+        2
+      ],
+      "langs": [
+        "bi"
+      ],
+      "firstSeen": {
+        "section": "changelog",
+        "width": 960,
+        "zoom": 1.5,
+        "lang": "bi"
+      }
+    },
+    {
+      "check": "offscreen",
+      "severity": "medium",
+      "selector": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2) > div > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(3) > span",
+      "tag": "span",
+      "role": "",
+      "appear": "",
+      "text": "Copy it, it is yours · copy 走佢，唔使客氣",
+      "message": "Rendered past the right edge of the viewport, inside an ancestor that scrolls. The content is still reachable, but only by scrolling sideways to it.",
+      "measured": {
+        "right": 642.7,
+        "viewportRight": 641,
+        "overhang": 1.7,
+        "documentScrollWidth": 641,
+        "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
+        "clipperOverflowX": "auto",
+        "ellipsisTruncated": false,
+        "scrollable": true
+      },
+      "worst": {
+        "right": 642.9,
+        "viewportRight": 480,
+        "overhang": 162.9,
+        "documentScrollWidth": 480,
+        "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
+        "clipperOverflowX": "auto",
+        "ellipsisTruncated": false,
+        "scrollable": true
+      },
+      "count": 3,
+      "sections": [
+        "changelog"
+      ],
+      "widths": [
+        960,
+        1280
+      ],
+      "zooms": [
+        1.5,
+        2
+      ],
+      "langs": [
+        "bi"
+      ],
+      "firstSeen": {
+        "section": "changelog",
+        "width": 960,
+        "zoom": 1.5,
+        "lang": "bi"
       }
     },
     {
@@ -7460,12 +7562,12 @@
       "tag": "span",
       "role": "",
       "appear": "",
-      "text": "3 — balanced",
+      "text": "5 — maximum",
       "message": "Rendered past the right edge of the viewport, inside an ancestor that scrolls. The content is still reachable, but only by scrolling sideways to it.",
       "measured": {
-        "right": 494.9,
+        "right": 499.5,
         "viewportRight": 480,
-        "overhang": 14.9,
+        "overhang": 19.5,
         "documentScrollWidth": 480,
         "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
         "clipperOverflowX": "auto",
@@ -7473,9 +7575,9 @@
         "scrollable": true
       },
       "worst": {
-        "right": 494.9,
+        "right": 499.5,
         "viewportRight": 480,
-        "overhang": 14.9,
+        "overhang": 19.5,
         "documentScrollWidth": 480,
         "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
         "clipperOverflowX": "auto",
@@ -7510,12 +7612,12 @@
       "tag": "span",
       "role": "",
       "appear": "",
-      "text": "4 — cheeky",
+      "text": "5 — maximum",
       "message": "Rendered past the right edge of the viewport, inside an ancestor that scrolls. The content is still reachable, but only by scrolling sideways to it.",
       "measured": {
-        "right": 484,
+        "right": 499.5,
         "viewportRight": 480,
-        "overhang": 4,
+        "overhang": 19.5,
         "documentScrollWidth": 480,
         "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
         "clipperOverflowX": "auto",
@@ -7523,9 +7625,9 @@
         "scrollable": true
       },
       "worst": {
-        "right": 484,
+        "right": 499.5,
         "viewportRight": 480,
-        "overhang": 4,
+        "overhang": 19.5,
         "documentScrollWidth": 480,
         "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
         "clipperOverflowX": "auto",
@@ -8010,12 +8112,12 @@
       "tag": "span",
       "role": "",
       "appear": "",
-      "text": "Clear filters",
+      "text": "Clear the lot",
       "message": "Rendered past the right edge of the viewport, inside an ancestor that scrolls. The content is still reachable, but only by scrolling sideways to it.",
       "measured": {
-        "right": 484.3,
+        "right": 487.6,
         "viewportRight": 480,
-        "overhang": 4.3,
+        "overhang": 7.6,
         "documentScrollWidth": 480,
         "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
         "clipperOverflowX": "auto",
@@ -8023,9 +8125,9 @@
         "scrollable": true
       },
       "worst": {
-        "right": 484.3,
+        "right": 487.6,
         "viewportRight": 480,
-        "overhang": 4.3,
+        "overhang": 7.6,
         "documentScrollWidth": 480,
         "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
         "clipperOverflowX": "auto",
@@ -8055,16 +8157,16 @@
     {
       "check": "offscreen",
       "severity": "medium",
-      "selector": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2) > div > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1) > span",
+      "selector": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2) > div > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2) > span",
       "tag": "span",
       "role": "",
       "appear": "",
-      "text": "Everything",
+      "text": "Export exactly what I see",
       "message": "Rendered past the right edge of the viewport, inside an ancestor that scrolls. The content is still reachable, but only by scrolling sideways to it.",
       "measured": {
-        "right": 483.4,
+        "right": 560.5,
         "viewportRight": 480,
-        "overhang": 3.4,
+        "overhang": 80.5,
         "documentScrollWidth": 480,
         "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
         "clipperOverflowX": "auto",
@@ -8072,9 +8174,58 @@
         "scrollable": true
       },
       "worst": {
-        "right": 483.4,
+        "right": 560.5,
         "viewportRight": 480,
-        "overhang": 3.4,
+        "overhang": 80.5,
+        "documentScrollWidth": 480,
+        "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
+        "clipperOverflowX": "auto",
+        "ellipsisTruncated": false,
+        "scrollable": true
+      },
+      "count": 1,
+      "sections": [
+        "changelog"
+      ],
+      "widths": [
+        960
+      ],
+      "zooms": [
+        2
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "changelog",
+        "width": 960,
+        "zoom": 2,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "offscreen",
+      "severity": "medium",
+      "selector": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2) > div > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(3) > span",
+      "tag": "span",
+      "role": "",
+      "appear": "",
+      "text": "Copy it, it is yours",
+      "message": "Rendered past the right edge of the viewport, inside an ancestor that scrolls. The content is still reachable, but only by scrolling sideways to it.",
+      "measured": {
+        "right": 521.4,
+        "viewportRight": 480,
+        "overhang": 41.4,
+        "documentScrollWidth": 480,
+        "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
+        "clipperOverflowX": "auto",
+        "ellipsisTruncated": false,
+        "scrollable": true
+      },
+      "worst": {
+        "right": 521.4,
+        "viewportRight": 480,
+        "overhang": 41.4,
         "documentScrollWidth": 480,
         "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
         "clipperOverflowX": "auto",
@@ -8157,12 +8308,12 @@
       "tag": "span",
       "role": "",
       "appear": "",
-      "text": "Clear filters · 清晒所有篩選",
+      "text": "Clear the lot · 全部清走佢",
       "message": "Rendered past the right edge of the viewport, inside an ancestor that scrolls. The content is still reachable, but only by scrolling sideways to it.",
       "measured": {
-        "right": 562,
+        "right": 553.8,
         "viewportRight": 480,
-        "overhang": 82,
+        "overhang": 73.8,
         "documentScrollWidth": 480,
         "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
         "clipperOverflowX": "auto",
@@ -8170,9 +8321,9 @@
         "scrollable": true
       },
       "worst": {
-        "right": 562,
+        "right": 553.8,
         "viewportRight": 480,
-        "overhang": 82,
+        "overhang": 73.8,
         "documentScrollWidth": 480,
         "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
         "clipperOverflowX": "auto",
@@ -8194,153 +8345,6 @@
       ],
       "firstSeen": {
         "section": "history",
-        "width": 960,
-        "zoom": 2,
-        "lang": "bi"
-      }
-    },
-    {
-      "check": "offscreen",
-      "severity": "medium",
-      "selector": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2) > div > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1) > span",
-      "tag": "span",
-      "role": "",
-      "appear": "",
-      "text": "Everything · undefined",
-      "message": "Rendered past the right edge of the viewport, inside an ancestor that scrolls. The content is still reachable, but only by scrolling sideways to it.",
-      "measured": {
-        "right": 545.3,
-        "viewportRight": 480,
-        "overhang": 65.3,
-        "documentScrollWidth": 480,
-        "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
-        "clipperOverflowX": "auto",
-        "ellipsisTruncated": false,
-        "scrollable": true
-      },
-      "worst": {
-        "right": 545.3,
-        "viewportRight": 480,
-        "overhang": 65.3,
-        "documentScrollWidth": 480,
-        "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
-        "clipperOverflowX": "auto",
-        "ellipsisTruncated": false,
-        "scrollable": true
-      },
-      "count": 1,
-      "sections": [
-        "changelog"
-      ],
-      "widths": [
-        960
-      ],
-      "zooms": [
-        2
-      ],
-      "langs": [
-        "bi"
-      ],
-      "firstSeen": {
-        "section": "changelog",
-        "width": 960,
-        "zoom": 2,
-        "lang": "bi"
-      }
-    },
-    {
-      "check": "offscreen",
-      "severity": "medium",
-      "selector": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2) > div > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2) > span",
-      "tag": "span",
-      "role": "",
-      "appear": "",
-      "text": "Export · 匯出我睇緊嗰啲",
-      "message": "Rendered past the right edge of the viewport, inside an ancestor that scrolls. The content is still reachable, but only by scrolling sideways to it.",
-      "measured": {
-        "right": 555.7,
-        "viewportRight": 480,
-        "overhang": 75.7,
-        "documentScrollWidth": 480,
-        "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
-        "clipperOverflowX": "auto",
-        "ellipsisTruncated": false,
-        "scrollable": true
-      },
-      "worst": {
-        "right": 555.7,
-        "viewportRight": 480,
-        "overhang": 75.7,
-        "documentScrollWidth": 480,
-        "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
-        "clipperOverflowX": "auto",
-        "ellipsisTruncated": false,
-        "scrollable": true
-      },
-      "count": 1,
-      "sections": [
-        "changelog"
-      ],
-      "widths": [
-        960
-      ],
-      "zooms": [
-        2
-      ],
-      "langs": [
-        "bi"
-      ],
-      "firstSeen": {
-        "section": "changelog",
-        "width": 960,
-        "zoom": 2,
-        "lang": "bi"
-      }
-    },
-    {
-      "check": "offscreen",
-      "severity": "medium",
-      "selector": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2) > div > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(3) > span",
-      "tag": "span",
-      "role": "",
-      "appear": "",
-      "text": "Copy · copy 咗佢",
-      "message": "Rendered past the right edge of the viewport, inside an ancestor that scrolls. The content is still reachable, but only by scrolling sideways to it.",
-      "measured": {
-        "right": 516.5,
-        "viewportRight": 480,
-        "overhang": 36.5,
-        "documentScrollWidth": 480,
-        "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
-        "clipperOverflowX": "auto",
-        "ellipsisTruncated": false,
-        "scrollable": true
-      },
-      "worst": {
-        "right": 516.5,
-        "viewportRight": 480,
-        "overhang": 36.5,
-        "documentScrollWidth": 480,
-        "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2)",
-        "clipperOverflowX": "auto",
-        "ellipsisTruncated": false,
-        "scrollable": true
-      },
-      "count": 1,
-      "sections": [
-        "changelog"
-      ],
-      "widths": [
-        960
-      ],
-      "zooms": [
-        2
-      ],
-      "langs": [
-        "bi"
-      ],
-      "firstSeen": {
-        "section": "changelog",
         "width": 960,
         "zoom": 2,
         "lang": "bi"
@@ -9440,13 +9444,13 @@
       "text": "Funny level — English",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
-        "width": 161.8,
+        "width": 157.2,
         "height": 16,
         "min": 24,
         "shortfall": 8
       },
       "worst": {
-        "width": 161.8,
+        "width": 157.2,
         "height": 16,
         "min": 24,
         "shortfall": 8
@@ -9487,13 +9491,13 @@
       "text": "Funny level — 廣東話",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
-        "width": 172.7,
+        "width": 157.2,
         "height": 16,
         "min": 24,
         "shortfall": 8
       },
       "worst": {
-        "width": 172.7,
+        "width": 157.2,
         "height": 16,
         "min": 24,
         "shortfall": 8
@@ -9531,7 +9535,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "Search revisions",
+      "text": "Search every revision — message, action or hash",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
         "width": 225.1,
@@ -9577,7 +9581,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "From (yyyy-mm-dd)",
+      "text": "From — yyyy-mm-dd",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
         "width": 169.7,
@@ -9623,7 +9627,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "To (yyyy-mm-dd)",
+      "text": "To — yyyy-mm-dd",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
         "width": 462.7,
@@ -9669,10 +9673,10 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "Search the changelog",
+      "text": "Search every release note ever written",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
-        "width": 197.4,
+        "width": 222.3,
         "height": 18,
         "min": 24,
         "shortfall": 6
@@ -9715,7 +9719,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "From (yyyy-mm-dd)",
+      "text": "From — yyyy-mm-dd",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
         "width": 200.3,
@@ -9761,7 +9765,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "To (yyyy-mm-dd)",
+      "text": "To — yyyy-mm-dd",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
         "width": 200.3,
@@ -9807,7 +9811,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "Search every setting here",
+      "text": "Type a setting name — it is in here somewhere",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
         "width": 472.8,
@@ -9853,7 +9857,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "Search revisions · 搵勻所有版本",
+      "text": "Search every revision — message, action or hash · 搵勻所有版本 —— 訊息、動作、hash…",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
         "width": 225.1,
@@ -9899,7 +9903,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "From (yyyy-mm-dd) · 由邊日 — yyyy-mm-dd",
+      "text": "From — yyyy-mm-dd · 由邊日開始 — yyyy-mm-dd",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
         "width": 169.7,
@@ -9945,7 +9949,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "To (yyyy-mm-dd) · 到邊日 — yyyy-mm-dd",
+      "text": "To — yyyy-mm-dd · 去到邊日 — yyyy-mm-dd",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
         "width": 462.7,
@@ -9991,10 +9995,10 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "Search the changelog · 搵勻所有版本紀錄",
+      "text": "Search every release note ever written · 搵勻由頭到尾所有版本紀錄",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
-        "width": 271.8,
+        "width": 392.1,
         "height": 18,
         "min": 24,
         "shortfall": 6
@@ -10037,7 +10041,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "From (yyyy-mm-dd) · 由邊日 — yyyy-mm-dd",
+      "text": "From — yyyy-mm-dd · 由邊日開始 — yyyy-mm-dd",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
         "width": 200.3,
@@ -10083,7 +10087,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "To (yyyy-mm-dd) · 到邊日 — yyyy-mm-dd",
+      "text": "To — yyyy-mm-dd · 去到邊日 — yyyy-mm-dd",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
         "width": 200.3,
@@ -10129,7 +10133,7 @@
       "tag": "input",
       "role": "",
       "appear": "",
-      "text": "Search every setting here · 搵呢度所有設定",
+      "text": "Type a setting name — it is in here somewhere · 打個設定名 — 一定喺度嘅",
       "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
       "measured": {
         "width": 472.8,
@@ -11115,8 +11119,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 275,
-        "visible": 271,
+        "elements": 702,
+        "visible": 698,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -11395,8 +11399,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 275,
-        "visible": 271,
+        "elements": 702,
+        "visible": 698,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -11675,8 +11679,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 275,
-        "visible": 271,
+        "elements": 702,
+        "visible": 698,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -11955,8 +11959,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 275,
-        "visible": 271,
+        "elements": 702,
+        "visible": 698,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -12235,8 +12239,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 275,
-        "visible": 271,
+        "elements": 702,
+        "visible": 698,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -12515,8 +12519,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 275,
-        "visible": 271,
+        "elements": 702,
+        "visible": 698,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -12526,7 +12530,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 4,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -12534,7 +12538,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 7
+      "findings": 9
     },
     {
       "width": 960,
@@ -12795,8 +12799,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 275,
-        "visible": 271,
+        "elements": 702,
+        "visible": 698,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -12806,7 +12810,7 @@
         "documentScrollWidth": 480,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 3,
+        "cutOffRight": 4,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -12814,7 +12818,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 11
+      "findings": 12
     },
     {
       "width": 960,
@@ -13075,8 +13079,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 275,
-        "visible": 271,
+        "elements": 702,
+        "visible": 698,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -13086,7 +13090,7 @@
         "documentScrollWidth": 480,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 5,
+        "cutOffRight": 4,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -13094,7 +13098,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 13
+      "findings": 12
     },
     {
       "width": 960,
@@ -13355,8 +13359,8 @@
       "section": "changelog",
       "deep": true,
       "stats": {
-        "elements": 293,
-        "visible": 289,
+        "elements": 720,
+        "visible": 716,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -13367,7 +13371,7 @@
         "pageOverflows": false,
         "escapedRight": 0,
         "cutOffRight": 0,
-        "contrastChecked": 173,
+        "contrastChecked": 366,
         "minContrastRatio": 4.85,
         "documentHasFocus": true,
         "focusChecked": 39,
@@ -13635,8 +13639,8 @@
       "section": "changelog",
       "deep": true,
       "stats": {
-        "elements": 293,
-        "visible": 289,
+        "elements": 720,
+        "visible": 716,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -13647,7 +13651,7 @@
         "pageOverflows": false,
         "escapedRight": 0,
         "cutOffRight": 0,
-        "contrastChecked": 173,
+        "contrastChecked": 366,
         "minContrastRatio": 4.85,
         "documentHasFocus": true,
         "focusChecked": 39,
@@ -13915,8 +13919,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 281,
-        "visible": 277,
+        "elements": 708,
+        "visible": 704,
         "interactive": 43,
         "targets": 43,
         "tablists": 1,
@@ -14195,8 +14199,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 281,
-        "visible": 277,
+        "elements": 708,
+        "visible": 704,
         "interactive": 43,
         "targets": 43,
         "tablists": 1,
@@ -14475,8 +14479,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 275,
-        "visible": 271,
+        "elements": 702,
+        "visible": 698,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -14755,8 +14759,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 275,
-        "visible": 271,
+        "elements": 702,
+        "visible": 698,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -15035,8 +15039,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 275,
-        "visible": 271,
+        "elements": 702,
+        "visible": 698,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -15315,8 +15319,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 275,
-        "visible": 271,
+        "elements": 702,
+        "visible": 698,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -15326,7 +15330,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 4,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -15334,7 +15338,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 7
+      "findings": 9
     },
     {
       "width": 1280,
@@ -15595,8 +15599,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 293,
-        "visible": 289,
+        "elements": 720,
+        "visible": 716,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -15875,8 +15879,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 293,
-        "visible": 289,
+        "elements": 720,
+        "visible": 716,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -16155,8 +16159,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 293,
-        "visible": 289,
+        "elements": 720,
+        "visible": 716,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -16435,8 +16439,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 293,
-        "visible": 289,
+        "elements": 720,
+        "visible": 716,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -16715,8 +16719,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 293,
-        "visible": 289,
+        "elements": 720,
+        "visible": 716,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -16995,8 +16999,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 293,
-        "visible": 289,
+        "elements": 720,
+        "visible": 716,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -17275,8 +17279,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 275,
-        "visible": 271,
+        "elements": 702,
+        "visible": 698,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -17555,8 +17559,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 275,
-        "visible": 271,
+        "elements": 702,
+        "visible": 698,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -17606,6 +17610,7 @@
     }
   ],
   "consoleErrors": [
-    "%cElectron Security Warning (Insecure Content-Security-Policy) font-weight: bold; This renderer process has either no Content Security\n  Policy set or a policy with \"unsafe-eval\" enabled. This exposes users of\n  this app to unnecessary security risks.\n\nFor more information and help, consult\nhttps://electronjs.org/docs/tutorial/security.\nThis warning will not show up\nonce the app is packaged."
+    "%cElectron Security Warning (Insecure Content-Security-Policy) font-weight: bold; This renderer process has either no Content Security\n  Policy set or a policy with \"unsafe-eval\" enabled. This exposes users of\n  this app to unnecessary security risks.\n\nFor more information and help, consult\nhttps://electronjs.org/docs/tutorial/security.\nThis warning will not show up\nonce the app is packaged.",
+    "[dc-runtime] index: {{ clogPresetLabel }} never resolved — rendered as empty"
   ]
 }
