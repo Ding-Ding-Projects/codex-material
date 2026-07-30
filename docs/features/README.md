@@ -10,7 +10,7 @@ process through `window.CODEX_BRIDGE.invoke(name, args)` — a fixed allow-list 
 
 | Feature | Owner file(s) | One line |
 | --- | --- | --- |
-| [Chats and runs](chats-and-runs.md) | `app/index.html` (`sendChat`, `profileArgv`, `buildArgv`, `startRun`), `electron/lib/cli.js` | How a prompt becomes an argv, and how its output streams back line by line |
+| [Chats and runs](chats-and-runs.md) | `app/index.html` (`sendChat`, `profileArgv`, `expandPath`, `buildArgv`, `startRun`, `doRun`), `electron/commands.js` (`codex_run`), `electron/lib/cli.js` (`stream`) | How a prompt becomes an argv, and how its output streams back line by line over `codex://stdout` |
 | [Regex builder](regex-builder.md) | `app/codex-core.js` (`evaluate`, `nestedQuantifier`, `CONSTRUCTS`, `FLAGS`, `LIMITS`), `app/index.html` | Every search bar has a full, anchored, bounded regex builder beside it — and refuses the shapes a time budget cannot save it from |
 | [Tabs](tabs.md) | `app/cx-tabs.js` (`window.CX_TABS`), `app/index.html` | Browser-style strip: pin, group, overflow, four searches, bulk close from one shared predicate |
 | [Appearance](appearance.md) | `app/index.html` (the editor), `app/codex-core.js` (`color`) | Per-element editor, a twelve-space colour translator and a contrast readout |

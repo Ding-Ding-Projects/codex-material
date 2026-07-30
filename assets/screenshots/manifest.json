@@ -2,10 +2,10 @@
   "capturedFrom": "the real app (electron/main.js frontend + preload)",
   "shots": [
     {
-      "id": "calendar",
-      "file": "09b-calendar.png",
+      "id": "changelog",
+      "file": "09-changelog.png",
       "applied": true,
-      "note": "Changelog date filter — the calendar picker, with month/year jump and range highlighting"
+      "note": "Changelog viewer — date filter + regex search"
     }
   ],
   "consoleErrors": [

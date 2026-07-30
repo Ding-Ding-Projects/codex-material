@@ -6,9 +6,9 @@
 
 **Implementation:** `app/index.html` — `sendChat`, `profileArgv`, `expandPath`, `startRun`,
 `buildArgv`, `buildCommand`, `doRun`, `stopChat`, and the single `codex://stdout` listener
-registered in `componentDidMount`; `electron/commands.js` (`codex_run`); `electron/lib/cli.js`
-(`stream`, `codexBin`). The transcript itself is `state.messages`; the Console log is
-`state.runOutput`.
+registered in `componentDidMount`; `electron/commands.js` — `codex_run`, `codex_cancel`,
+`codex_running` and the `Runs` map they share; `electron/lib/cli.js` — `stream`, `codexBin`,
+`killTree`. The transcript itself is `state.messages`; the Console log is `state.runOutput`.
 
 ## The two surfaces, and the one function underneath them
 
@@ -203,9 +203,10 @@ sendChat / doRun                                              app/index.html
        └─ CX.bridge.invoke("codex_run", { id, args, cwd, stream: "codex://stdout" })
             │                                                 electron/preload.js — name on the allow-list
             └─ ipcMain.handle("codex_run")                    electron/commands.js
-                 └─ cli.stream(cli.codexBin(), args, { cwd }, onLine)      electron/lib/cli.js
+                 └─ cli.stream(cli.codexBin(), args, { cwd, onSpawn }, onLine)  electron/lib/cli.js
                       ├─ spawn(program, args, { cwd, shell: WIN, windowsHide: true,
                       │                          stdio: ["ignore", "pipe", "pipe"] })
+                      ├─ onSpawn(child) → Runs.set(id, { child, pid, startedAt })
                       ├─ pump(child.stdout, "out")    ─┐  both attached before
                       ├─ pump(child.stderr, "error")  ─┘  either can produce data
                       └─ "close" → resolve({ code, lines })
@@ -219,6 +220,14 @@ prompt cannot hang forever waiting for a keystroke that can never arrive. `shell
 there because `codex` on `PATH` is frequently a `.cmd` shim and Node refuses to spawn one directly
 (`EINVAL`) — see [Known limitations](#known-limitations) for what that costs. Unlike `run()`,
 **`stream()` sets no timeout**: an agent turn is allowed to take as long as it takes.
+
+**Tracked from the first instant.** `stream()` calls `opts.onSpawn(child)` the moment the child
+exists, before any output has arrived, and `codex_run` uses that to put the run in the `Runs` map
+keyed by the renderer's run id. The timing matters: a run cancelled while it is still thinking has
+printed nothing yet, and is the one most worth stopping. The entry is removed in a `finally`, so a
+run that failed to start is not left behind as a run someone could try to cancel, and the removal
+is guarded by an identity check (`Runs.get(id) === record`) so a slow exit cannot evict a newer run
+that reused the id.
 
 **Two reader threads.** `pump()` is attached to stdout and stderr *before* either can produce data,
 each with its own line buffer, and each emitting `{ level, text }` — `"out"` for stdout, `"error"`
@@ -279,7 +288,8 @@ stale timeout.
 ## When the process exits
 
 `cli.stream` resolves `{ code, lines }` on `close` — the **complete** transcript, so a surface that
-missed part of the stream can still render everything. `codex_run` returns `{ code, id, lines }`.
+missed part of the stream can still render everything. `codex_run` returns
+`{ code, id, lines, cancelled }`; neither consumer reads `cancelled` today.
 
 **Chat.** The coalesced buffer is thrown away and replaced with `res.lines`, so the finished bubble
 is authoritative rather than whatever the last repaint happened to contain. `thinking` goes false.
@@ -311,6 +321,44 @@ real message the main process threw. The Console replaces its output with that m
 notifies. Both are error-kind notifications, so they persist until dismissed and stay in the
 notification centre.
 
+## Stopping a run
+
+The backend can genuinely stop one. Two commands sit beside `codex_run` in
+`electron/commands.js`, both on the preload allow-list:
+
+| Command | Argument | Returns |
+| --- | --- | --- |
+| `codex_cancel` | `{ id }` | `{ cancelled, id, pid?, reason? }` |
+| `codex_running` | — | `{ ids, runs: [{ id, pid, startedAt }] }` |
+
+`cancelRun` **reports rather than throws**, because a run that finished a moment before the user
+reached Stop is not an error and should not put a red notification on a run that actually
+succeeded. Each outcome names itself: `no run id was given`, ``run `<id>` is not running — it
+already finished``, ``run `<id>` had already exited with code <n>``, `pid <n> was already gone`. A
+successful cancel leaves the map entry in place for `codex_run`'s own `finally` to remove when the
+child really closes, so pressing Stop twice reports *already gone* rather than *never heard of it*.
+`codex_run`'s return value carries the flag: `{ code, id, lines, cancelled }`.
+
+The kill itself is `cli.killTree(pid)`:
+
+```js
+execFileSync("taskkill", ["/pid", String(pid), "/T", "/F"], { stdio: "ignore", windowsHide: true, timeout: 10_000 });
+```
+
+`child.kill()` would not do. Everything goes through `shell: true` on Windows, so the pid Node
+reports is the `cmd.exe` wrapper — signalling it leaves `codex`, and whatever `codex` spawned in
+turn, running to completion with nobody left reading the output. `/T` walks the descendant tree and
+`/F` skips asking politely, which is what a Stop button means. If `taskkill` is absent or the pid is
+already gone it falls through to `process.kill(pid, "SIGKILL")` and returns whether anything was
+actually killed — never a claimed kill that did not happen. It is synchronous on purpose:
+`app.on("before-quit")` does not await, so `killAllRuns()` would lose the race and a run would
+outlive the app that started it.
+
+> [!WARNING]
+> **No surface in the app calls either command yet.** At the commit this page documents,
+> `grep -n "codex_cancel\|codex_running" app/index.html` returns nothing, and `stopChat` is still
+> `this.setState({ thinking: false })` — see [Known limitations](#stop-is-not-reachable-from-the-ui-yet).
+
 ## Configuration
 
 | Knob | Where | Value |
@@ -319,7 +367,7 @@ notification centre.
 | Model | active profile `model` | `-m`, omitted when empty |
 | Sandbox | active profile `sandbox` | `-s`, omitted when empty or under YOLO |
 | Approval policy | active profile `approval` | `-c approval_policy="…"`, omitted when empty or under YOLO |
-| YOLO | `CX.store` key `codexstudio.yolo`, the Danger toggle | `--dangerously-bypass-approvals-and-sandbox`, replacing `-s`/`-c` |
+| YOLO | `CX.store` key `codexstudio.yolo`, the **⚡ YOLO** toggle in the title bar | `--dangerously-bypass-approvals-and-sandbox`, replacing `-s`/`-c` |
 | Repaint window | `setTimeout(flush, 90)` in `sendChat` and `doRun` | 90 ms |
 | Run timeout | `stream()` in `electron/lib/cli.js` | none — a run is not time-limited |
 | Output cap | `stream()` | none; `lines` grows for the life of the run |
@@ -343,26 +391,28 @@ conversation the agent can see. Follow-up messages such as *"now do the same for
 reach a process with no memory of the first one. `resume` and `fork` exist in `DATA.SUBCOMMANDS`
 and can be run from the Console; wiring them into the composer is not implemented.
 
-### Stop does not kill anything — and is not even on screen
+### Stop is not reachable from the UI yet
 
-At the commit this page documents:
+The backend half landed and is tested (see [Stopping a run](#stopping-a-run)). The frontend half
+has not. At the commit this page documents:
 
 - `stopChat` exists in `renderVals` and its entire body is `this.setState({ thinking: false })` —
   it unblocks the composer and nothing else. Its own comment is honest about that: *"Stopping is
   honest about what it can do: the composer unblocks immediately, and the line says the process is
   still finishing rather than pretending it was killed."*
 - **`stopChat` is not bound anywhere in the template.** `grep -n "stopChat" app/index.html` returns
-  the definition and nothing else, so there is no Stop control in the chat surface. The Console has
-  **Copy** and **Run** only.
-- There is no `codex_stop`, `codex_cancel` or abort command in `electron/preload.js` or
-  `electron/commands.js`, and `cli.stream` keeps the child handle in a local variable that nothing
-  outside the promise can reach.
+  the definition and nothing else, so there is no Stop control in the chat surface at all. The
+  Console has **Copy** and **Run** only.
+- Neither `codex_cancel` nor `codex_running` is invoked anywhere in `app/`, and `startRun` does not
+  keep the run id anywhere a Stop control could read it — `this._runs[id]` holds only the `onLine`
+  callback and is deleted the moment the run settles.
 
-The consequence: **once a run starts, the only way to stop it is to quit the app** — which also
-kills every pinned WSL shell (`wsl.shutdown()` on `before-quit`). This is tracked as a known defect
-in [`../../HANDOFF.md`](../../HANDOFF.md) (§5) with the shape of a fix in
-[`../../ROADMAP.md`](../../ROADMAP.md) (§5), including the Windows detail that killing the direct
-child is not enough when the binary is a `.cmd` shim.
+So from a user's seat the old behaviour still stands: **once a run starts, the only way to stop it
+is to quit the app** — which now does kill it (`killAllRuns()` on `before-quit`) along with every
+pinned WSL shell (`wsl.shutdown()`). The remaining work is a Stop control bound to `stopChat`, a
+retained run id, and an honest report of the partial output and the `cancelled` flag; the shape is
+in [`../../ROADMAP.md`](../../ROADMAP.md) (§5), and [`../../HANDOFF.md`](../../HANDOFF.md) (§5)
+still describes the pre-`codex_cancel` state.
 
 ### A multi-word prompt is split before `codex` sees it
 
@@ -434,7 +484,8 @@ instance, is declared on the `exec` command tree in the reference source
 | Second send while a run is live | Info toast, `chat.busy` | `state.thinking` guard; the run is unaffected |
 | `-C ~/…` reaches the CLI unexpanded | The agent runs in the wrong directory, or the run fails | A send issued before `CX.live.hydrate()` returned: `CX.sim.codexHome` is still the simulated `~/.codex`, so `expandPath` substitutes `~` for `~` |
 | `CODEX_HOME` set to a directory not ending in `.codex` | `~` expands to that directory instead of the user profile | `expandPath` strips a trailing `.codex` and nothing else |
-| Window closed mid-run | Nothing; the process keeps running until it exits | `codex_run` checks `isDestroyed()` before each send. The child is not killed |
+| Window closed mid-run | The run is killed with the app | `codex_run` checks `isDestroyed()` before each streamed send, and `killAllRuns()` on `before-quit` kills every tracked tree |
+| Cancel arrives after the run finished | `cancelled: false` plus a `reason` naming the run as already finished | `cancelRun` reports instead of throwing — reachable from the backend only, today |
 | Very long run | Memory grows | `lines` is uncapped in the main process and mirrored in the renderer |
 | Run started, then the app reloaded | Output vanishes | `_runs` lives on the mounted component; a line whose id is unknown is dropped |
 | Non-zero exit | Persistent error notification, output left on screen | `chat.failed` / the `exit <n>` terminator line |
@@ -458,6 +509,10 @@ instance, is declared on the `exec` command tree in the reference source
   file or remote content would be composing shell input — keep the caller in charge.
 - **stdin is closed** (`stdio: ["ignore", …]`). A run cannot be fed anything after it starts, and a
   subcommand that expects a keystroke fails instead of hanging invisibly.
+- **Cancelling kills a tree, and only a tree Studio started.** `killTree` is called with a pid taken
+  from the `Runs` map, which contains nothing but children this process spawned. `taskkill /T /F`
+  is forceful by design, so the pid it is handed must never come from anywhere else — an id from
+  the renderer selects a map entry, it is not itself a pid.
 - **The prompt is never persisted by Studio.** It goes into the argv and into `state.messages` in
   memory. The CLI's own rollout files under `$CODEX_HOME/sessions` are written by the CLI, not by
   Studio.
@@ -468,17 +523,29 @@ instance, is declared on the `exec` command tree in the reference source
 
 ## Verification
 
-Automated coverage today is the contract, not the composition:
+Automated coverage today is the run **lifecycle**, not the argv **composition**:
 
 ```
-node tools/test-backend.mjs    22 tests — includes "every command the preload exposes is
-                               registered by the main process", which covers codex_run
-node tools/test-frontend.mjs   23 tests — covers codex-core.js, cx-i18n.js, cx-dimsum.js,
-                               cx-changelog.js; there is no unit test for sendChat/buildArgv
+node tools/test-backend.mjs    28 tests, 28 passed
+node tools/test-frontend.mjs   23 tests, 23 passed
 ```
 
-Both suites are dependency-free and need neither Electron nor a `codex` binary. Neither exercises
-argv composition — that gap is real and worth closing.
+Six backend tests are about this page:
+
+- *cli.stream hands the caller the child the moment it starts*
+- *cli.killTree reports false for a pid nothing is using*
+- *cli.killTree kills the process and everything under it*
+- *codex_cancel answers for a run that is not running instead of throwing*
+- *codex_running lists the live runs and codex_cancel kills one*
+- *quitting kills every tracked run*
+
+plus *every command the preload exposes is registered by the main process*, which is what keeps
+`codex_run`, `codex_cancel` and `codex_running` on both sides of the bridge.
+
+Both suites are dependency-free and need neither Electron nor a `codex` binary. **Neither
+exercises argv composition** — there is no unit test for `sendChat`, `profileArgv` or `buildArgv`,
+which is exactly why the prompt-splitting defect above could go unnoticed. That gap is real and
+worth closing.
 
 By hand, with `npm start`:
 
@@ -499,6 +566,8 @@ By hand, with `npm start`:
 7. **The prompt-splitting defect.** Send a single word, then a sentence. Until
    `electron/lib/cli.js` is fixed, the first succeeds and the second returns
    `error: unrecognized subcommand '<second word>'`.
-8. **Language modes.** Set each of en / yue / bi and both funny sliders to 1 and to 5, and confirm
+8. **Nothing outlives the app.** Start a long run, quit Studio, then check Task Manager (or
+   `tasklist /fi "imagename eq codex.exe"`). No `codex.exe` Studio started may remain.
+9. **Language modes.** Set each of en / yue / bi and both funny sliders to 1 and to 5, and confirm
    `chat.busy`, `chat.failed` and `err.run` still name the exit code and the real detail at every
    level.

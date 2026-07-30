@@ -160,12 +160,16 @@ function auditInPage(opts) {
     return r.width > 0.5 && r.height > 0.5;
   }
 
-  /** The nearest ancestor whose overflow actually cuts this element off. */
+  /** The nearest ancestor that both clips its overflow and sits inside the viewport,
+   *  i.e. the thing that actually cuts this element off before the page edge does. */
   function clipper(el) {
     let n = el.parentElement;
     while (n && n !== document.documentElement) {
       const s = cs(n);
-      if (s.overflowX !== "visible" || s.overflowY !== "visible") return n;
+      if ((s.overflowX !== "visible" || s.overflowY !== "visible") &&
+          n.getBoundingClientRect().right <= window.innerWidth + 1) {
+        return n;
+      }
       n = n.parentElement;
     }
     return null;
@@ -194,35 +198,43 @@ function auditInPage(opts) {
   /* ---- 1. horizontal overflow -------------------------------------------- */
 
   const pageOverflows = docWidth > vw + 1;
+  const past = new Set();
+  for (const el of shown) {
+    if (el.getBoundingClientRect().right > vw + 1) past.add(el);
+  }
   let escaped = 0;
   let cut = 0;
-  for (const el of shown) {
+  for (const el of past) {
+    // Every ancestor of an overflowing element overflows too. Reporting the whole
+    // chain buries the one selector worth acting on, so only the innermost offender
+    // — the element that actually holds the text at the edge — is filed.
+    if (Array.prototype.some.call(el.children, (c) => past.has(c))) continue;
     const r = el.getBoundingClientRect();
-    if (r.right <= vw + 1) continue;
     if (cs(el).position === "fixed" && r.left >= vw) continue;
     const clip = clipper(el);
-    const clipped = clip && clip.getBoundingClientRect().right <= vw + 1;
     const measured = {
       right: Math.round(r.right * 10) / 10,
       viewportRight: vw,
       overhang: Math.round((r.right - vw) * 10) / 10,
       documentScrollWidth: docWidth,
-      clippedBy: clipped ? sel(clip) : null,
+      clippedBy: clip ? sel(clip) : null,
     };
-    if (clipped) {
-      cut++;
-      add("offscreen", "medium", el,
-        "Rendered past the right edge of the viewport and silently cut off by an ancestor's overflow. Not a page-level overflow, but the content is unreachable unless that ancestor offers its own overflow surface.",
-        measured);
-    } else {
+    if (pageOverflows && !clip) {
       escaped++;
       add("overflow", "high", el,
-        "Extends past the right edge of the viewport with no clipping ancestor, so the page itself overflows horizontally.",
+        "Extends past the right edge of the viewport with no clipping ancestor, and document.documentElement.scrollWidth exceeds innerWidth — the page itself overflows horizontally.",
+        measured);
+    } else {
+      cut++;
+      add("offscreen", "medium", el,
+        clip
+          ? "Rendered past the right edge of the viewport and silently cut off by an ancestor's overflow. The page does not scroll, so this content is unreachable unless that ancestor offers its own overflow surface."
+          : "Rendered past the right edge of the viewport. The page does not overflow — html and body both set overflow: hidden — so the content is simply cut away with nothing to scroll to it.",
         measured);
     }
   }
   if (pageOverflows && !escaped) {
-    notes.push("document.documentElement.scrollWidth (" + docWidth + ") exceeds innerWidth (" + vw + ") but no single visible element was found past the edge.");
+    notes.push("document.documentElement.scrollWidth (" + docWidth + ") exceeds innerWidth (" + vw + ") but no innermost element was found past the edge.");
   }
 
   /* ---- 2. clipped text ---------------------------------------------------- */

@@ -16,7 +16,7 @@ the order `app/index.html` lists them and each attaches exactly one global.
 | `app/vendor/react.production.min.js`, `react-dom.production.min.js` | `React`, `ReactDOM` | Vendored React **18.3.1** production UMD builds. Loaded in `<head>` before `support.js`, which throws `dc-runtime: window.React is not available yet` without them. |
 | `app/support.js` | the `dc` runtime | Generated `dc-runtime`. Compiles the `<x-dc>` template into React elements and drives the logic class. **Do not hand-edit** — its first line says it is generated from `dc-runtime/src/*.ts`. |
 | `app/codex-data.js` | `window.CODEX` | Static catalog of the CLI surface: `ENUMS`, `MODELS`, `SUBCOMMANDS`, `GLOBAL_FLAGS`, `SLASH`, `SETTINGS`, `FEATURES`, `HOOK_EVENTS`. Data, not behaviour — it drives the Console and Config panels. |
-| `app/cx-i18n.js`, `cx-dimsum.js`, `cx-changelog.js`, `cx-notify.js`, `cx-tabs.js` | `window.CX_I18N`, `CX_DIMSUM`, `CX_CHANGELOG`, `CX_NOTIFY`, `CX_TABS` | Feature modules, each independently unit-tested by `tools/test-frontend.mjs`. |
+| `app/cx-i18n.js`, `cx-dimsum.js`, `cx-changelog.js`, `cx-notify.js`, `cx-tabs.js` | `window.CX_I18N`, `CX_DIMSUM`, `CX_CHANGELOG`, `CX_NOTIFY`, `CX_TABS` | Feature modules, each loadable on its own. `tools/test-frontend.mjs` unit-tests the first three; `cx-notify.js` and `cx-tabs.js` have no unit tests yet. |
 | `app/codex-core.js` | `window.CX` | The runtime core: `bridge`, `store`, `toToml`, `evaluate` (regex), `CONSTRUCTS`, `FLAGS`, `LIMITS`, `color`, `i18n`, `narrator`, `vcs`, `notify`, `tabs`, `settings`, `dimsum`, `live`, `notifyBackendFailure`, and `sim` (the simulated state object). Loaded last, because it wires the `CX_*` modules into `CX` when they are present. |
 | `app/index.html` | — | The `<x-dc>` template plus `class Component extends DCLogic`. |
 | `app/fonts/`, `app/dimsum/`, `app/CHANGELOG.md` | — | Roboto and Roboto Mono (10 woff2 faces), the dim sum photographs with their `manifest.json`, and the changelog copy kept in step with the root file by `tools/sync-changelog.mjs`. |
@@ -45,11 +45,11 @@ Nine files, no framework, one dependency (`smol-toml`).
 | File | Responsibility |
 | --- | --- |
 | `main.js` | Creates the `BrowserWindow` (1440×940, minimum 960×640, `frame: false` because the app draws its own Material 3 title bar), enforces the single-instance lock, denies every `window.open` and off-`file://` navigation, and kills every WSL shell on quit. |
-| `preload.js` | The **only** bridge. Exposes `window.CODEX_BRIDGE` with an explicit 50-name allow-list, an `invoke`, a prefix-checked `listen`, and three window helpers. |
+| `preload.js` | The **only** bridge. Exposes `window.CODEX_BRIDGE` with an explicit 54-name allow-list, an `invoke`, a prefix-checked `listen` (`codex://` only), and three window helpers. |
 | `commands.js` | Every `ipcMain.handle` registration in one place, each wrapped so the real error message reaches the GUI. Registration happens on `require`, which is why `tools/capture-main.cjs` can reuse it. |
-| `lib/cli.js` | Finding and running `codex`: `codexHome()`, `resolveCodex()`, `run`, `runJson`, `parseLooseJson`, `stream` (both pipes drained concurrently). |
+| `lib/cli.js` | Finding and running `codex`: `codexHome()`, `resolveCodex()`, `run`, `runJson`, `parseLooseJson`, `stream` (both pipes drained concurrently, `onSpawn` handing back the child), `killTree`. |
 | `lib/config.js` | `$CODEX_HOME/config.toml`: parse to JSON, write text rejecting invalid TOML, set or remove a dotted key path, and back the previous file up before every write. |
-| `lib/catalog.js` | Everything the GUI lists — MCP servers, plugins, marketplaces, skills, hooks, feature flags, saved sessions, auth status, doctor — read from the real CLI and the real `$CODEX_HOME`, then normalised. |
+| `lib/catalog.js` | Everything the GUI lists — MCP servers, plugins, marketplaces, skills, hooks, feature flags, saved sessions, auth status, doctor, usage, cloud tasks — read from the real CLI and the real `$CODEX_HOME`, then normalised. |
 | `lib/wsl.js` | Per-tab WSL runtimes: list distros (decoding UTF-16LE), spawn one long-lived shell per session, exec in it, stop, kill, shut down. |
 | `lib/history.js` | The local git-backed append-only history in `$CODEX_HOME/studio`. |
 | `lib/editors.js` | External editor detection by executable, launch, and reveal in File Explorer. |
@@ -152,8 +152,8 @@ Studio-only preferences never enter `config.toml`, and Codex configuration never
 ## Verification
 
 ```bash
-node tools/test-frontend.mjs   # 23 tests across the four app/cx-*.js modules and codex-core.js
-node tools/test-backend.mjs    # 22 tests across electron/lib/* and the preload/commands agreement
+node tools/test-frontend.mjs   # 23 tests across codex-core.js, cx-i18n.js, cx-dimsum.js, cx-changelog.js
+node tools/test-backend.mjs    # 28 tests across electron/lib/* and the preload/commands agreement
 npm start                      # the real app; the title bar must read "Electron IPC"
 node tools/capture.mjs         # drives the real app and writes assets/screenshots/*.png
 ```
