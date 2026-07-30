@@ -81,6 +81,22 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **The colour picker is continuous.** It was a swatch and three anonymous range
+  inputs — neither a spectrum nor a two-dimensional field, and with no way to tell
+  which slider was which. There is a draggable saturation/brightness field now, a hue
+  strip drawn in the hues it selects, and every slider carries its name.
+- **The appearance editor anchors to the element, not the pointer.** It opened at
+  `clientX`/`clientY`, so right-clicking near the middle of a control put the editor
+  on top of the thing being edited. It now sits beside the element, flipping side at
+  the viewport edge and clamping to the height it can actually occupy.
+- **The appearance editor can restyle itself**, which is the one surface a theming
+  feature must not exempt — it had no `data-appear` at all. It also announces itself
+  as a dialog with a name.
+- **There is a keyboard route to it.** <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd>
+  edits the focused element; the context menu had been the only way in, so anyone not
+  using a mouse could not reach the editor at all. Closing it returns focus to
+  whatever opened it.
+
 - **The regex builder is reachable from the surfaces that open it.** It rendered at
   `z-index: 85`, below the command palette's scrim at 96 and the bulk-close dialog's at
   98 — so the builder those two offer opened *behind* them and could not be used at all.

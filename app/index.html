@@ -813,7 +813,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary) !
   </sc-if>
 
   <sc-if value="{{ appearOpen }}" hint-placeholder-val="{{ false }}">
-    <div onClick="{{ stop }}" style="position:fixed;top:{{ appearTop }};left:{{ appearLeft }};width:330px;max-width:calc(100vw - 24px);max-height:70vh;overflow:auto;background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:20px;box-shadow:0 18px 44px rgba(0,0,0,.5);padding:14px 16px;z-index:88">
+    <div onClick="{{ stop }}" data-appear="Appearance editor" role="dialog" aria-label="{{ appearDialogLabel }}" style="position:fixed;top:{{ appearTop }};left:{{ appearLeft }};width:330px;max-width:calc(100vw - 24px);max-height:70vh;overflow:auto;background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:20px;box-shadow:0 18px 44px rgba(0,0,0,.5);padding:14px 16px;z-index:88">
       <div style="display:flex;align-items:center;gap:10px">
         <div style="flex:1;min-width:0;font-size:13.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Appearance — {{ appearTarget }}</div>
         <button onClick="{{ closeAppear }}" style="flex:0 0 auto;width:26px;height:26px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:11px">✕</button>
@@ -835,12 +835,29 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary) !
             <button onClick="{{ t.toggle }}" style="height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ t.bg }};color:{{ t.fg }};cursor:pointer;font-size:11.5px;white-space:nowrap">{{ t.label }}</button>
           </sc-for>
         </div>
+        <!-- A continuous two-dimensional saturation/value field with a hue strip under
+             it. The rules ask for a spectrum or 2-D field rather than a swatch-and-slider
+             chooser; three unlabelled range inputs were neither continuous in two
+             dimensions nor identifiable. The sliders stay for keyboard use and for
+             anyone who wants an exact number, but they are named now. -->
+        <div role="application" aria-label="{{ pickerLabel }}" onMouseDown="{{ pickSV }}" onMouseMove="{{ dragSV }}" onMouseUp="{{ endSV }}" onMouseLeave="{{ endSV }}" style="position:relative;width:100%;height:132px;border-radius:12px;border:1px solid var(--m3-outline-variant);cursor:crosshair;background:linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, {{ appearHuePure }})">
+          <div aria-hidden="true" style="position:absolute;left:{{ svThumbX }};top:{{ svThumbY }};width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:7px;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.55);background:{{ appearColor }}"></div>
+        </div>
         <div style="display:flex;gap:10px;align-items:center">
-          <div style="width:40px;height:40px;flex:0 0 40px;border-radius:11px;border:1px solid var(--m3-outline-variant);background:{{ appearColor }}"></div>
-          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px">
-            <input value="{{ appearHue }}" onInput="{{ setAppearHue }}" type="range" min="0" max="360" style="width:100%;accent-color:var(--m3-primary)" />
-            <input value="{{ appearSat }}" onInput="{{ setAppearSat }}" type="range" min="0" max="100" style="width:100%;accent-color:var(--m3-primary)" />
-            <input value="{{ appearVal }}" onInput="{{ setAppearVal }}" type="range" min="0" max="100" style="width:100%;accent-color:var(--m3-primary)" />
+          <div aria-hidden="true" style="width:40px;height:40px;flex:0 0 40px;border-radius:11px;border:1px solid var(--m3-outline-variant);background:{{ appearColor }}"></div>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="flex:0 0 58px;font-size:10.5px;color:var(--m3-on-surface-variant)">{{ hueLabel }}</span>
+              <input value="{{ appearHue }}" onInput="{{ setAppearHue }}" type="range" min="0" max="360" aria-label="{{ hueLabel }}" style="flex:1;min-width:0;min-height:26px;accent-color:var(--m3-primary);background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);border-radius:13px" />
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="flex:0 0 58px;font-size:10.5px;color:var(--m3-on-surface-variant)">{{ satLabel }}</span>
+              <input value="{{ appearSat }}" onInput="{{ setAppearSat }}" type="range" min="0" max="100" aria-label="{{ satLabel }}" style="flex:1;min-width:0;min-height:26px;accent-color:var(--m3-primary)" />
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="flex:0 0 58px;font-size:10.5px;color:var(--m3-on-surface-variant)">{{ valLabel }}</span>
+              <input value="{{ appearVal }}" onInput="{{ setAppearVal }}" type="range" min="0" max="100" aria-label="{{ valLabel }}" style="flex:1;min-width:0;min-height:26px;accent-color:var(--m3-primary)" />
+            </div>
           </div>
         </div>
         <input value="{{ appearColorText }}" onInput="{{ setAppearColorText }}" style="width:100%;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:0 10px;font-family:'Roboto Mono',monospace;font-size:11.5px;outline:none" />
@@ -1158,7 +1175,26 @@ class Component extends DCLogic {
       this._dimTimer = setTimeout(() => this.setState({ dimSum: null }), 9000);
     }
     this._key = (e) => {
-      if (e.key === "Escape") this.setState({ menu: null, regexOpen: false, appearOpen: false, slashOpen: false, dd: null, paletteOpen: false, calOpen: null });
+      if (e.key === "Escape") {
+        /* Hand focus back to whatever opened the editor — otherwise a keyboard user
+           who closes it is returned to the top of the document. */
+        if (this.state.appearOpen && this._appearReturn && this._appearReturn.focus) {
+          const back = this._appearReturn;
+          this._appearReturn = null;
+          setTimeout(() => { try { back.focus(); } catch (_) { /* gone from the DOM */ } }, 0);
+        }
+        this.setState({ menu: null, regexOpen: false, appearOpen: false, slashOpen: false, dd: null, paletteOpen: false, calOpen: null });
+      }
+      /* The keyboard equivalent of "Edit appearance…", which the rules require on every
+         element. The context menu was the only route, so anyone not using a mouse could
+         not reach the editor at all. */
+      if (e.ctrlKey && e.shiftKey && (e.key === "E" || e.key === "e")) {
+        e.preventDefault();
+        const host = document.activeElement && document.activeElement.closest
+          ? document.activeElement.closest("[data-appear]")
+          : null;
+        if (!this.openAppearFor(host)) CX.notify.info(CX.i18n.t("appear.noTarget"), CX.i18n.t("appear.noTargetBody"));
+      }
       if (e.ctrlKey && e.shiftKey && (e.key === "F" || e.key === "f")) { e.preventDefault(); this.setState({ paletteOpen: true, paletteQuery: "", paletteRegex: null }); }
     };
     window.addEventListener("keydown", this._key);
@@ -1416,11 +1452,48 @@ class Component extends DCLogic {
     ];
   }
   copyItem(text) { return { key: "copy", icon: "⧉", label: "Copy", click: () => { navigator.clipboard.writeText(text); this.setState({ menu: null }); this.toast("Copied"); } }; }
+  /** Where the appearance editor should sit for a given element.
+   *
+   *  Beside it, never on top of it: preferring the right-hand side, falling back to
+   *  the left when that would leave the viewport, and clamped vertically. Anchoring to
+   *  the pointer instead — which is what this did — put the editor over the very
+   *  element it was editing whenever the user right-clicked near the middle, which the
+   *  screenshot audit duly photographed. */
+  /** Translate a pointer position inside the field into saturation and value. */
+  setSVFromEvent(e, hsv) {
+    const box = e.currentTarget.getBoundingClientRect();
+    const s = Math.max(0, Math.min(100, ((e.clientX - box.left) / box.width) * 100));
+    const v = Math.max(0, Math.min(100, (1 - (e.clientY - box.top) / box.height) * 100));
+    this.patchAppear({ color: CX.color.rgbToHex(CX.color.hsvToRgb({ h: hsv.h, s: s, v: v })) });
+  }
+
+  appearAnchor(host) {
+    /* The popover is max-height:70vh and scrolls internally, so clamp against that
+       rather than a fixed 470 — a constant taller than the viewport pushed the panel
+       off the bottom of short windows, which the screenshot audit caught. */
+    const W = 330, GAP = 12;
+    const H = Math.min(470, Math.round(window.innerHeight * 0.7));
+    if (!host || !host.getBoundingClientRect) return { x: 24, y: 24 };
+    const r = host.getBoundingClientRect();
+    let x = r.right + GAP;
+    if (x + W > window.innerWidth - 8) x = r.left - W - GAP;
+    if (x < 8) x = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
+    return { x: x, y: Math.max(8, Math.min(r.top, window.innerHeight - H - 8)) };
+  }
+
+  /** Open the editor for an element, remembering where focus came from. */
+  openAppearFor(host) {
+    const name = host ? host.getAttribute("data-appear") : null;
+    if (!name) return false;
+    this._appearReturn = document.activeElement;
+    this.setState({ menu: null, appearOpen: true, appearTarget: name, appearAt: this.appearAnchor(host) });
+    return true;
+  }
+
   appearItem(e) {
     const host = e.target.closest ? e.target.closest("[data-appear]") : null;
     const name = host ? host.getAttribute("data-appear") : null;
-    const at = { x: Math.min(e.clientX, window.innerWidth - 350), y: Math.max(8, Math.min(e.clientY, window.innerHeight - 470)) };
-    return { key: "appear", icon: "🎨", label: name ? "Edit appearance — " + name : "Edit appearance…", click: () => this.setState({ menu: null, appearOpen: !!name, appearTarget: name, appearAt: at }) };
+    return { key: "appear", icon: "🎨", label: name ? "Edit appearance — " + name : "Edit appearance…", click: () => this.openAppearFor(host) };
   }
 
   openRegexFor(target, currentQuery) {
@@ -2682,6 +2755,7 @@ class Component extends DCLogic {
 
       appearOpen: st.appearOpen,
       appearTarget: st.appearTarget || "",
+      appearDialogLabel: CX.i18n.t("appear.dialog", { target: st.appearTarget || "" }),
       appearTop: st.appearAt.y + "px",
       appearLeft: st.appearAt.x + "px",
       closeAppear: () => this.setState({ appearOpen: false }),
@@ -2721,6 +2795,19 @@ class Component extends DCLogic {
       setAppearHue: (e) => this.patchAppear({ color: CX.color.rgbToHex(CX.color.hsvToRgb({ h: Number(e.target.value), s: hsv.s, v: hsv.v })) }),
       setAppearSat: (e) => this.patchAppear({ color: CX.color.rgbToHex(CX.color.hsvToRgb({ h: hsv.h, s: Number(e.target.value), v: hsv.v })) }),
       setAppearVal: (e) => this.patchAppear({ color: CX.color.rgbToHex(CX.color.hsvToRgb({ h: hsv.h, s: hsv.s, v: Number(e.target.value) })) }),
+
+      /* The 2-D field: x is saturation, y is value, and the background is the pure hue
+         so the gradient the user sees is the colour they are picking from. */
+      appearHuePure: CX.color.rgbToHex(CX.color.hsvToRgb({ h: hsv.h, s: 100, v: 100 })),
+      svThumbX: hsv.s + "%",
+      svThumbY: (100 - hsv.v) + "%",
+      pickerLabel: CX.i18n.t("appear.picker"),
+      hueLabel: CX.i18n.t("appear.hue"),
+      satLabel: CX.i18n.t("appear.sat"),
+      valLabel: CX.i18n.t("appear.val"),
+      pickSV: (e) => { this._svDrag = true; this.setSVFromEvent(e, hsv); },
+      dragSV: (e) => { if (this._svDrag) this.setSVFromEvent(e, hsv); },
+      endSV: () => { this._svDrag = false; },
       colorRows: CX.color.translate(appearColor).map(([space, value]) => ({ key: space, space, value, copy: () => { navigator.clipboard.writeText(value); this.toast(space + " copied"); } })),
       contrastLabel: (() => {
         const fg = CX.color.hexToRgb(appearColor);

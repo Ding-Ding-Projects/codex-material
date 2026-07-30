@@ -1565,6 +1565,47 @@
        git repository written by a previous install, for instance. The old code
        returned null and did nothing, which on a data-recovery feature is the worst
        possible response. */
+    "appear.picker": {
+      en: ["Saturation and brightness field", "Saturation and brightness field", "Saturation and brightness field",
+        "Pick saturation and brightness — drag anywhere in the field",
+        "Drag anywhere in here: across for saturation, up for brightness"],
+      yue: ["飽和度同光暗選色區", "飽和度同光暗選色區", "飽和度同光暗選色區",
+        "揀飽和度同光暗 —— 喺格入面任你拖", "喺呢格入面任拖：橫向係飽和度，向上係光"]
+    },
+    "appear.hue": {
+      en: ["Hue", "Hue", "Hue", "Hue", "Hue"],
+      yue: ["色相", "色相", "色相", "色相", "色相"]
+    },
+    "appear.sat": {
+      en: ["Saturation", "Saturation", "Saturation", "Saturation", "Saturation"],
+      yue: ["飽和度", "飽和度", "飽和度", "飽和度", "飽和度"]
+    },
+    "appear.val": {
+      en: ["Brightness", "Brightness", "Brightness", "Brightness", "Brightness"],
+      yue: ["光暗", "光暗", "光暗", "光暗", "光暗"]
+    },
+    "appear.dialog": {
+      en: ["Appearance — {target}", "Appearance — {target}", "Appearance of {target}",
+        "Appearance settings for {target}", "Appearance settings for {target}"],
+      yue: ["外觀 —— {target}", "外觀 —— {target}", "{target} 嘅外觀",
+        "{target} 嘅外觀設定", "{target} 嘅外觀設定"]
+    },
+    "appear.noTarget": {
+      en: ["Nothing selected to restyle", "Nothing selected to restyle", "Nothing selected to restyle",
+        "There is no element focused to restyle", "Nothing is focused, so there is nothing to restyle"],
+      yue: ["冇揀中任何嘢改外觀", "冇揀中任何嘢改外觀", "冇揀中任何嘢改外觀",
+        "而家冇 focus 住任何元素，改唔到外觀", "冇嘢 focus 住，即係冇嘢改得"]
+    },
+    "appear.noTargetBody": {
+      en: ["Tab to a control first, then press Ctrl+Shift+E.", "Tab to a control first, then press Ctrl+Shift+E.",
+        "Tab to a control first, then press Ctrl+Shift+E to edit its appearance.",
+        "Move focus onto a control with Tab, then press Ctrl+Shift+E to edit how it looks.",
+        "Tab onto something first — then Ctrl+Shift+E, and it is yours to redecorate."],
+      yue: ["先撳 Tab 去到一個控制項，再撳 Ctrl+Shift+E。", "先撳 Tab 去到一個控制項，再撳 Ctrl+Shift+E。",
+        "先撳 Tab 去到一個控制項，再撳 Ctrl+Shift+E 改佢個外觀。",
+        "用 Tab 將 focus 移去一個控制項，再撳 Ctrl+Shift+E 改佢個樣。",
+        "先 Tab 落去揀個嘢先 —— 然後 Ctrl+Shift+E，佢就任你裝修。"]
+    },
     "history.noSnapshot": {
       en: ["No snapshot stored for this revision", "No snapshot stored for this revision",
         "This revision has no snapshot to restore", "This revision has no snapshot, so there is nothing to put back",
