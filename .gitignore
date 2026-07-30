@@ -1,0 +1,11 @@
+# Rust / Tauri
+src-tauri/target/
+src-tauri/gen/
+
+# Node tooling (the Tauri CLI is installed with --no-save, never vendored)
+node_modules/
+package-lock.json
+
+# Local build scratch
+dist/
+*.log

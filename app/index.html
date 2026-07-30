@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codex Studio</title>
+<!-- React is vendored locally: the shipped app runs under a strict `default-src 'self'`
+     CSP and must never reach a CDN. support.js only fetches React when window.React is
+     missing, so these two must load first. -->
+<script src="./vendor/react.production.min.js"></script>
+<script src="./vendor/react-dom.production.min.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* Roboto + Roboto Mono are bundled (app/fonts) — no network at runtime. Traditional
+   Chinese glyphs fall through to the Windows system CJK faces so Cantonese copy stays
+   legible at every language mode without shipping a 10 MB CJK webfont. */
+@font-face{font-family:Roboto;font-style:normal;font-weight:300;font-display:swap;src:url("./fonts/roboto-latin-300-normal.woff2") format("woff2")}
+@font-face{font-family:Roboto;font-style:italic;font-weight:300;font-display:swap;src:url("./fonts/roboto-latin-300-italic.woff2") format("woff2")}
+@font-face{font-family:Roboto;font-style:normal;font-weight:400;font-display:swap;src:url("./fonts/roboto-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:Roboto;font-style:italic;font-weight:400;font-display:swap;src:url("./fonts/roboto-latin-400-italic.woff2") format("woff2")}
+@font-face{font-family:Roboto;font-style:normal;font-weight:500;font-display:swap;src:url("./fonts/roboto-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:Roboto;font-style:italic;font-weight:500;font-display:swap;src:url("./fonts/roboto-latin-500-italic.woff2") format("woff2")}
+@font-face{font-family:Roboto;font-style:normal;font-weight:700;font-display:swap;src:url("./fonts/roboto-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:Roboto;font-style:italic;font-weight:700;font-display:swap;src:url("./fonts/roboto-latin-700-italic.woff2") format("woff2")}
+@font-face{font-family:"Roboto Mono";font-style:normal;font-weight:400;font-display:swap;src:url("./fonts/roboto-mono-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Roboto Mono";font-style:normal;font-weight:500;font-display:swap;src:url("./fonts/roboto-mono-latin-500-normal.woff2") format("woff2")}
+:root{
+  --cx-cjk:"Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans HK","PingFang HK","Noto Sans TC","Microsoft YaHei UI",sans-serif;
+}
+:root{
+  --m3-surface:#141218; --m3-surface-dim:#0F0D13; --m3-surface-low:#1D1B20; --m3-surface-container:#211F26;
+  --m3-surface-high:#2B2930; --m3-surface-highest:#36343B; --m3-on-surface:#E6E0E9; --m3-on-surface-variant:#CAC4D0;
+  --m3-outline:#938F99; --m3-outline-variant:#3B383E;
+  --m3-primary:#D0BCFF; --m3-on-primary:#381E72; --m3-primary-container:#4F378B; --m3-on-primary-container:#EADDFF;
+  --m3-secondary-container:#4A4458; --m3-on-secondary-container:#E8DEF8;
+  --m3-tertiary:#EFB8C8; --m3-error:#F2B8B5; --m3-error-container:#8C1D18; --m3-on-error-container:#F9DEDC;
+  --m3-ok:#9BD5A8; --m3-warn:#F1C27A;
+}
+[data-theme="light"]{
+  --m3-surface:#FEF7FF; --m3-surface-dim:#EFE9F2; --m3-surface-low:#F7F2FA; --m3-surface-container:#F3EDF7;
+  --m3-surface-high:#ECE6F0; --m3-surface-highest:#E6E0E9; --m3-on-surface:#1D1B20; --m3-on-surface-variant:#49454F;
+  --m3-outline:#79747E; --m3-outline-variant:#CAC4D0;
+  --m3-primary:#6750A4; --m3-on-primary:#FFFFFF; --m3-primary-container:#EADDFF; --m3-on-primary-container:#21005D;
+  --m3-secondary-container:#E8DEF8; --m3-on-secondary-container:#1D192B;
+  --m3-tertiary:#7D5260; --m3-error:#B3261E; --m3-error-container:#F9DEDC; --m3-on-error-container:#410E0B;
+  --m3-ok:#2E6B3E; --m3-warn:#8A5A00;
+}
+html,body{margin:0;padding:0;height:100%;background:var(--m3-surface);color:var(--m3-on-surface);
+  font-family:Roboto,"Helvetica Neue",Helvetica,Arial,var(--cx-cjk);-webkit-font-smoothing:antialiased;overflow:hidden}
+*{box-sizing:border-box;min-width:0}
+a{color:var(--m3-primary);text-decoration:none}
+a:hover{color:var(--m3-tertiary);text-decoration:underline}
+button,input,textarea,select{font-family:inherit;color:inherit;max-width:100%}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:var(--m3-outline-variant);border-radius:8px}
+::-webkit-scrollbar-track{background:transparent}
+@keyframes cxin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes cxdot{0%,80%,100%{opacity:.25}40%{opacity:1}}
+</style>
+<script src="codex-data.js"></script>
+<script src="codex-core.js"></script>
+</helmet>
+
+<div style="display:flex;flex-direction:column;height:100vh;overflow:hidden" onContextMenu="{{ onContextMenu }}" onClick="{{ onRootClick }}">
+
+  <div data-tauri-drag-region="true" data-appear="Title bar" style="flex:0 0 auto;min-height:38px;display:flex;align-items:center;gap:8px;padding:4px 6px 4px 12px;background:var(--m3-surface-low);border-bottom:1px solid var(--m3-outline-variant);user-select:none;flex-wrap:wrap;row-gap:4px">
+    <div style="width:16px;height:16px;flex:0 0 16px;border-radius:5px;background:var(--m3-primary)"></div>
+    <div style="font-size:12.5px;font-weight:500;white-space:nowrap">Codex Studio</div>
+    <div style="font-family:'Roboto Mono',monospace;font-size:10.5px;color:var(--m3-on-surface-variant);padding:2px 7px;border:1px solid var(--m3-outline-variant);border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ cliVersion }}</div>
+    <div title="Backend bridge" style="display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--m3-on-surface-variant);padding:2px 8px;border-radius:7px;background:var(--m3-surface-high);white-space:nowrap">
+      <span style="width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:var(--m3-ok)"></span>{{ bridgeLabel }}
+    </div>
+    <div style="flex:1 1 auto;min-width:8px"></div>
+    <div data-appear="Lifetime cost" title="{{ lifetimeHint }}" onContextMenu="{{ lifetimeMenu }}" style="display:flex;align-items:center;gap:6px;height:26px;padding:0 4px 0 11px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);white-space:nowrap">
+      <span style="font-size:10.5px;color:var(--m3-on-surface-variant)">API-equiv</span>
+      <span style="font-size:12px;font-weight:500;color:var(--m3-primary)">{{ lifetimeTotal }}</span>
+      <span style="font-size:10.5px;color:var(--m3-on-surface-variant)">paid</span>
+      <span style="font-size:12px;font-weight:500;color:{{ lifetimePaidFg }}">{{ lifetimePaid }}</span>
+      <span style="font-size:10.5px;color:{{ lifetimeDeltaFg }}">{{ lifetimeDelta }}</span>
+      <button onClick="{{ openLifetimeMenu }}" title="Window length" style="height:22px;padding:0 8px;border-radius:11px;border:none;background:var(--m3-surface-high);color:var(--m3-on-surface-variant);cursor:pointer;font-size:10.5px;white-space:nowrap">{{ lifetimeLabel }} ▾</button>
+    </div>
+    <button onClick="{{ toggleYolo }}" title="{{ yoloHint }}" style="height:26px;padding:0 12px;border-radius:13px;border:1px solid {{ yoloBorder }};background:{{ yoloBg }};color:{{ yoloFg }};cursor:pointer;font-size:11px;font-weight:500;white-space:nowrap">{{ yoloLabel }}</button>
+    <button onClick="{{ undoLatest }}" title="{{ undoHint }}" style="height:26px;padding:0 12px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11px;white-space:nowrap">↺ Undo</button>
+    <button onClick="{{ openLangMenu }}" title="Language mode" style="height:26px;padding:0 10px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11px;white-space:nowrap">{{ langLabel }} ▾</button>
+    <button onClick="{{ toggleTheme }}" title="Light / dark" style="height:26px;padding:0 10px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11px;white-space:nowrap">{{ themeLabel }}</button>
+    <button onClick="{{ winMin }}" title="Minimise" style="width:30px;height:26px;flex:0 0 30px;border:none;background:transparent;color:var(--m3-on-surface-variant);border-radius:7px;cursor:pointer;font-size:14px" style-hover="background:var(--m3-surface-high)">‒</button>
+    <button onClick="{{ winMax }}" title="Maximise" style="width:30px;height:26px;flex:0 0 30px;border:none;background:transparent;color:var(--m3-on-surface-variant);border-radius:7px;cursor:pointer;font-size:11px" style-hover="background:var(--m3-surface-high)">◻</button>
+    <button onClick="{{ winClose }}" title="Close" style="width:30px;height:26px;flex:0 0 30px;border:none;background:transparent;color:var(--m3-on-surface-variant);border-radius:7px;cursor:pointer;font-size:13px" style-hover="background:var(--m3-error-container)">✕</button>
+  </div>
+
+  <div style="flex:1;display:flex;min-height:0;overflow:hidden">
+
+    <div data-appear="Navigation rail" style="flex:0 0 76px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0;background:var(--m3-surface-low);border-right:1px solid var(--m3-outline-variant);overflow-y:auto">
+      <sc-for list="{{ navRows }}" as="n" hint-placeholder-count="7">
+        <button onClick="{{ n.go }}" onContextMenu="{{ n.context }}" title="{{ n.hint }}" style="width:64px;flex:0 0 auto;border:none;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:0">
+          <span style="width:52px;height:30px;border-radius:15px;background:{{ n.pillBg }};color:{{ n.pillFg }};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;transition:background .15s">{{ n.icon }}</span>
+          <span style="font-size:10px;font-weight:500;color:{{ n.labelFg }};text-align:center;line-height:1.25">{{ n.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="flex:0 0 296px;display:flex;flex-direction:column;min-height:0;min-width:0;background:var(--m3-surface-low);border-right:1px solid var(--m3-outline-variant)">
+
+      <div data-appear="Profile tabs" style="flex:0 0 auto;display:flex;align-items:center;gap:4px;padding:8px 8px 0;overflow-x:auto">
+        <sc-for list="{{ profileTabs }}" as="p" hint-placeholder-count="3">
+          <button onClick="{{ p.go }}" onContextMenu="{{ p.context }}" title="{{ p.hint }}" style="flex:0 0 auto;display:flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:10px 10px 0 0;border:1px solid var(--m3-outline-variant);border-bottom:none;background:{{ p.bg }};color:{{ p.fg }};cursor:pointer;font-size:12px;font-weight:500;white-space:nowrap">
+            <span style="width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:{{ p.dot }}"></span>{{ p.name }} <span style="opacity:.65;font-weight:400">{{ p.count }}</span>
+          </button>
+        </sc-for>
+        <button onClick="{{ addProfile }}" title="New session profile — its own sessions, model defaults and config overrides" style="flex:0 0 auto;width:28px;height:28px;border-radius:14px;border:none;background:var(--m3-surface-high);color:var(--m3-on-surface);cursor:pointer;font-size:15px">+</button>
+      </div>
+
+      <div style="padding:10px 12px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--m3-outline-variant)">
+        <div data-appear="Sidebar search" data-anchor="list" style="display:flex;align-items:center;gap:6px;height:40px;padding:0 6px 0 14px;border-radius:20px;background:var(--m3-surface-container);border:1px solid {{ listBorder }}">
+          <input value="{{ listQuery }}" onInput="{{ setListQuery }}" onContextMenu="{{ listSearchMenu }}" placeholder="{{ listPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:13px" />
+          <button onClick="{{ openListRegex }}" title="Open the anchored regex builder for this search" style="flex:0 0 auto;height:26px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ listRegexBg }};color:{{ listRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+          <div style="font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--m3-on-surface-variant);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ listTitle }}</div>
+          <button onClick="{{ listAction }}" style="flex:0 0 auto;border:none;background:transparent;color:var(--m3-primary);cursor:pointer;font-size:12px;font-weight:500;padding:0">{{ listActionLabel }}</button>
+        </div>
+      </div>
+
+      <div style="flex:1;overflow:auto;padding:0 8px 14px;display:flex;flex-direction:column;gap:3px">
+        <sc-for list="{{ listRows }}" as="r" hint-placeholder-count="6">
+          <button onClick="{{ r.go }}" onContextMenu="{{ r.context }}" data-appear="List item" style="text-align:left;border:none;cursor:pointer;border-radius:14px;padding:9px 12px;background:{{ r.bg }};display:flex;gap:10px;align-items:center;min-width:0">
+            <span style="flex:0 0 34px;height:34px;border-radius:17px;background:{{ r.avatarBg }};color:{{ r.avatarFg }};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500">{{ r.initial }}</span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+              <span style="display:flex;align-items:baseline;gap:6px;min-width:0">
+                <span style="flex:1;min-width:0;font-size:13px;font-weight:500;color:{{ r.titleFg }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.title }}</span>
+                <span style="flex:0 0 auto;font-size:10px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ r.meta }}</span>
+              </span>
+              <span style="font-size:11.5px;color:var(--m3-on-surface-variant);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.subtitle }}</span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="flex:1 1 0;display:flex;flex-direction:column;min-width:0;min-height:0">
+      <div data-appear="Conversation header" style="flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--m3-outline-variant);flex-wrap:wrap;overflow:hidden">
+        <div style="flex:1 1 200px;min-width:0">
+          <div style="font-size:15.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ headerTitle }}</div>
+          <div style="font-size:11.5px;color:var(--m3-on-surface-variant);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ headerSubtitle }}</div>
+        </div>
+        <div style="flex:0 1 auto;min-width:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+          <sc-for list="{{ headerChips }}" as="c" hint-placeholder-count="3">
+            <button onClick="{{ c.click }}" onContextMenu="{{ c.context }}" title="{{ c.hint }}" style="flex:0 0 auto;height:30px;padding:0 12px;border-radius:15px;border:1px solid var(--m3-outline-variant);background:{{ c.bg }};color:{{ c.fg }};cursor:pointer;font-size:11.5px;white-space:nowrap">{{ c.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="flex:1;overflow:auto;min-height:0;min-width:0">
+
+        <sc-if value="{{ isChat }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:12px;padding:20px 24px;max-width:880px;margin:0 auto">
+            <sc-for list="{{ messages }}" as="m" hint-placeholder-count="4">
+              <div onContextMenu="{{ m.context }}" style="display:flex;flex-direction:column;align-items:{{ m.align }};gap:4px;animation:cxin .18s ease;min-width:0">
+                <div data-appear="Message bubble" style="max-width:{{ m.maxWidth }};background:{{ m.bg }};color:{{ m.fg }};border:{{ m.border }};border-radius:{{ m.radius }};padding:11px 15px;font-size:13.5px;line-height:1.65;white-space:pre-wrap;font-family:{{ m.font }};overflow-wrap:anywhere">{{ m.text }}</div>
+                <sc-if value="{{ m.hasOut }}" hint-placeholder-val="{{ false }}">
+                  <div style="max-width:88%;align-self:flex-start;font-family:'Roboto Mono',monospace;font-size:11.5px;line-height:1.7;color:var(--m3-on-surface-variant);background:var(--m3-surface-dim);border:1px solid var(--m3-outline-variant);border-radius:12px;padding:9px 13px;white-space:pre-wrap;overflow-x:auto">{{ m.out }}</div>
+                </sc-if>
+                <div style="font-size:10.5px;color:var(--m3-on-surface-variant);padding:0 6px">{{ m.meta }}</div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ thinking }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;gap:6px;align-items:center;padding:10px 16px;align-self:flex-start;background:var(--m3-surface-container);border-radius:18px">
+                <span style="width:7px;height:7px;border-radius:50%;background:var(--m3-primary);animation:cxdot 1.2s infinite"></span>
+                <span style="width:7px;height:7px;border-radius:50%;background:var(--m3-primary);animation:cxdot 1.2s .2s infinite"></span>
+                <span style="width:7px;height:7px;border-radius:50%;background:var(--m3-primary);animation:cxdot 1.2s .4s infinite"></span>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isConsole }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:20px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:14px;min-width:0">
+            <div data-appear="Flag panel" style="background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px">
+              <div style="font-size:12.5px;color:var(--m3-on-surface-variant);line-height:1.6">{{ consoleSubDesc }}</div>
+              <sc-for list="{{ consoleFlags }}" as="f" hint-placeholder-count="6">
+                <div onContextMenu="{{ f.context }}" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid var(--m3-outline-variant);padding-top:10px;min-width:0">
+                  <div style="flex:1 1 220px;min-width:0">
+                    <div style="font-family:'Roboto Mono',monospace;font-size:12.5px;color:{{ f.tone }};overflow-wrap:anywhere">{{ f.flag }}</div>
+                    <div style="font-size:11.5px;color:var(--m3-on-surface-variant);margin-top:2px;line-height:1.5">{{ f.desc }}</div>
+                  </div>
+                  <sc-if value="{{ f.isBool }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ f.toggle }}" title="Toggle" style="flex:0 0 auto;width:50px;height:30px;border-radius:15px;border:2px solid {{ f.trackBorder }};background:{{ f.track }};cursor:pointer;position:relative">
+                      <span style="position:absolute;top:{{ f.knobTop }};left:{{ f.knobLeft }};width:{{ f.knobSize }};height:{{ f.knobSize }};border-radius:50%;background:{{ f.knob }};transition:all .16s"></span>
+                    </button>
+                  </sc-if>
+                  <sc-if value="{{ f.isEnum }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ f.openMenu }}" style="flex:1 1 180px;max-width:230px;height:36px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.valueLabel }}</span><span style="flex:0 0 auto;opacity:.7">▾</span></button>
+                  </sc-if>
+                  <sc-if value="{{ f.isText }}" hint-placeholder-val="{{ false }}">
+                    <input value="{{ f.value }}" onInput="{{ f.set }}" placeholder="{{ f.placeholder }}" style="flex:1 1 180px;max-width:250px;height:36px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;outline:none" />
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <div data-appear="Command preview" style="background:var(--m3-surface-dim);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:16px">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <div style="flex:1 1 160px;font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--m3-on-surface-variant)">Command preview</div>
+                <button onClick="{{ copyCommand }}" style="flex:0 0 auto;height:32px;padding:0 14px;border-radius:16px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px">{{ copyLabel }}</button>
+                <button onClick="{{ doRun }}" style="flex:0 0 auto;height:34px;padding:0 22px;border:none;border-radius:17px;background:var(--m3-primary);color:var(--m3-on-primary);cursor:pointer;font-size:13px;font-weight:500">Run</button>
+              </div>
+              <div style="margin-top:10px;font-family:'Roboto Mono',monospace;font-size:12.5px;line-height:1.7;color:var(--m3-primary);overflow-wrap:anywhere">{{ runCommand }}</div>
+            </div>
+            <div style="background:#0B0A0E;border:1px solid var(--m3-outline-variant);border-radius:18px;padding:14px 16px;min-height:180px;font-family:'Roboto Mono',monospace;font-size:12px;line-height:1.8;overflow-x:auto">
+              <sc-for list="{{ runOutput }}" as="l" hint-placeholder-count="2">
+                <div style="color:{{ l.color }};white-space:pre-wrap;overflow-wrap:anywhere">{{ l.text }}</div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isExtensions }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:20px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:12px;min-width:0">
+            <div data-appear="Filter bar" data-anchor="ext" style="display:flex;align-items:center;gap:8px;height:42px;padding:0 6px 0 16px;border-radius:21px;background:var(--m3-surface-container);border:1px solid {{ extBorder }}">
+              <input value="{{ extQuery }}" onInput="{{ setExtQuery }}" onContextMenu="{{ extSearchMenu }}" placeholder="{{ extPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:13px" />
+              <span style="flex:0 0 auto;font-size:11px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ extCount }}</span>
+              <button onClick="{{ openExtRegex }}" title="Open the anchored regex builder for this filter" style="flex:0 0 auto;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ extRegexBg }};color:{{ extRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+            </div>
+            <sc-for list="{{ extRows }}" as="x" hint-placeholder-count="5">
+              <div onContextMenu="{{ x.context }}" data-appear="Extension card" style="background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:13px 16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;min-width:0">
+                <div style="flex:0 0 38px;height:38px;border-radius:12px;background:{{ x.iconBg }};color:{{ x.iconFg }};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500">{{ x.initial }}</div>
+                <div style="flex:1 1 220px;min-width:0">
+                  <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+                    <div style="font-size:13.5px;font-weight:500;overflow-wrap:anywhere">{{ x.title }}</div>
+                    <div style="font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:{{ x.badgeFg }};background:{{ x.badgeBg }};padding:2px 8px;border-radius:8px;white-space:nowrap">{{ x.badge }}</div>
+                  </div>
+                  <div style="font-size:11.5px;color:var(--m3-on-surface-variant);margin-top:3px;font-family:{{ x.subFont }};overflow-wrap:anywhere;line-height:1.5">{{ x.subtitle }}</div>
+                </div>
+                <button onClick="{{ x.toggle }}" title="{{ x.toggleHint }}" style="flex:0 0 auto;width:50px;height:30px;border-radius:15px;border:2px solid {{ x.trackBorder }};background:{{ x.track }};cursor:{{ x.cursor }};position:relative">
+                  <span style="position:absolute;top:{{ x.knobTop }};left:{{ x.knobLeft }};width:{{ x.knobSize }};height:{{ x.knobSize }};border-radius:50%;background:{{ x.knob }};transition:all .16s"></span>
+                </button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:20px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:12px;min-width:0">
+            <div data-appear="Filter bar" data-anchor="set" style="display:flex;align-items:center;gap:8px;height:42px;padding:0 6px 0 16px;border-radius:21px;background:var(--m3-surface-container);border:1px solid {{ setBorder }}">
+              <input value="{{ setQuery }}" onInput="{{ setSetQuery }}" onContextMenu="{{ setSearchMenu }}" placeholder="{{ setPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:13px" />
+              <span style="flex:0 0 auto;font-size:11px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ setCount }}</span>
+              <button onClick="{{ openSetRegex }}" title="Open the anchored regex builder for this filter" style="flex:0 0 auto;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ setRegexBg }};color:{{ setRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+            </div>
+
+            <sc-if value="{{ showYoloCard }}" hint-placeholder-val="{{ false }}">
+              <div data-appear="Yolo card" style="background:{{ yoloCardBg }};border:1px solid {{ yoloBorder }};border-radius:18px;padding:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+                <div style="flex:1 1 260px;min-width:0">
+                  <div style="font-size:14px;font-weight:500;color:{{ yoloCardFg }}">One-click YOLO mode</div>
+                  <div style="font-size:12px;color:{{ yoloCardSub }};margin-top:4px;line-height:1.6">{{ yoloCardText }}</div>
+                </div>
+                <button onClick="{{ toggleYolo }}" style="flex:0 0 auto;height:40px;padding:0 22px;border:none;border-radius:20px;background:{{ yoloBtnBg }};color:{{ yoloBtnFg }};cursor:pointer;font-size:13px;font-weight:500">{{ yoloBtnLabel }}</button>
+              </div>
+            </sc-if>
+
+            <div data-appear="Settings panel" style="background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:4px 16px 16px">
+              <sc-for list="{{ settingRows }}" as="s" hint-placeholder-count="8">
+                <div onContextMenu="{{ s.context }}" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px solid var(--m3-outline-variant);padding:11px 0;min-width:0">
+                  <div style="flex:1 1 240px;min-width:0">
+                    <div style="font-size:13px;font-weight:500;color:{{ s.labelFg }};overflow-wrap:anywhere">{{ s.label }}</div>
+                    <div style="font-family:'Roboto Mono',monospace;font-size:10.5px;color:var(--m3-on-surface-variant);margin-top:2px;overflow-wrap:anywhere">{{ s.key }}</div>
+                    <div style="font-size:11.5px;color:var(--m3-on-surface-variant);margin-top:3px;line-height:1.5">{{ s.desc }}</div>
+                  </div>
+                  <sc-if value="{{ s.isBool }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ s.toggle }}" title="Toggle" style="flex:0 0 auto;width:50px;height:30px;border-radius:15px;border:2px solid {{ s.trackBorder }};background:{{ s.track }};cursor:pointer;position:relative">
+                      <span style="position:absolute;top:{{ s.knobTop }};left:{{ s.knobLeft }};width:{{ s.knobSize }};height:{{ s.knobSize }};border-radius:50%;background:{{ s.knob }};transition:all .16s"></span>
+                    </button>
+                  </sc-if>
+                  <sc-if value="{{ s.isEnum }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ s.openMenu }}" style="flex:1 1 190px;max-width:250px;height:38px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.valueLabel }}</span><span style="flex:0 0 auto;opacity:.7">▾</span></button>
+                  </sc-if>
+                  <sc-if value="{{ s.isInput }}" hint-placeholder-val="{{ false }}">
+                    <input value="{{ s.value }}" onInput="{{ s.set }}" placeholder="{{ s.placeholder }}" style="flex:1 1 200px;max-width:270px;height:38px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;outline:none;font-family:{{ s.font }}" />
+                  </sc-if>
+                  <sc-if value="{{ s.isArea }}" hint-placeholder-val="{{ false }}">
+                    <textarea value="{{ s.value }}" onInput="{{ s.set }}" rows="3" placeholder="{{ s.placeholder }}" style="flex:1 1 260px;max-width:320px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:8px 12px;font-size:12px;outline:none;resize:vertical"></textarea>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <div data-appear="TOML preview" style="background:var(--m3-surface-dim);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:16px">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <div style="flex:1 1 160px;font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--m3-on-surface-variant);overflow-wrap:anywhere">{{ tomlPath }}</div>
+                <button onClick="{{ copyToml }}" style="flex:0 0 auto;height:32px;padding:0 14px;border-radius:16px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px">{{ copyTomlLabel }}</button>
+                <button onClick="{{ saveConfig }}" style="flex:0 0 auto;height:34px;padding:0 20px;border:none;border-radius:17px;background:var(--m3-primary);color:var(--m3-on-primary);cursor:pointer;font-size:12.5px;font-weight:500">{{ saveLabel }}</button>
+              </div>
+              <div style="margin-top:10px;font-family:'Roboto Mono',monospace;font-size:12px;line-height:1.75;color:var(--m3-on-surface-variant);white-space:pre-wrap;overflow-wrap:anywhere">{{ tomlText }}</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isCost }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:20px 24px;max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:14px;min-width:0">
+            <div data-appear="Cost inputs" style="background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <div style="flex:1 1 220px;min-width:0;font-size:12.5px;color:var(--m3-on-surface-variant);line-height:1.6">{{ costIntro }}</div>
+                <button onClick="{{ loadSessionUsage }}" style="flex:0 0 auto;height:34px;padding:0 16px;border-radius:17px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px">Load session usage</button>
+              </div>
+              <sc-for list="{{ costInputs }}" as="c" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px solid var(--m3-outline-variant);padding-top:11px">
+                  <div style="flex:1 1 240px;min-width:0">
+                    <div style="font-size:13px;font-weight:500">{{ c.label }}</div>
+                    <div style="font-size:11.5px;color:var(--m3-on-surface-variant);margin-top:2px;line-height:1.5">{{ c.desc }}</div>
+                  </div>
+                  <input value="{{ c.value }}" onInput="{{ c.set }}" type="number" style="flex:0 1 170px;height:38px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;outline:none;font-family:'Roboto Mono',monospace" />
+                </div>
+              </sc-for>
+              <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px solid var(--m3-outline-variant);padding-top:11px">
+                <div style="flex:1 1 240px;min-width:0">
+                  <div style="font-size:13px;font-weight:500">Cache hit rate</div>
+                  <div style="font-size:11.5px;color:var(--m3-on-surface-variant);margin-top:2px;line-height:1.5">Share of input tokens billed at the cached-read price.</div>
+                </div>
+                <input value="{{ cacheRate }}" onInput="{{ setCacheRate }}" type="range" min="0" max="95" step="5" style="flex:1 1 160px;max-width:200px;accent-color:var(--m3-primary)" />
+                <div style="flex:0 0 46px;text-align:right;font-family:'Roboto Mono',monospace;font-size:13px">{{ cacheRateLabel }}</div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:14px;flex-wrap:wrap">
+              <div data-appear="Cost headline" style="flex:1 1 260px;background:var(--m3-primary-container);color:var(--m3-on-primary-container);border-radius:18px;padding:18px;min-width:0">
+                <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;opacity:.85">API-equivalent cost</div>
+                <div style="font-size:38px;font-weight:300;margin-top:6px;letter-spacing:-1px">{{ costTotal }}</div>
+                <div style="font-size:12px;margin-top:6px;opacity:.9;overflow-wrap:anywhere">{{ costTotalNote }}</div>
+              </div>
+              <div style="flex:1 1 260px;background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:18px;min-width:0">
+                <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--m3-on-surface-variant)">Against your plan</div>
+                <div style="font-size:22px;font-weight:400;margin-top:8px">{{ planVerdict }}</div>
+                <div style="font-size:12px;color:var(--m3-on-surface-variant);margin-top:6px;line-height:1.6">{{ planNote }}</div>
+              </div>
+            </div>
+
+            <div data-appear="Model comparison" style="background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:4px 16px 14px">
+              <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--m3-on-surface-variant);padding:14px 0 4px;line-height:1.5">Same workload, every model — $ per 1M tokens, editable</div>
+              <sc-for list="{{ costRows }}" as="c" hint-placeholder-count="5">
+                <div onContextMenu="{{ c.context }}" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid var(--m3-outline-variant);padding:10px 0;min-width:0">
+                  <div style="flex:1 1 220px;min-width:0">
+                    <div style="font-family:'Roboto Mono',monospace;font-size:12.5px;color:{{ c.nameFg }};overflow-wrap:anywhere">{{ c.model }}</div>
+                    <div style="font-size:11px;color:var(--m3-on-surface-variant);margin-top:2px;line-height:1.5">{{ c.breakdown }}</div>
+                  </div>
+                  <input value="{{ c.priceIn }}" onInput="{{ c.setIn }}" type="number" step="0.01" title="Input $ / 1M" style="flex:0 0 76px;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 8px;font-size:12px;outline:none;font-family:'Roboto Mono',monospace" />
+                  <input value="{{ c.priceCached }}" onInput="{{ c.setCached }}" type="number" step="0.01" title="Cached input $ / 1M" style="flex:0 0 76px;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 8px;font-size:12px;outline:none;font-family:'Roboto Mono',monospace" />
+                  <input value="{{ c.priceOut }}" onInput="{{ c.setOut }}" type="number" step="0.01" title="Output $ / 1M" style="flex:0 0 76px;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 8px;font-size:12px;outline:none;font-family:'Roboto Mono',monospace" />
+                  <div style="flex:0 0 84px;text-align:right;font-size:14px;font-weight:500;color:{{ c.costFg }}">{{ c.cost }}</div>
+                </div>
+              </sc-for>
+              <div style="font-size:11px;color:var(--m3-on-surface-variant);padding-top:10px;line-height:1.6">{{ costDisclaimer }}</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isHealth }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:20px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:12px;min-width:0">
+            <sc-for list="{{ healthCards }}" as="h" hint-placeholder-count="4">
+              <div onContextMenu="{{ h.context }}" data-appear="Health card" style="background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:14px 16px;min-width:0">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                  <div style="flex:1 1 200px;font-size:13.5px;font-weight:500">{{ h.title }}</div>
+                  <sc-for list="{{ h.actions }}" as="a" hint-placeholder-count="2">
+                    <button onClick="{{ a.click }}" style="flex:0 0 auto;height:30px;padding:0 14px;border-radius:15px;border:1px solid var(--m3-outline-variant);background:transparent;color:{{ a.fg }};cursor:pointer;font-size:12px">{{ a.label }}</button>
+                  </sc-for>
+                </div>
+                <sc-for list="{{ h.rows }}" as="r" hint-placeholder-count="3">
+                  <div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;border-top:1px solid var(--m3-outline-variant);padding:8px 0;min-width:0">
+                    <span style="flex:0 0 14px;color:{{ r.dot }};font-size:12px">●</span>
+                    <span style="flex:1 1 180px;min-width:0;font-size:12.5px">{{ r.name }}</span>
+                    <span style="flex:1 1 220px;min-width:0;font-size:12px;color:var(--m3-on-surface-variant);font-family:'Roboto Mono',monospace;overflow-wrap:anywhere">{{ r.detail }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isRuntime }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:20px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:12px;min-width:0">
+            <div data-appear="Runtime intro" style="background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+              <div style="flex:1 1 260px;min-width:0;font-size:12.5px;color:var(--m3-on-surface-variant);line-height:1.6">{{ runtimeIntro }}</div>
+              <button onClick="{{ spawnAllWsl }}" style="flex:0 0 auto;height:36px;padding:0 18px;border:none;border-radius:18px;background:var(--m3-primary);color:var(--m3-on-primary);cursor:pointer;font-size:12.5px;font-weight:500">Spawn for every tab</button>
+              <button onClick="{{ stopAllWsl }}" style="flex:0 0 auto;height:36px;padding:0 16px;border-radius:18px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-error);cursor:pointer;font-size:12.5px">Stop all</button>
+            </div>
+            <sc-for list="{{ runtimeRows }}" as="r" hint-placeholder-count="3">
+              <div onContextMenu="{{ r.context }}" data-appear="Runtime card" style="background:var(--m3-surface-container);border:1px solid {{ r.border }};border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0">
+                <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+                  <span style="flex:0 0 10px;width:10px;height:10px;border-radius:50%;background:{{ r.dot }}"></span>
+                  <div style="flex:1 1 220px;min-width:0">
+                    <div style="font-size:13.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.title }}</div>
+                    <div style="font-size:11.5px;color:var(--m3-on-surface-variant);font-family:'Roboto Mono',monospace;overflow-wrap:anywhere">{{ r.detail }}</div>
+                  </div>
+                  <button onClick="{{ r.openDistro }}" title="WSL distribution" style="flex:0 1 190px;height:36px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.distro }}</span><span style="flex:0 0 auto;opacity:.7">▾</span></button>
+                  <button onClick="{{ r.toggleAuto }}" title="Route this tab's commands through WSL automatically" style="flex:0 0 auto;height:32px;padding:0 14px;border-radius:16px;border:1px solid var(--m3-outline-variant);background:{{ r.autoBg }};color:{{ r.autoFg }};cursor:pointer;font-size:12px;white-space:nowrap">{{ r.autoLabel }}</button>
+                  <button onClick="{{ r.primary }}" style="flex:0 0 auto;height:34px;padding:0 18px;border:none;border-radius:17px;background:{{ r.primaryBg }};color:{{ r.primaryFg }};cursor:pointer;font-size:12.5px;font-weight:500">{{ r.primaryLabel }}</button>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--m3-outline-variant);padding-top:10px">
+                  <input value="{{ r.cwd }}" onInput="{{ r.setCwd }}" placeholder="/mnt/c/Users/you/project" title="Working directory inside the distro" style="flex:1 1 220px;min-width:0;height:34px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12px;outline:none;font-family:'Roboto Mono',monospace" />
+                  <button onClick="{{ r.exec }}" style="flex:0 0 auto;height:34px;padding:0 16px;border-radius:17px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px">Test command</button>
+                  <button onClick="{{ r.open }}" style="flex:0 0 auto;height:34px;padding:0 16px;border-radius:17px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:12px">Open tab</button>
+                </div>
+                <div style="font-family:'Roboto Mono',monospace;font-size:11.5px;color:var(--m3-primary);overflow-wrap:anywhere">{{ r.command }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:20px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:12px;min-width:0">
+            <div data-appear="History intro" style="background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+              <div style="flex:1 1 260px;min-width:0;font-size:12.5px;color:var(--m3-on-surface-variant);line-height:1.6">{{ historyIntro }}</div>
+              <button onClick="{{ undoLatest }}" style="flex:0 0 auto;height:36px;padding:0 20px;border:none;border-radius:18px;background:var(--m3-primary);color:var(--m3-on-primary);cursor:pointer;font-size:12.5px;font-weight:500">↺ Undo last change</button>
+            </div>
+            <sc-for list="{{ historyRows }}" as="h" hint-placeholder-count="5">
+              <div onContextMenu="{{ h.context }}" data-appear="Commit row" style="background:var(--m3-surface-container);border:1px solid {{ h.border }};border-radius:16px;padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-width:0">
+                <div style="flex:0 0 auto;font-family:'Roboto Mono',monospace;font-size:11.5px;color:var(--m3-primary)">{{ h.sha }}</div>
+                <div style="flex:1 1 240px;min-width:0">
+                  <div style="font-size:13px;overflow-wrap:anywhere">{{ h.message }}</div>
+                  <div style="font-size:11px;color:var(--m3-on-surface-variant);margin-top:2px">{{ h.meta }}</div>
+                </div>
+                <button onClick="{{ h.revert }}" style="flex:0 0 auto;height:30px;padding:0 14px;border-radius:15px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px">{{ h.revertLabel }}</button>
+                <button onClick="{{ h.restore }}" style="flex:0 0 auto;height:30px;padding:0 14px;border-radius:15px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:12px">Restore</button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+      </div>
+
+      <sc-if value="{{ isChat }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:0 0 auto;padding:0 24px 16px;position:relative;min-width:0">
+          <sc-if value="{{ slashOpen }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ stop }}" data-appear="Command catalog" style="position:absolute;bottom:calc(100% + 6px);left:24px;right:24px;max-width:880px;margin:0 auto;background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:18px;box-shadow:0 14px 36px rgba(0,0,0,.45);z-index:30;display:flex;flex-direction:column;overflow:hidden">
+              <div data-anchor="slash" style="flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 10px 10px 16px;border-bottom:1px solid var(--m3-outline-variant)">
+                <span style="flex:0 0 auto;font-family:'Roboto Mono',monospace;font-size:13px;color:var(--m3-primary)">/</span>
+                <input value="{{ slashQuery }}" onInput="{{ setSlashQuery }}" onContextMenu="{{ slashSearchMenu }}" placeholder="{{ slashPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:13px" />
+                <span style="flex:0 0 auto;font-size:11px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ slashCount }}</span>
+                <button onClick="{{ openSlashRegex }}" title="Open the anchored regex builder for the command catalog" style="flex:0 0 auto;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ slashRegexBg }};color:{{ slashRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+              </div>
+              <sc-if value="{{ slashListView }}" hint-placeholder-val="{{ true }}">
+                <div style="flex:1;min-height:0;max-height:340px;overflow:auto;padding:8px">
+                  <sc-for list="{{ slashMatches }}" as="s" hint-placeholder-count="6">
+                    <div onClick="{{ s.select }}" onContextMenu="{{ s.context }}" style="display:flex;gap:12px;align-items:flex-start;padding:9px 12px;border-radius:11px;cursor:pointer;background:{{ s.bg }};min-width:0" style-hover="background:var(--m3-surface-highest)">
+                      <span style="flex:0 0 auto;font-family:'Roboto Mono',monospace;font-size:13px;color:{{ s.fg }};padding-top:1px">/{{ s.name }}</span>
+                      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                        <span style="font-size:12px;color:var(--m3-on-surface-variant);line-height:1.5">{{ s.desc }}</span>
+                        <span style="font-size:10.5px;color:var(--m3-on-surface-variant);opacity:.8">{{ s.detail }}</span>
+                      </span>
+                      <span style="flex:0 0 auto;font-size:9.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--m3-on-surface-variant);padding-top:3px">{{ s.tag }}</span>
+                      <span style="flex:0 0 auto;color:var(--m3-on-surface-variant);font-size:13px;padding-top:1px">›</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ slashWizardView }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1;min-height:0;max-height:min(520px,60vh);overflow:auto;padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+                  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                    <button onClick="{{ slashBack }}" style="flex:0 0 auto;height:32px;padding:0 14px;border-radius:16px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px">‹ All commands</button>
+                    <div style="flex:1 1 200px;min-width:0;font-family:'Roboto Mono',monospace;font-size:18px;color:var(--m3-primary)">/{{ slashDetailName }}</div>
+                    <div style="flex:0 0 auto;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--m3-on-surface-variant);background:var(--m3-surface-container);border-radius:8px;padding:3px 9px">{{ slashDetailTag }}</div>
+                  </div>
+                  <div style="font-size:14px;color:var(--m3-on-surface);line-height:1.6">{{ slashDetailDesc }}</div>
+                  <div style="font-size:12.5px;color:var(--m3-on-surface-variant);line-height:1.65">{{ slashDetailNotes }}</div>
+                  <div style="display:flex;flex-wrap:wrap;gap:16px">
+                    <sc-for list="{{ slashWizard }}" as="w" hint-placeholder-count="2">
+                      <div style="flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:6px">
+                        <div style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--m3-on-surface-variant)">{{ w.label }}</div>
+                        <sc-if value="{{ w.isEnum }}" hint-placeholder-val="{{ true }}">
+                          <button onClick="{{ w.openMenu }}" style="width:100%;height:42px;border-radius:12px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:0 14px;font-size:13.5px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ w.valueLabel }}</span><span style="flex:0 0 auto;opacity:.7">▾</span></button>
+                        </sc-if>
+                        <sc-if value="{{ w.isText }}" hint-placeholder-val="{{ false }}">
+                          <input value="{{ w.value }}" onInput="{{ w.set }}" placeholder="{{ w.placeholder }}" style="width:100%;height:42px;border-radius:12px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:0 14px;font-size:13.5px;outline:none" />
+                        </sc-if>
+                        <div style="font-size:11.5px;color:var(--m3-on-surface-variant);line-height:1.55">{{ w.hint }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div style="font-family:'Roboto Mono',monospace;font-size:13.5px;color:var(--m3-primary);background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:12px;padding:12px 14px;overflow-wrap:anywhere">{{ slashPreview }}</div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <button onClick="{{ slashRun }}" style="flex:0 0 auto;height:40px;padding:0 24px;border:none;border-radius:20px;background:var(--m3-primary);color:var(--m3-on-primary);cursor:pointer;font-size:13.5px;font-weight:500">Run now</button>
+                    <button onClick="{{ slashInsert }}" style="flex:0 0 auto;height:40px;padding:0 20px;border-radius:20px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:13px">Insert into composer</button>
+                    <button onClick="{{ closeSlash }}" style="flex:0 0 auto;height:40px;padding:0 18px;border-radius:20px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:13px">Close</button>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <div data-appear="Composer" style="display:flex;gap:8px;align-items:flex-end;background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:24px;padding:8px 8px 8px 14px;max-width:880px;margin:0 auto;min-width:0">
+            <button onClick="{{ openSlash }}" title="Slash commands" style="flex:0 0 auto;width:34px;height:34px;border-radius:17px;border:none;background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:16px">/</button>
+            <textarea value="{{ chatInput }}" onInput="{{ onChatInput }}" onKeyDown="{{ onChatKey }}" rows="1" placeholder="{{ composerPlaceholder }}" style="flex:1;min-width:0;resize:none;border:none;outline:none;background:transparent;font-size:13.5px;line-height:1.6;padding:8px 0;max-height:140px"></textarea>
+            <button onClick="{{ sendChat }}" title="Send" style="flex:0 0 auto;width:38px;height:38px;border-radius:19px;border:none;background:var(--m3-primary);color:var(--m3-on-primary);cursor:pointer;font-size:15px">↑</button>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+
+  <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ stop }}" style="position:fixed;top:{{ menuTop }};left:{{ menuLeft }};width:262px;background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:14px;box-shadow:0 14px 36px rgba(0,0,0,.45);padding:6px;z-index:90">
+      <div style="font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--m3-on-surface-variant);padding:6px 10px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ menuTitle }}</div>
+      <sc-for list="{{ menuItems }}" as="m" hint-placeholder-count="4">
+        <div onClick="{{ m.click }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:12.5px;color:{{ m.fg }}" style-hover="background:var(--m3-surface-highest)">
+          <span style="flex:0 0 16px;text-align:center;opacity:.8">{{ m.icon }}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m.label }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ paletteOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closePalette }}" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:96;display:flex;align-items:flex-start;justify-content:center;padding:80px 24px">
+      <div onClick="{{ stop }}" data-appear="Command palette" style="width:min(720px,100%);max-height:calc(100vh - 160px);display:flex;flex-direction:column;background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:22px;box-shadow:0 24px 60px rgba(0,0,0,.55);overflow:hidden">
+        <div data-anchor="palette" style="flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:12px 12px 12px 20px;border-bottom:1px solid var(--m3-outline-variant)">
+          <span style="flex:0 0 auto;color:var(--m3-on-surface-variant);font-size:14px">⌕</span>
+          <input value="{{ paletteQuery }}" onInput="{{ setPaletteQuery }}" onContextMenu="{{ paletteSearchMenu }}" placeholder="{{ palettePlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:15px" />
+          <span style="flex:0 0 auto;font-size:11px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ paletteCount }}</span>
+          <button onClick="{{ openPaletteRegex }}" title="Search the palette with the regex builder" style="flex:0 0 auto;height:30px;padding:0 11px;border-radius:15px;border:1px solid var(--m3-outline-variant);background:{{ paletteRegexBg }};color:{{ paletteRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+        </div>
+        <div style="flex:1;overflow:auto;padding:8px">
+          <sc-for list="{{ paletteRows }}" as="r" hint-placeholder-count="6">
+            <div onClick="{{ r.run }}" onContextMenu="{{ r.context }}" style="display:flex;gap:12px;align-items:center;padding:10px 14px;border-radius:12px;cursor:pointer;background:{{ r.bg }};min-width:0" style-hover="background:var(--m3-surface-highest)">
+              <span style="flex:0 0 74px;font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--m3-on-surface-variant)">{{ r.group }}</span>
+              <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                <span style="font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:{{ r.font }}">{{ r.title }}</span>
+                <span style="font-size:11.5px;color:var(--m3-on-surface-variant);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.subtitle }}</span>
+              </span>
+              <span style="flex:0 0 auto;font-size:11px;color:var(--m3-on-surface-variant)">{{ r.hint }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="flex:0 0 auto;padding:10px 18px;border-top:1px solid var(--m3-outline-variant);font-size:11px;color:var(--m3-on-surface-variant)">{{ paletteFooter }}</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ ddOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ stop }}" data-appear="Dropdown" style="position:fixed;top:{{ ddTop }};left:{{ ddLeft }};width:{{ ddWidth }};max-width:calc(100vw - 24px);background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:14px;box-shadow:0 14px 36px rgba(0,0,0,.45);z-index:92;display:flex;flex-direction:column;overflow:hidden">
+      <div data-anchor="dd" style="flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px 8px 8px 14px;border-bottom:1px solid var(--m3-outline-variant)">
+        <input value="{{ ddQuery }}" onInput="{{ setDdQuery }}" onContextMenu="{{ ddSearchMenu }}" placeholder="{{ ddPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:12.5px" />
+        <span style="flex:0 0 auto;font-size:10.5px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ ddCount }}</span>
+        <button onClick="{{ openDdRegex }}" title="Filter these options with the regex builder" style="flex:0 0 auto;height:26px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ ddRegexBg }};color:{{ ddRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:10.5px">.*</button>
+      </div>
+      <div style="flex:1;max-height:300px;overflow:auto;padding:6px">
+        <sc-for list="{{ ddRows }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.pick }}" onContextMenu="{{ o.context }}" style="display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;cursor:pointer;background:{{ o.bg }};min-width:0" style-hover="background:var(--m3-surface-highest)">
+            <span style="flex:0 0 14px;color:var(--m3-primary);font-size:12px">{{ o.check }}</span>
+            <span style="flex:1;min-width:0;font-size:12.5px;color:{{ o.fg }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:{{ o.font }}">{{ o.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="flex:0 0 auto;display:flex;gap:6px;padding:8px;border-top:1px solid var(--m3-outline-variant);flex-wrap:wrap">
+        <button onClick="{{ ddClear }}" style="flex:1 1 auto;height:30px;padding:0 12px;border-radius:15px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11.5px">Clear filter</button>
+        <button onClick="{{ ddUnset }}" style="flex:1 1 auto;height:30px;padding:0 12px;border-radius:15px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:11.5px">{{ ddUnsetLabel }}</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ regexOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ stop }}" data-appear="Regex builder" style="position:fixed;top:{{ regexTop }};left:{{ regexLeft }};width:480px;max-width:calc(100vw - 24px);max-height:70vh;overflow:auto;background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:20px;padding:16px 18px;box-shadow:0 18px 44px rgba(0,0,0,.5);z-index:85">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:500">Regex builder</div>
+          <div style="font-size:11.5px;color:var(--m3-on-surface-variant);margin-top:2px;line-height:1.5">{{ regexTargetLabel }}</div>
+        </div>
+        <button onClick="{{ closeRegex }}" style="flex:0 0 auto;width:30px;height:30px;border-radius:15px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px">✕</button>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
+        <div style="flex:0 0 auto;font-family:'Roboto Mono',monospace;font-size:15px;color:var(--m3-on-surface-variant)">/</div>
+        <input value="{{ regexPattern }}" onInput="{{ setRegexPattern }}" placeholder="pattern" style="flex:1;min-width:0;height:42px;border-radius:11px;border:1px solid {{ regexBorder }};background:var(--m3-surface-container);padding:0 12px;font-family:'Roboto Mono',monospace;font-size:13px;outline:none" />
+        <div style="flex:0 0 auto;font-family:'Roboto Mono',monospace;font-size:15px;color:var(--m3-on-surface-variant)">/{{ regexFlagString }}</div>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+        <sc-for list="{{ regexFlagRows }}" as="f" hint-placeholder-count="8">
+          <button onClick="{{ f.toggle }}" title="{{ f.desc }}" style="height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ f.bg }};color:{{ f.fg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11.5px;white-space:nowrap">{{ f.flag }}</button>
+        </sc-for>
+      </div>
+
+      <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ constructGroups }}" as="g" hint-placeholder-count="4">
+          <div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--m3-on-surface-variant);margin-bottom:5px">{{ g.group }}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px">
+              <sc-for list="{{ g.items }}" as="c" hint-placeholder-count="6">
+                <button onClick="{{ c.insert }}" title="{{ c.desc }}" style="height:28px;padding:0 10px;border-radius:8px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);color:var(--m3-on-surface);cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11.5px">{{ c.token }}</button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--m3-on-surface-variant)">Sample — the values this field filters</div>
+        <textarea value="{{ regexSample }}" onInput="{{ setRegexSample }}" rows="4" style="border-radius:11px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:9px 11px;font-family:'Roboto Mono',monospace;font-size:12px;outline:none;resize:vertical"></textarea>
+        <div style="font-size:11.5px;color:{{ regexStatusFg }};line-height:1.5">{{ regexStatus }}</div>
+        <div style="border-radius:11px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:8px 11px;font-family:'Roboto Mono',monospace;font-size:12px;line-height:1.8;max-height:140px;overflow:auto">
+          <sc-for list="{{ regexMatchRows }}" as="m" hint-placeholder-count="3">
+            <div style="display:flex;gap:8px;min-width:0"><span style="flex:0 0 38px;color:var(--m3-on-surface-variant)">{{ m.index }}</span><span style="flex:1;min-width:0;color:var(--m3-primary);overflow-wrap:anywhere">{{ m.text }}</span><span style="flex:0 0 auto;color:var(--m3-on-surface-variant)">{{ m.groups }}</span></div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <div style="flex:1 1 200px;min-width:0;font-size:10.5px;color:var(--m3-on-surface-variant);line-height:1.5">{{ regexEngineNote }}</div>
+        <button onClick="{{ copyRegex }}" style="flex:0 0 auto;height:32px;padding:0 14px;border-radius:16px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px">{{ copyRegexLabel }}</button>
+        <button onClick="{{ applyRegex }}" style="flex:0 0 auto;height:36px;padding:0 20px;border:none;border-radius:18px;background:var(--m3-primary);color:var(--m3-on-primary);cursor:pointer;font-size:12.5px;font-weight:500">Apply</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ appearOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ stop }}" style="position:fixed;top:{{ appearTop }};left:{{ appearLeft }};width:330px;max-width:calc(100vw - 24px);max-height:70vh;overflow:auto;background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:20px;box-shadow:0 18px 44px rgba(0,0,0,.5);padding:14px 16px;z-index:88">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1;min-width:0;font-size:13.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Appearance — {{ appearTarget }}</div>
+        <button onClick="{{ closeAppear }}" style="flex:0 0 auto;width:26px;height:26px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:11px">✕</button>
+      </div>
+      <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+        <button onClick="{{ openFontMenu }}" style="width:100%;height:36px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:0 12px;font-size:12.5px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ appearFontLabel }}</span><span style="flex:0 0 auto;opacity:.7">▾</span></button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="flex:1 1 130px;min-width:0">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--m3-on-surface-variant);margin-bottom:4px">Size {{ appearSizeLabel }}</div>
+            <input value="{{ appearSize }}" onInput="{{ setAppearSize }}" type="range" min="70" max="180" step="5" style="width:100%;accent-color:var(--m3-primary)" />
+          </div>
+          <div style="flex:1 1 130px;min-width:0">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--m3-on-surface-variant);margin-bottom:4px">Weight {{ appearWeight }}</div>
+            <input value="{{ appearWeight }}" onInput="{{ setAppearWeight }}" type="range" min="300" max="700" step="100" style="width:100%;accent-color:var(--m3-primary)" />
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <sc-for list="{{ appearToggles }}" as="t" hint-placeholder-count="4">
+            <button onClick="{{ t.toggle }}" style="height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ t.bg }};color:{{ t.fg }};cursor:pointer;font-size:11.5px;white-space:nowrap">{{ t.label }}</button>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="width:40px;height:40px;flex:0 0 40px;border-radius:11px;border:1px solid var(--m3-outline-variant);background:{{ appearColor }}"></div>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px">
+            <input value="{{ appearHue }}" onInput="{{ setAppearHue }}" type="range" min="0" max="360" style="width:100%;accent-color:var(--m3-primary)" />
+            <input value="{{ appearSat }}" onInput="{{ setAppearSat }}" type="range" min="0" max="100" style="width:100%;accent-color:var(--m3-primary)" />
+            <input value="{{ appearVal }}" onInput="{{ setAppearVal }}" type="range" min="0" max="100" style="width:100%;accent-color:var(--m3-primary)" />
+          </div>
+        </div>
+        <input value="{{ appearColorText }}" onInput="{{ setAppearColorText }}" style="width:100%;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:0 10px;font-family:'Roboto Mono',monospace;font-size:11.5px;outline:none" />
+        <div style="border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:7px 10px;max-height:140px;overflow:auto">
+          <sc-for list="{{ colorRows }}" as="c" hint-placeholder-count="6">
+            <div onClick="{{ c.copy }}" title="Copy" style="display:flex;gap:8px;font-family:'Roboto Mono',monospace;font-size:11px;line-height:1.9;cursor:pointer;min-width:0">
+              <span style="flex:0 0 48px;color:var(--m3-on-surface-variant)">{{ c.space }}</span><span style="flex:1;min-width:0;overflow-wrap:anywhere">{{ c.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="font-size:11px;color:var(--m3-on-surface-variant);line-height:1.5">{{ contrastLabel }}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onClick="{{ resetAppear }}" style="flex:1 1 130px;height:34px;border-radius:17px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px">Reset element</button>
+          <button onClick="{{ resetAllAppear }}" style="flex:1 1 130px;height:34px;border-radius:17px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-error);cursor:pointer;font-size:12px">Reset all</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toastOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);max-width:min(680px,calc(100vw - 32px));background:var(--m3-surface-highest);color:var(--m3-on-surface);border:1px solid var(--m3-outline-variant);border-radius:14px;padding:11px 18px;font-size:12.5px;line-height:1.5;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:95;overflow-wrap:anywhere">{{ toastText }}</div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const CX = window.CX, DATA = window.CODEX;
+
+const PRICES = {
+  "gpt-5.1-codex-max": { in: 1.75, cached: 0.18, out: 14 },
+  "gpt-5.1-codex": { in: 1.25, cached: 0.13, out: 10 },
+  "gpt-5.1-codex-mini": { in: 0.25, cached: 0.03, out: 2 },
+  "gpt-5.1": { in: 1.25, cached: 0.13, out: 10 },
+  "o3": { in: 2, cached: 0.5, out: 8 },
+  "oss:gpt-oss-120b": { in: 0, cached: 0, out: 0 }
+};
+
+const NAV = [
+  { id: "chat", icon: "💬", label: "Chats", hint: "Interactive sessions in the active profile" },
+  { id: "console", icon: "▶", label: "Console", hint: "Every CLI subcommand and flag" },
+  { id: "ext", icon: "⧉", label: "Extend", hint: "MCP, plugins, marketplaces, skills, hooks, feature flags" },
+  { id: "settings", icon: "⚙", label: "Config", hint: "Every config.toml setting for this profile" },
+  { id: "cost", icon: "$", label: "Cost", hint: "API-equivalent cost calculator" },
+  { id: "runtime", icon: "🐧", label: "Runtime", hint: "Per-tab WSL instances — spawn one per session and route work through it" },
+  { id: "health", icon: "✚", label: "Health", hint: "Doctor, account, usage, cloud tasks" },
+  { id: "history", icon: "↺", label: "History", hint: "Local git history — undo anything, including an undo" }
+];
+
+const EXT_CATEGORIES = [
+  { id: "mcp", title: "MCP servers", sub: "External tool servers" },
+  { id: "browse", title: "Plugin marketplace", sub: "Browse and install plugins" },
+  { id: "plugins", title: "Installed plugins", sub: "Enable, disable, remove" },
+  { id: "marketplaces", title: "Registries", sub: "Marketplace sources" },
+  { id: "skills", title: "Skills", sub: "SKILL.md entries" },
+  { id: "hooks", title: "Hooks", sub: "Lifecycle hooks" },
+  { id: "features", title: "Feature flags", sub: DATA.FEATURES.length + " keys" }
+];
+
+/* Wizards for the slash-command catalog: argument shape per command. */
+const SLASH_WIZARDS = {
+  model: [{ id: "model", label: "Model", type: "enum", options: DATA.MODELS.map((m) => m.id), hint: "Sets the model for this thread only." },
+          { id: "effort", label: "Reasoning effort", type: "enum", options: DATA.ENUMS.reasoningEffort, hint: "Higher effort costs more output tokens." }],
+  permissions: [{ id: "policy", label: "Approval policy", type: "enum", options: DATA.ENUMS.approval, hint: "untrusted asks for everything; never asks for nothing." }],
+  personality: [{ id: "p", label: "Personality", type: "enum", options: DATA.ENUMS.personality, hint: "Communication style only — never changes safety behaviour." }],
+  review: [{ id: "scope", label: "What to review", type: "text", placeholder: "uncommitted changes / a branch / a path", hint: "Left empty, Codex reviews the current diff." }],
+  rename: [{ id: "name", label: "New thread name", type: "text", placeholder: "payments regression", hint: "Renames the saved session." }],
+  goal: [{ id: "goal", label: "Goal", type: "text", placeholder: "ship the Tauri bridge", hint: "Empty shows the current goal instead of setting one." }],
+  resume: [{ id: "id", label: "Session id or name", type: "text", placeholder: "leave empty for the picker", hint: "UUIDs take precedence over names." }],
+  fork: [{ id: "id", label: "Session id", type: "text", placeholder: "leave empty for the picker", hint: "Forks into a new thread; the original is untouched." }],
+  mcp: [{ id: "verbose", label: "Detail", type: "enum", options: ["", "verbose"], hint: "verbose lists every tool each server exposes." }],
+  theme: [{ id: "theme", label: "Syntax theme", type: "text", placeholder: "kebab-case name", hint: "Custom themes live in $CODEX_HOME/themes." }],
+  pets: [{ id: "pet", label: "Pet", type: "text", placeholder: "id, or 'hide'", hint: "Custom pets resolve from CODEX_HOME/pets/<id>/pet.json." }],
+  "sandbox-add-read-dir": [{ id: "dir", label: "Absolute path", type: "text", placeholder: "C:/src/vendor", hint: "Windows only. Grants the sandbox read access." }],
+  side: [{ id: "topic", label: "Side topic", type: "text", placeholder: "quick question", hint: "Runs in an ephemeral fork; the main thread is untouched." }],
+  btw: [{ id: "topic", label: "Side topic", type: "text", placeholder: "quick question", hint: "Same as /side." }],
+  usage: [{ id: "what", label: "Scope", type: "enum", options: ["", "reset"], hint: "reset uses a usage-limit reset if one is available." }],
+  keymap: [{ id: "binding", label: "Action to rebind", type: "text", placeholder: "composer.submit", hint: "Context bindings win over global ones." }],
+  new: [{ id: "prompt", label: "Opening prompt", type: "text", placeholder: "optional", hint: "Starts a fresh chat in the same profile." }],
+  clear: [{ id: "prompt", label: "Opening prompt", type: "text", placeholder: "optional", hint: "Clears the terminal and starts a new chat." }],
+  raw: [{ id: "mode", label: "Raw mode", type: "enum", options: ["", "on", "off"], hint: "Copy-friendly scrollback for terminal selection." }],
+  ide: [{ id: "what", label: "Context to include", type: "text", placeholder: "selection / open files", hint: "Pulls current IDE context into the thread." }]
+};
+
+const SLASH_NOTES = {
+  compact: "Summarises the thread so it fits back inside the context window. Cheaper than starting over, lossy by design.",
+  init: "Writes an AGENTS.md at the repo root describing how Codex should work here.",
+  approve: "Approves exactly one retry of a recent auto-review denial. It does not widen the policy.",
+  logout: "Removes stored credentials. The next run asks you to log in again.",
+  experimental: "Toggles under-development features for this session; see the Extend tab for the full flag list.",
+  memories: "Controls whether Codex reads and writes durable memories.",
+  hooks: "Lists lifecycle hooks and their trust state. Untrusted hooks never run.",
+  status: "Prints model, approval policy, sandbox, cwd and token usage for the current thread.",
+  "debug-config": "Shows every config layer and which file each effective value came from."
+};
+
+const DEFAULT_PROFILES = [
+  { id: "personal", name: "Personal", color: "#D0BCFF", model: "gpt-5.1-codex-max", approval: "on-request", sandbox: "workspace-write", cwd: "~/Documents/GitHub/codex", config: {},
+    sessions: [
+      { id: "s1", name: "tauri shell wiring", cwd: "~/Documents/GitHub/codex", updated: "14:12", turns: 38, archived: false },
+      { id: "s2", name: "sandbox policy audit", cwd: "~/Documents/GitHub/agent-global-memory", updated: "09:41", turns: 12, archived: false }
+    ]},
+  { id: "work", name: "Work", color: "#9BD5A8", model: "gpt-5.1-codex", approval: "untrusted", sandbox: "read-only", cwd: "~/srv/monorepo", config: { approval_policy: "untrusted", sandbox_mode: "read-only" },
+    sessions: [{ id: "s3", name: "payments regression", cwd: "~/srv/monorepo", updated: "yesterday", turns: 21, archived: false }]},
+  { id: "ci", name: "CI", color: "#F1C27A", model: "gpt-5.1-codex-mini", approval: "never", sandbox: "danger-full-access", cwd: "~/srv/ci", config: { approval_policy: "never" },
+    sessions: [{ id: "s4", name: "nightly exec run", cwd: "~/srv/ci", updated: "03:02", turns: 4, archived: true }]}
+];
+
+class Component extends DCLogic {
+  state = {
+    nav: "chat",
+    theme: CX.store.get("theme", "dark"),
+    lang: CX.i18n.mode,
+    cliVersion: "codex 0.58.0",
+    profiles: CX.store.get("profiles", DEFAULT_PROFILES),
+    activeProfile: CX.store.get("activeProfile", "personal"),
+    activeSession: "s1",
+    messages: [],
+    chatInput: "",
+    thinking: false,
+    slashOpen: false, slashQuery: "", slashRegex: null, slashPick: "model", slashArgs: {}, slashView: "list",
+    yolo: CX.store.get("yolo", false),
+    consoleSub: "exec",
+    flagValues: {},
+    runOutput: [{ level: "dim", text: "Output appears here. Under Tauri this streams line by line from the real process." }],
+    copied: false,
+    listQuery: "", listRegex: null,
+    extCat: "mcp", extQuery: "", extRegex: null,
+    setSection: "model", setQuery: "", setRegex: null,
+    healthView: "doctor", historyKind: "all",
+    savedAt: null, copiedToml: false,
+    cost: CX.store.get("cost", { inTok: 1200000, outTok: 180000, turns: 40, plan: 200 }),
+    cacheRate: CX.store.get("cacheRate", 75),
+    prices: CX.store.get("prices", PRICES),
+    regexOpen: false, regexTarget: null, regexPattern: "", regexFlags: ["g", "i"], regexSample: "", regexAt: { x: 200, y: 120 }, copiedRegex: false,
+    appearOpen: false, appearTarget: null, appearAt: { x: 0, y: 0 }, appearance: CX.store.get("appearance", {}),
+    lifetime: CX.store.get("lifetime", { days: 90, perDayIn: 1200000, perDayOut: 180000, startedAt: Date.now() - 90 * 86400000 }),
+    dd: null, ddQuery: "", ddRegex: null,
+    paletteOpen: false, paletteQuery: "", paletteRegex: null,
+    menu: null, tick: 0, toast: null
+  };
+
+  componentDidMount() {
+    document.documentElement.setAttribute("data-theme", this.state.theme);
+    this.setState({ messages: this.seedMessages() });
+    CX.bridge.invoke("codex_version").then((v) => this.setState({ cliVersion: (v.version || "codex").replace(/^codex-cli /, "codex ") })).catch(() => {});
+    if (!CX.vcs.log.length) CX.vcs.commit("Initial Studio state", "init");
+    this.applyAppearance();
+    this._key = (e) => {
+      if (e.key === "Escape") this.setState({ menu: null, regexOpen: false, appearOpen: false, slashOpen: false, dd: null, paletteOpen: false });
+      if (e.ctrlKey && e.shiftKey && (e.key === "F" || e.key === "f")) { e.preventDefault(); this.setState({ paletteOpen: true, paletteQuery: "", paletteRegex: null }); }
+    };
+    window.addEventListener("keydown", this._key);
+  }
+  componentWillUnmount() { window.removeEventListener("keydown", this._key); }
+  componentDidUpdate() { this.applyAppearance(); }
+
+  applyAppearance() {
+    const map = this.state.appearance;
+    document.querySelectorAll("[data-appear]").forEach((el) => {
+      const a = map[el.getAttribute("data-appear")];
+      el.style.fontFamily = a && a.font ? a.font : "";
+      el.style.fontSize = a && a.size ? a.size + "%" : "";
+      el.style.fontWeight = a && a.weight ? a.weight : "";
+      el.style.fontStyle = a && a.italic ? "italic" : "";
+      el.style.textDecoration = a ? [a.underline ? "underline" : "", a.strike ? "line-through" : ""].filter(Boolean).join(" ") : "";
+      el.style.letterSpacing = a && a.wide ? ".06em" : "";
+      el.style.color = a && a.color ? a.color : "";
+    });
+  }
+  toast(text) {
+    this.setState({ toast: text });
+    clearTimeout(this._toast);
+    this._toast = setTimeout(() => this.setState({ toast: null }), 2600);
+  }
+  reloadFromStore() {
+    this.setState({
+      profiles: CX.store.get("profiles", DEFAULT_PROFILES),
+      activeProfile: CX.store.get("activeProfile", this.state.activeProfile),
+      appearance: CX.store.get("appearance", {}),
+      prices: CX.store.get("prices", PRICES),
+      cost: CX.store.get("cost", this.state.cost),
+      yolo: CX.store.get("yolo", false),
+      tick: this.state.tick + 1
+    });
+  }
+
+  profile() { return this.state.profiles.find((p) => p.id === this.state.activeProfile) || this.state.profiles[0]; }
+  writeProfiles(profiles, message) {
+    CX.store.set("profiles", profiles);
+    this.setState({ profiles, tick: this.state.tick + 1 });
+    if (message) CX.vcs.commit(message, "profile");
+  }
+  patchProfile(patch, message) {
+    this.writeProfiles(this.state.profiles.map((p) => (p.id === this.state.activeProfile ? Object.assign({}, p, patch) : p)), message);
+  }
+  setConfig(key, value) {
+    const cfg = Object.assign({}, this.profile().config || {});
+    if (value === "" || value == null) delete cfg[key]; else cfg[key] = value;
+    this.patchProfile({ config: cfg }, "Set " + key + " = " + JSON.stringify(value) + " on " + this.profile().name);
+  }
+  setCost(patch) {
+    const cost = Object.assign({}, this.state.cost, patch);
+    CX.store.set("cost", cost);
+    this.setState({ cost });
+  }
+
+  /** Material dropdown: filterable option menu anchored to the control that opened it. */
+  openDropdown(e, cfg) {
+    e.stopPropagation();
+    const r = e.currentTarget.getBoundingClientRect();
+    const width = Math.max(220, Math.min(cfg.width || r.width, window.innerWidth - 24));
+    this.setState({
+      dd: Object.assign({}, cfg, {
+        width,
+        x: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)),
+        y: Math.max(8, Math.min(r.bottom + 6, window.innerHeight - 320))
+      }),
+      ddQuery: "", ddRegex: null, menu: null
+    });
+  }
+  paletteItems() {
+    const st = this.state, p = this.profile(), out = [];
+    NAV.forEach((n) => out.push({ group: "Go to", title: n.label, subtitle: n.hint, hint: "↵", run: () => this.setState({ nav: n.id, paletteOpen: false }) }));
+    st.profiles.forEach((pr) => out.push({ group: "Profile", title: pr.name, subtitle: pr.model + " · " + pr.approval + " · " + pr.sandbox, hint: "switch", run: () => { CX.store.set("activeProfile", pr.id); this.setState({ activeProfile: pr.id, paletteOpen: false }); } }));
+    p.sessions.forEach((s) => out.push({ group: "Session", title: s.name, subtitle: s.cwd, hint: "open", run: () => this.setState({ nav: "chat", activeSession: s.id, messages: this.seedMessages(), paletteOpen: false }) }));
+    DATA.SUBCOMMANDS.forEach((s) => out.push({ group: "Command", title: "codex " + (s.name === "(interactive)" ? "" : s.name), subtitle: s.desc, hint: "console", mono: true, run: () => this.setState({ nav: "console", consoleSub: s.name, flagValues: {}, paletteOpen: false }) }));
+    DATA.SLASH.forEach((s) => out.push({ group: "Slash", title: "/" + s.name, subtitle: s.desc, hint: "wizard", mono: true, run: () => this.setState({ nav: "chat", slashOpen: true, slashPick: s.name, slashView: "wizard", paletteOpen: false }) }));
+    DATA.SETTINGS.forEach((sec) => sec.fields.forEach((f) => out.push({ group: "Setting", title: f.label, subtitle: f.key, hint: sec.title, mono: true, run: () => this.setState({ nav: "settings", setSection: sec.id, setQuery: f.key, setRegex: null, paletteOpen: false }) })));
+    CX.sim.catalog.forEach((c) => out.push({ group: "Plugin", title: c.name, subtitle: c.desc, hint: c.marketplace, run: () => this.setState({ nav: "ext", extCat: "browse", extQuery: c.name, extRegex: null, paletteOpen: false }) }));
+    DATA.FEATURES.forEach((f) => out.push({ group: "Feature", title: f.key, subtitle: "features." + f.key + " · " + f.stage, hint: f.stage, mono: true, run: () => this.setState({ nav: "ext", extCat: "features", extQuery: f.key, extRegex: null, paletteOpen: false }) }));
+    out.push({ group: "Action", title: st.yolo ? "Turn YOLO off" : "Enable YOLO mode", subtitle: "approval_policy = never, sandbox_mode = danger-full-access", hint: "toggle", run: () => { this.setState({ paletteOpen: false }); this.setYolo(!st.yolo); } });
+    out.push({ group: "Action", title: "Undo last change", subtitle: CX.vcs.log.length ? CX.vcs.log[0].message : "nothing yet", hint: "git", run: () => { this.setState({ paletteOpen: false }); const c = CX.vcs.undo(); if (c) { this.reloadFromStore(); this.toast(c.message); } } });
+    out.push({ group: "Action", title: "Spawn a WSL instance for every tab", subtitle: "per-tab runtimes", hint: "wsl", run: () => { this.setState({ paletteOpen: false, nav: "runtime" }); p.sessions.forEach((s) => this.wslSpawn(s)); } });
+    out.push({ group: "Action", title: st.theme === "dark" ? "Switch to light theme" : "Switch to dark theme", subtitle: "Material 3 palette", hint: "theme", run: () => { const theme = st.theme === "dark" ? "light" : "dark"; document.documentElement.setAttribute("data-theme", theme); CX.store.set("theme", theme); this.setState({ theme, paletteOpen: false }); } });
+    return out;
+  }
+  menuAt(e, title, items) {
+    e.preventDefault(); e.stopPropagation();
+    this.setState({ menu: { title, items, x: Math.min(e.clientX, window.innerWidth - 274), y: Math.max(8, Math.min(e.clientY, window.innerHeight - (items.length * 34 + 56))) } });
+  }
+  filterItems(target, text) {
+    const setQ = (q) => { const patch = { menu: null }; patch[target + "Query"] = q; patch[target + "Regex"] = null; this.setState(patch); };
+    const setRe = (pattern) => { const patch = { menu: null }; patch[target + "Regex"] = { pattern, flags: ["g", "i"] }; patch[target + "Query"] = pattern; this.setState(patch); };
+    const esc = String(text || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return [
+      { key: "f1", icon: "⌕", label: "Filter to “" + text + "”", click: () => setQ(text) },
+      { key: "f2", icon: "∌", label: "Exclude “" + text + "”", click: () => setRe("^(?!.*" + esc + ").*$") },
+      { key: "f3", icon: "^", label: "Filter: starts with this", click: () => setRe("^" + esc) },
+      { key: "f4", icon: "=", label: "Filter: exact match", click: () => setRe("^" + esc + "$") },
+      { key: "f5", icon: ".*", label: "Open regex builder with this", click: () => { this.setState({ menu: null }); this.openRegexFor(target, text); } },
+      { key: "f6", icon: "✕", label: "Clear this filter", click: () => setQ("") }
+    ];
+  }
+  copyItem(text) { return { key: "copy", icon: "⧉", label: "Copy", click: () => { navigator.clipboard.writeText(text); this.setState({ menu: null }); this.toast("Copied"); } }; }
+  appearItem(e) {
+    const host = e.target.closest ? e.target.closest("[data-appear]") : null;
+    const name = host ? host.getAttribute("data-appear") : null;
+    const at = { x: Math.min(e.clientX, window.innerWidth - 350), y: Math.max(8, Math.min(e.clientY, window.innerHeight - 470)) };
+    return { key: "appear", icon: "🎨", label: name ? "Edit appearance — " + name : "Edit appearance…", click: () => this.setState({ menu: null, appearOpen: !!name, appearTarget: name, appearAt: at }) };
+  }
+
+  openRegexFor(target, currentQuery) {
+    const anchor = document.querySelector('[data-anchor="' + target + '"]');
+    const r = anchor ? anchor.getBoundingClientRect() : null;
+    const x = r ? Math.min(Math.max(8, r.left), Math.max(8, window.innerWidth - 492)) : 200;
+    const y = r ? Math.max(8, Math.min(r.bottom + 8, window.innerHeight - 260)) : 120;
+    const existing = this.state[target + "Regex"];
+    this.setState({
+      regexOpen: true, regexTarget: target, regexAt: { x, y },
+      regexPattern: existing ? existing.pattern : (currentQuery || ""),
+      regexFlags: existing ? existing.flags.slice() : ["g", "i"],
+      regexSample: this.sampleFor(target)
+    });
+  }
+  sampleFor(target) {
+    if (target === "ext") return this.extItems().map((x) => x.title).join("\n");
+    if (target === "set") return DATA.SETTINGS.flatMap((s) => s.fields.map((f) => f.key)).join("\n");
+    if (target === "slash") return DATA.SLASH.map((s) => s.name).join("\n");
+    if (target === "dd") return ((this.state.dd || {}).options || []).map((o) => o.label).join("\n");
+    if (target === "palette") return this.paletteItems().map((i) => i.title).join("\n");
+    const nav = this.state.nav;
+    if (nav === "console") return DATA.SUBCOMMANDS.map((s) => s.name).join("\n");
+    if (nav === "settings") return DATA.SETTINGS.map((s) => s.title).join("\n");
+    if (nav === "ext") return EXT_CATEGORIES.map((c) => c.title).join("\n");
+    return this.profile().sessions.map((s) => s.name).join("\n");
+  }
+  matcher(query, spec) {
+    if (spec && spec.pattern) {
+      try { const re = new RegExp(spec.pattern, spec.flags.filter((f) => f !== "g").join("")); return (t) => re.test(t); }
+      catch (e) { return () => true; }
+    }
+    const q = (query || "").toLowerCase();
+    return (t) => !q || String(t).toLowerCase().includes(q);
+  }
+
+  seedMessages() {
+    return [
+      { role: "user", text: "Wire the GUI's Run button to the real CLI through Tauri and stream stdout.", at: "14:02" },
+      { role: "reasoning", text: "Looking for the invoke handler and the process spawn path.", at: "14:02" },
+      { role: "tool", text: "rg -n \"tauri::Builder\" src-tauri/src", out: "src-tauri/src/main.rs:150: tauri::Builder::default()", at: "14:02" },
+      { role: "assistant", text: "`codex_run` now spawns the CLI with the argv the GUI composed and emits one `codex://stdout` event per line, so the console renders output as it arrives instead of after exit.", at: "14:03" }
+    ];
+  }
+  toggleRow(on) {
+    return { track: on ? "var(--m3-primary)" : "transparent", trackBorder: on ? "var(--m3-primary)" : "var(--m3-outline)",
+      knob: on ? "var(--m3-on-primary)" : "var(--m3-outline)", knobSize: on ? "22px" : "15px",
+      knobTop: on ? "2px" : "5.5px", knobLeft: on ? "22px" : "5.5px" };
+  }
+
+  extItems() {
+    const s = CX.sim, cat = this.state.extCat;
+    if (cat === "mcp") return s.mcp.map((m) => ({ id: m.name, title: m.name, subtitle: m.transport === "stdio" ? m.command + " " + (m.args || []).join(" ") : m.url, badge: m.transport, on: m.enabled, kind: "mcp", mono: true }));
+    if (cat === "browse") return s.catalog.map((c) => ({
+      id: c.name, title: c.name,
+      subtitle: c.desc + "  —  v" + c.version + " · " + c.author + " · " + c.installs.toLocaleString() + " installs · " + c.tags.join(", "),
+      badge: c.marketplace, on: s.plugins.some((p) => p.name === c.name), kind: "catalog"
+    }));
+    if (cat === "plugins") return s.plugins.map((p) => ({ id: p.name, title: p.name, subtitle: "v" + p.version + " · " + p.marketplace, badge: "installed", on: p.enabled, kind: "plugin" }));
+    if (cat === "marketplaces") return s.marketplaces.map((m) => ({ id: m.name, title: m.name, subtitle: m.url, badge: m.plugins + " plugins", on: true, kind: "registry", mono: true }));
+    if (cat === "skills") return s.skills.map((k) => ({ id: k.name, title: k.name, subtitle: k.path, badge: k.source, on: k.enabled, kind: "skill", mono: true }));
+    if (cat === "hooks") return s.hooks.map((h) => ({ id: h.name, title: h.name, subtitle: h.event + " · " + h.command, badge: h.trusted ? "trusted" : "untrusted", on: h.enabled, kind: "hook", mono: true, locked: !h.trusted }));
+    const flags = CX.store.get("features", {});
+    return DATA.FEATURES.map((f) => ({ id: f.key, title: f.key, subtitle: "features." + f.key, badge: f.stage, on: f.key in flags ? !!flags[f.key] : f.stage === "stable", kind: "feature", mono: true, locked: f.stage === "removed" }));
+  }
+  extCommand(x) {
+    if (x.kind === "mcp") return "codex mcp " + (x.on ? "remove " : "add ") + x.id;
+    if (x.kind === "catalog") return "codex plugin " + (x.on ? "remove " : "add ") + x.id;
+    if (x.kind === "plugin") return "codex plugin remove " + x.id;
+    if (x.kind === "registry") return "codex plugin marketplace remove " + x.id;
+    if (x.kind === "feature") return "codex -c features." + x.id + "=" + (!x.on);
+    return "codex " + x.kind + " " + x.id;
+  }
+  toggleExt(x) {
+    if (x.locked) { this.toast(x.kind === "hook" ? "Hook is untrusted — trust it before enabling" : "Removed features cannot be enabled"); return; }
+    if (x.kind === "registry") { this.toast("Registries are managed below — right-click to remove or copy the CLI command"); return; }
+    if (x.kind === "catalog") {
+      CX.bridge.invoke(x.on ? "codex_plugin_uninstall" : "codex_plugin_install", { name: x.id }).then(() => {
+        CX.vcs.commit((x.on ? "Uninstall" : "Install") + " plugin " + x.id, "change");
+        this.setState({ tick: this.state.tick + 1 });
+        this.toast((x.on ? "Removed " : "Installed ") + x.id + " — " + this.extCommand(x));
+      });
+      return;
+    }
+    if (x.kind === "feature") { CX.bridge.invoke("codex_set_feature", { key: x.id, value: !x.on }).then(() => { CX.vcs.commit((x.on ? "Disable" : "Enable") + " feature " + x.id, "change"); this.setState({ tick: this.state.tick + 1 }); }); return; }
+    const map = { mcp: "codex_mcp_toggle", plugin: "codex_plugin_toggle", skill: "codex_skill_toggle", hook: "codex_hook_toggle" };
+    if (map[x.kind]) CX.bridge.invoke(map[x.kind], { name: x.id }).then(() => { CX.vcs.commit((x.on ? "Disable" : "Enable") + " " + x.kind + " " + x.id, "change"); this.setState({ tick: this.state.tick + 1 }); });
+  }
+
+  /* ---- per-tab WSL runtimes ---- */
+  wslFor(sessionId) { return CX.sim.wsl[sessionId] || null; }
+  wslCommand(session, inst, inner) {
+    const i = inst || { distro: CX.sim.wslDistros[0], cwd: "~" };
+    return "wsl.exe -d " + i.distro + " --cd " + i.cwd + " -- " + (inner || "codex exec \"…\"");
+  }
+  wslSpawn(session, distro) {
+    return CX.bridge.invoke("codex_wsl_spawn", { session: session.id, distro: distro || CX.sim.wslDistros[0], cwd: "/mnt/c" + String(session.cwd || "").replace(/^~/, "/Users/ding").replace(/\\/g, "/") })
+      .then(() => { CX.vcs.commit("Spawn WSL for " + session.name, "change"); this.setState({ tick: this.state.tick + 1 }); });
+  }
+  currentSub() { return DATA.SUBCOMMANDS.find((s) => s.name === this.state.consoleSub) || DATA.SUBCOMMANDS[0]; }
+  flagList() { return DATA.GLOBAL_FLAGS.concat(this.currentSub().args || []); }
+  buildCommand() {
+    const sub = this.currentSub(), v = this.state.flagValues, p = this.profile();
+    const parts = ["codex"];
+    if (sub.name !== "(interactive)") parts.push(sub.name);
+    if (this.state.yolo) parts.push("--dangerously-bypass-approvals-and-sandbox");
+    this.flagList().forEach((f) => {
+      const val = v[f.flag];
+      if (val == null || val === "" || val === false) return;
+      if (f.type === "bool") parts.push(f.flag);
+      else if (/^[A-Z]/.test(f.flag)) parts.push(JSON.stringify(String(val)));
+      else parts.push(f.flag, /\s/.test(String(val)) ? JSON.stringify(String(val)) : String(val));
+    });
+    if (p.id !== "personal") parts.push("--profile", p.id);
+    const line = parts.join(" ");
+    const inst = this.wslFor(this.state.activeSession);
+    return inst && inst.auto && inst.status === "running" ? this.wslCommand(null, inst, line) : line;
+  }
+  configValue(field) {
+    const v = (this.profile().config || {})[field.key];
+    return v == null ? (field.def == null ? "" : field.def) : v;
+  }
+  costFor(model) {
+    const pr = this.state.prices[model] || { in: 0, cached: 0, out: 0 };
+    const c = this.state.cost, cached = c.inTok * (this.state.cacheRate / 100);
+    return ((c.inTok - cached) / 1e6) * pr.in + (cached / 1e6) * pr.cached + (c.outTok / 1e6) * pr.out;
+  }
+  money(n) { return n >= 100 ? "$" + n.toFixed(0) : n >= 1 ? "$" + n.toFixed(2) : "$" + n.toFixed(3); }
+  exact(n) { return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  /** What the profile's model would have cost on the API over the chosen window. */
+  lifetimeCost() {
+    const lt = this.state.lifetime, pr = this.state.prices[this.profile().model] || { in: 0, cached: 0, out: 0 };
+    const rate = this.state.cacheRate / 100;
+    const inTok = lt.perDayIn * lt.days, outTok = lt.perDayOut * lt.days, cached = inTok * rate;
+    return ((inTok - cached) / 1e6) * pr.in + (cached / 1e6) * pr.cached + (outTok / 1e6) * pr.out;
+  }
+  /** What the same window actually cost: plan price × months elapsed. */
+  lifetimePaid() { return (this.state.cost.plan || 0) * (this.state.lifetime.days / 30); }
+
+  setYolo(on) {
+    CX.store.set("yolo", on);
+    const cfg = Object.assign({}, this.profile().config || {});
+    if (on) { cfg.approval_policy = "never"; cfg.sandbox_mode = "danger-full-access"; }
+    else { delete cfg.approval_policy; delete cfg.sandbox_mode; }
+    this.setState({ yolo: on });
+    this.patchProfile({ config: cfg, approval: on ? "never" : "on-request", sandbox: on ? "danger-full-access" : "workspace-write" },
+      (on ? "Enable" : "Disable") + " YOLO on " + this.profile().name);
+    this.toast(on
+      ? "YOLO on — approvals off, sandbox off, written to this profile's config.toml. It survives restarts until you turn it off."
+      : "YOLO off — approval and sandbox restored to defaults.");
+  }
+
+  slashPreviewText() {
+    const name = this.state.slashPick, args = this.state.slashArgs[name] || {};
+    const parts = ["/" + name];
+    (SLASH_WIZARDS[name] || []).forEach((w) => { const v = args[w.id]; if (v) parts.push(v); });
+    return parts.join(" ");
+  }
+
+  healthCards(view) {
+    const s = CX.sim;
+    const mk = (title, rows, actions) => ({ key: title, title, rows, actions: actions || [], context: (e) => this.menuAt(e, title, [this.copyItem(title), this.appearItem(e)]) });
+    if (view === "account") return [
+      mk("Authentication", [
+        { key: "m", name: "Method", detail: s.auth.method, dot: "var(--m3-ok)" },
+        { key: "a", name: "Account", detail: s.auth.account || "logged out", dot: s.auth.account ? "var(--m3-ok)" : "var(--m3-error)" },
+        { key: "p", name: "Plan", detail: s.auth.plan || "—", dot: "var(--m3-ok)" },
+        { key: "e", name: "Token expires", detail: s.auth.expires || "—", dot: "var(--m3-warn)" },
+        { key: "s", name: "Credential store", detail: "file · ~/.codex/auth.json", dot: "var(--m3-ok)" }
+      ], [
+        { key: "login", label: "codex login", fg: "var(--m3-on-surface)", click: () => CX.bridge.invoke("codex_login", { method: "chatgpt" }).then(() => { this.toast("Logged in with ChatGPT"); this.setState({ tick: this.state.tick + 1 }); }) },
+        { key: "api", label: "Login with API key", fg: "var(--m3-on-surface)", click: () => CX.bridge.invoke("codex_login", { method: "api" }).then(() => { this.toast("API key stored"); this.setState({ tick: this.state.tick + 1 }); }) },
+        { key: "out", label: "codex logout", fg: "var(--m3-error)", click: () => CX.bridge.invoke("codex_logout").then(() => { this.toast("Credentials removed"); this.setState({ tick: this.state.tick + 1 }); }) }
+      ])
+    ];
+    if (view === "usage") {
+      const u = s.usage;
+      return [mk("Token usage", [
+        { key: "i", name: "Input", detail: u.input.toLocaleString(), dot: "var(--m3-primary)" },
+        { key: "c", name: "Cached input", detail: u.cached.toLocaleString(), dot: "var(--m3-primary)" },
+        { key: "o", name: "Output", detail: u.output.toLocaleString(), dot: "var(--m3-primary)" },
+        { key: "w", name: "Context window", detail: u.used.toLocaleString() + " / " + u.contextWindow.toLocaleString() + " (" + Math.round((u.used / u.contextWindow) * 100) + "%)", dot: "var(--m3-warn)" },
+        { key: "r", name: "Limit resets", detail: u.limitResets, dot: "var(--m3-ok)" }
+      ], [{ key: "cost", label: "Price this in Cost", fg: "var(--m3-primary)", click: () => { this.setCost({ inTok: u.input, outTok: u.output }); this.setState({ nav: "cost" }); } }])];
+    }
+    if (view === "cloud") return [mk("Cloud tasks", s.cloudTasks.map((t) => ({ key: t.id, name: t.title, detail: t.id + " · " + t.status + " · " + t.env + " · " + t.updated, dot: t.status === "ready" ? "var(--m3-ok)" : "var(--m3-on-surface-variant)" })),
+      [{ key: "open", label: "codex cloud", fg: "var(--m3-on-surface)", click: () => this.setState({ nav: "console", consoleSub: "cloud" }) }])];
+    const d = this._doctor;
+    if (!d) {
+      CX.bridge.invoke("codex_doctor").then((res) => { this._doctor = res; this.setState({ tick: this.state.tick + 1 }); }).catch(() => {});
+      return [mk("Doctor", [{ key: "l", name: "Running codex doctor…", detail: "", dot: "var(--m3-warn)" }])];
+    }
+    return d.groups.map((g) => mk(g.name, g.checks.map((c, i) => ({ key: g.name + i, name: c.name, detail: c.detail, dot: c.ok ? "var(--m3-ok)" : "var(--m3-error)" })),
+      g.name === "Runtime" ? [{ key: "re", label: "Re-run doctor", fg: "var(--m3-primary)", click: () => { this._doctor = null; this.setState({ tick: this.state.tick + 1 }); } }] : []));
+  }
+
+  listConfig() {
+    const st = this.state, nav = st.nav, match = this.matcher(st.listQuery, st.listRegex);
+    const mk = (title, placeholder, actionLabel, rows) => ({ title, placeholder, actionLabel, rows });
+    if (nav === "chat") {
+      const p = this.profile();
+      return mk("Sessions · " + p.name, "Search sessions", "New", p.sessions.filter((s) => match(s.name + " " + s.cwd)).map((s) => ({
+        key: s.id, title: s.name + (s.archived ? " (archived)" : ""), subtitle: s.cwd, meta: s.updated, initial: s.name[0].toUpperCase(), active: s.id === st.activeSession,
+        go: () => this.setState({ activeSession: s.id, messages: this.seedMessages() }),
+        context: (e) => this.menuAt(e, s.name, [
+          { key: "resume", icon: "▶", label: "Resume session", click: () => { this.setState({ menu: null, activeSession: s.id }); this.toast("codex resume " + s.id); } },
+          { key: "fork", icon: "⑂", label: "Fork session", click: () => { const ns = Object.assign({}, s, { id: "s" + Date.now(), name: s.name + " (fork)" }); this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => (x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.concat([ns]) }) : x)), "Fork session " + s.name); } },
+          { key: "arch", icon: "🗄", label: s.archived ? "Unarchive" : "Archive", click: () => { this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => (x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.map((y) => (y.id === s.id ? Object.assign({}, y, { archived: !y.archived }) : y)) }) : x)), (s.archived ? "Unarchive" : "Archive") + " " + s.name); } },
+          { key: "move", icon: "→", label: "Move to another profile", click: () => { const other = st.profiles.filter((x) => x.id !== p.id)[0]; if (!other) return; this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.filter((y) => y.id !== s.id) }) : x.id === other.id ? Object.assign({}, x, { sessions: x.sessions.concat([s]) }) : x), "Move " + s.name + " to " + other.name); } },
+          { key: "del", icon: "🗑", label: "Delete session", danger: true, click: () => { this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => (x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.filter((y) => y.id !== s.id) }) : x)), "Delete session " + s.name); this.toast("Deleted — undo it from History"); } },
+          this.copyItem(s.id)
+        ].concat(this.filterItems("list", s.name)).concat([this.appearItem(e)]))
+      })));
+    }
+    if (nav === "console") {
+      return mk("Subcommands", "Search commands", "Docs", DATA.SUBCOMMANDS.filter((s) => match(s.name + " " + s.desc)).map((s) => ({
+        key: s.name, title: "codex " + (s.name === "(interactive)" ? "" : s.name), subtitle: s.desc, meta: s.group,
+        initial: (s.name === "(interactive)" ? "C" : s.name[0]).toUpperCase(), active: s.name === st.consoleSub,
+        go: () => this.setState({ consoleSub: s.name, flagValues: {} }),
+        context: (e) => this.menuAt(e, "codex " + s.name, [
+          { key: "open", icon: "▶", label: "Open flags", click: () => this.setState({ menu: null, consoleSub: s.name, flagValues: {} }) },
+          this.copyItem("codex " + s.name),
+          { key: "grp", icon: "⌕", label: "Filter to group “" + s.group + "”", click: () => this.setState({ menu: null, listQuery: s.group, listRegex: null }) }
+        ].concat(this.filterItems("list", s.name)).concat([this.appearItem(e)]))
+      })));
+    }
+    if (nav === "ext") {
+      return mk("Categories", "Search categories", "Add", EXT_CATEGORIES.filter((c) => match(c.title)).map((c) => ({
+        key: c.id, title: c.title, subtitle: c.sub, meta: "", initial: c.title[0], active: c.id === st.extCat,
+        go: () => this.setState({ extCat: c.id, extQuery: "", extRegex: null }),
+        context: (e) => this.menuAt(e, c.title, [{ key: "o", icon: "→", label: "Open", click: () => this.setState({ menu: null, extCat: c.id }) }].concat(this.filterItems("list", c.title)).concat([this.appearItem(e)]))
+      })));
+    }
+    if (nav === "settings") {
+      return mk("Config sections", "Search sections", "Reset", DATA.SETTINGS.filter((s) => match(s.title + " " + s.desc)).map((s) => ({
+        key: s.id, title: s.title, subtitle: s.desc, meta: String(s.fields.length), initial: s.icon, active: s.id === st.setSection,
+        go: () => this.setState({ setSection: s.id }),
+        context: (e) => this.menuAt(e, s.title, [
+          { key: "o", icon: "→", label: "Open section", click: () => this.setState({ menu: null, setSection: s.id }) },
+          { key: "r", icon: "↺", label: "Reset every key in section", danger: true, click: () => { const cfg = Object.assign({}, this.profile().config); s.fields.forEach((f) => delete cfg[f.key]); this.setState({ menu: null }); this.patchProfile({ config: cfg }, "Reset section " + s.title); } }
+        ].concat(this.filterItems("list", s.title)).concat([this.appearItem(e)]))
+      })));
+    }
+    if (nav === "runtime") {
+      const p2 = this.profile();
+      return mk("Tabs · " + p2.name, "Search tabs", "Spawn all", p2.sessions.filter((s) => match(s.name)).map((s) => {
+        const inst = this.wslFor(s.id);
+        return {
+          key: s.id, title: s.name, subtitle: inst ? inst.distro + " · " + inst.status : "no WSL instance",
+          meta: inst && inst.status === "running" ? "●" : "", initial: "🐧", active: s.id === st.activeSession,
+          go: () => this.setState({ activeSession: s.id }),
+          context: (e) => this.menuAt(e, s.name, [
+            { key: "sp", icon: "▶", label: inst ? "Restart WSL instance" : "Spawn WSL instance", click: () => { this.setState({ menu: null }); this.wslSpawn(s); } },
+            { key: "st", icon: "■", label: "Stop instance", click: () => { this.setState({ menu: null }); CX.bridge.invoke("codex_wsl_stop", { session: s.id }).then(() => this.setState({ tick: st.tick + 1 })); } },
+            this.copyItem(this.wslCommand(s, inst))
+          ].concat(this.filterItems("list", s.name)).concat([this.appearItem(e)]))
+        };
+      }));
+    }
+    if (nav === "health") {
+      const items = [{ id: "doctor", title: "Doctor", sub: "Install, config, auth, runtime" }, { id: "account", title: "Account", sub: "Login and credential store" }, { id: "usage", title: "Usage", sub: "Tokens, context, resets" }, { id: "cloud", title: "Cloud tasks", sub: "codex cloud" }];
+      return mk("Health", "Search checks", "Re-run", items.filter((i) => match(i.title)).map((i) => ({
+        key: i.id, title: i.title, subtitle: i.sub, meta: "", initial: i.title[0], active: st.healthView === i.id,
+        go: () => this.setState({ healthView: i.id }),
+        context: (e) => this.menuAt(e, i.title, this.filterItems("list", i.title).concat([this.appearItem(e)]))
+      })));
+    }
+    const kinds = [{ id: "all", title: "All commits" }, { id: "profile", title: "Profile changes" }, { id: "config", title: "Config writes" }, { id: "revert", title: "Undos" }];
+    return mk("History filter", "Search commits", "Undo", kinds.filter((k) => match(k.title)).map((k) => ({
+      key: k.id, title: k.title, subtitle: (k.id === "all" ? CX.vcs.log.length : CX.vcs.log.filter((c) => c.kind === k.id).length) + " commits",
+      meta: "", initial: "↺", active: st.historyKind === k.id,
+      go: () => this.setState({ historyKind: k.id }),
+      context: (e) => this.menuAt(e, k.title, this.filterItems("list", k.title).concat([this.appearItem(e)]))
+    })));
+  }
+
+  renderVals() {
+    const st = this.state, p = this.profile();
+    CX.i18n.mode = st.lang;
+    const list = this.listConfig();
+    const sub = this.currentSub();
+    const cmd = this.buildCommand();
+    const cfg = p.config || {};
+    const toml = CX.toToml(cfg);
+    const section = DATA.SETTINGS.find((s) => s.id === st.setSection) || DATA.SETTINGS[0];
+    const setMatch = this.matcher(st.setQuery, st.setRegex);
+    const extMatch = this.matcher(st.extQuery, st.extRegex);
+    const slashMatch = this.matcher(st.slashQuery, st.slashRegex);
+    const allExt = this.extItems();
+    const extItems = allExt.filter((x) => extMatch(x.title + " " + x.subtitle));
+    const settingFields = section.fields.filter((f) => setMatch(f.key + " " + f.label + " " + (f.desc || "")));
+    const slashItems = DATA.SLASH.filter((s) => slashMatch(s.name + " " + s.desc));
+    const pick = DATA.SLASH.find((s) => s.name === st.slashPick) || slashItems[0] || DATA.SLASH[0];
+    const rx = st.regexOpen ? CX.evaluate(st.regexPattern, st.regexFlags.join(""), st.regexSample) : null;
+    const appear = st.appearTarget ? (st.appearance[st.appearTarget] || {}) : {};
+    const appearColor = appear.color || "#D0BCFF";
+    const hsv = CX.color.rgbToHsv(CX.color.hexToRgb(appearColor) || { r: 208, g: 188, b: 255 });
+    const activeSession = p.sessions.find((s) => s.id === st.activeSession) || p.sessions[0] || { name: "New session", cwd: p.cwd, turns: 0 };
+    const total = this.costFor(p.model);
+    const slashArgs = st.slashArgs[pick.name] || {};
+
+    const v = {
+      cliVersion: st.cliVersion,
+      bridgeLabel: CX.bridge.mode === "tauri" ? "Tauri IPC" : "Browser preview",
+      themeLabel: st.theme === "dark" ? "Dark" : "Light",
+      lang: st.lang,
+      toastOpen: !!st.toast, toastText: st.toast || "",
+      stop: (e) => e.stopPropagation(),
+      onRootClick: () => { if (st.menu || st.slashOpen || st.dd) this.setState({ menu: null, slashOpen: false, dd: null }); },
+      toggleTheme: () => { const theme = st.theme === "dark" ? "light" : "dark"; document.documentElement.setAttribute("data-theme", theme); CX.store.set("theme", theme); this.setState({ theme }); },
+      setLang: (e) => { const lang = e.target.value; CX.i18n.mode = lang; CX.i18n.save(); this.setState({ lang }); },
+      winMin: () => CX.bridge.window.minimize(),
+      winMax: () => CX.bridge.window.toggleMaximize(),
+      winClose: () => CX.bridge.window.close(),
+
+      langLabel: st.lang === "en" ? "EN" : st.lang === "yue" ? "廣東話" : "EN·粵",
+      openLangMenu: (e) => this.openDropdown(e, {
+        title: "Language mode", value: st.lang, width: 240,
+        options: [{ value: "en", label: "English" }, { value: "yue", label: "廣東話 (playful HK Cantonese)" }, { value: "bi", label: "Bilingual · EN + 粵" }],
+        onPick: (o) => { CX.i18n.mode = o.value; CX.i18n.save(); this.setState({ lang: o.value, dd: null }); }
+      }),
+      lifetimeLabel: st.lifetime.days >= 365 ? (st.lifetime.days / 365).toFixed(st.lifetime.days % 365 ? 1 : 0) + " y" : st.lifetime.days + " d",
+      openLifetimeMenu: (e) => this.openDropdown(e, {
+        title: "Lifetime window", value: String(st.lifetime.days), width: 240,
+        options: [7, 30, 90, 180, 365, 730].map((d) => ({ value: String(d), label: d >= 365 ? d / 365 + " year" + (d > 365 ? "s" : "") : d + " days" })).concat([{ value: "custom", label: "Custom…" }]),
+        onPick: (o) => {
+          let days = o.value;
+          if (days === "custom") { const a = prompt("How many days should the lifetime total cover?", String(st.lifetime.days)); if (!a) { this.setState({ dd: null }); return; } days = Math.max(1, Number(a) || st.lifetime.days); }
+          const lifetime = Object.assign({}, st.lifetime, { days: Number(days) });
+          CX.store.set("lifetime", lifetime);
+          this.setState({ lifetime, dd: null });
+        }
+      }),
+      lifetimeTotal: this.exact(this.lifetimeCost()),
+      lifetimePaid: this.exact(this.lifetimePaid()),
+      lifetimePaidFg: "var(--m3-on-surface)",
+      lifetimeDelta: st.cost.plan === 0 ? "no plan" : (this.lifetimeCost() >= this.lifetimePaid()
+        ? "saved " + this.exact(this.lifetimeCost() - this.lifetimePaid())
+        : "over by " + this.exact(this.lifetimePaid() - this.lifetimeCost())),
+      lifetimeDeltaFg: st.cost.plan === 0 ? "var(--m3-on-surface-variant)" : (this.lifetimeCost() >= this.lifetimePaid() ? "var(--m3-ok)" : "var(--m3-warn)"),
+      lifetimeDays: String(st.lifetime.days),
+      lifetimeOptions: [
+        { key: "7", value: "7", label: "7 d" }, { key: "30", value: "30", label: "30 d" },
+        { key: "90", value: "90", label: "90 d" }, { key: "180", value: "180", label: "6 mo" },
+        { key: "365", value: "365", label: "1 y" }, { key: "730", value: "730", label: "2 y" },
+        { key: "custom", value: "custom", label: st.lifetime.days > 730 ? st.lifetime.days + " d" : "Custom…" }
+      ],
+      setLifetimeDays: (e) => {
+        let days = e.target.value;
+        if (days === "custom") {
+          const answer = prompt("How many days should the lifetime total cover?", String(st.lifetime.days));
+          if (!answer) return;
+          days = Math.max(1, Number(answer) || st.lifetime.days);
+        }
+        const lifetime = Object.assign({}, st.lifetime, { days: Number(days) });
+        CX.store.set("lifetime", lifetime);
+        this.setState({ lifetime });
+      },
+      lifetimeHint: "Over " + st.lifetime.days + " days at " + (st.lifetime.perDayIn / 1000).toFixed(0) + "k in / " +
+        (st.lifetime.perDayOut / 1000).toFixed(0) + "k out per day on " + p.model + ": " + this.exact(this.lifetimeCost()) +
+        " if billed per token, against " + this.exact(this.lifetimePaid()) + " actually paid at " + this.exact(st.cost.plan) +
+        "/month. Right-click to change the daily volume; the dropdown changes the window.",
+      lifetimeMenu: (e) => this.menuAt(e, "Lifetime cost", [
+        { key: "in", icon: "↧", label: "Set input tokens per day", click: () => { this.setState({ menu: null }); const a = prompt("Average input tokens per day", String(st.lifetime.perDayIn)); if (a) { const lifetime = Object.assign({}, st.lifetime, { perDayIn: Number(a) || st.lifetime.perDayIn }); CX.store.set("lifetime", lifetime); this.setState({ lifetime }); } } },
+        { key: "out", icon: "↥", label: "Set output tokens per day", click: () => { this.setState({ menu: null }); const a = prompt("Average output tokens per day", String(st.lifetime.perDayOut)); if (a) { const lifetime = Object.assign({}, st.lifetime, { perDayOut: Number(a) || st.lifetime.perDayOut }); CX.store.set("lifetime", lifetime); this.setState({ lifetime }); } } },
+        { key: "sess", icon: "⤓", label: "Use the current session as one day", click: () => { const lifetime = Object.assign({}, st.lifetime, { perDayIn: st.cost.inTok, perDayOut: st.cost.outTok }); CX.store.set("lifetime", lifetime); this.setState({ menu: null, lifetime }); this.toast("Daily volume set from the Cost tab's figures"); } },
+        { key: "open", icon: "$", label: "Open the cost calculator", click: () => this.setState({ menu: null, nav: "cost" }) },
+        this.copyItem(this.money(this.lifetimeCost()) + " over " + st.lifetime.days + " days"),
+        this.appearItem(e)
+      ]),
+
+      yoloLabel: st.yolo ? "⚡ YOLO ON" : "⚡ YOLO",
+      yoloHint: st.yolo ? "Approvals and sandbox are disabled and remembered. Click to turn off." : "One click: approval_policy = never, sandbox_mode = danger-full-access, saved permanently to this profile.",
+      yoloBg: st.yolo ? "var(--m3-error-container)" : "transparent",
+      yoloFg: st.yolo ? "var(--m3-on-error-container)" : "var(--m3-on-surface-variant)",
+      yoloBorder: st.yolo ? "var(--m3-error)" : "var(--m3-outline-variant)",
+      toggleYolo: () => this.setYolo(!st.yolo),
+      showYoloCard: section.id === "approvals",
+      yoloCardBg: st.yolo ? "var(--m3-error-container)" : "var(--m3-surface-container)",
+      yoloCardFg: st.yolo ? "var(--m3-on-error-container)" : "var(--m3-on-surface)",
+      yoloCardSub: st.yolo ? "var(--m3-on-error-container)" : "var(--m3-on-surface-variant)",
+      yoloCardText: st.yolo
+        ? "Every command runs unapproved and unsandboxed on " + p.name + ". Written to config.toml, so it survives restarts until you switch it off."
+        : "Sets approval_policy = never and sandbox_mode = danger-full-access, appends --dangerously-bypass-approvals-and-sandbox to composed commands, and remembers it permanently in this profile's config.toml.",
+      yoloBtnBg: st.yolo ? "var(--m3-on-error-container)" : "var(--m3-error)",
+      yoloBtnFg: st.yolo ? "var(--m3-error-container)" : "var(--m3-on-error-container)",
+      yoloBtnLabel: st.yolo ? "Turn YOLO off" : "Enable YOLO",
+
+      undoHint: CX.vcs.log.length ? "Undo: " + CX.vcs.log[0].message : "Nothing to undo",
+      undoLatest: () => { const c = CX.vcs.undo(); if (!c) { this.toast("Nothing to undo yet"); return; } this.reloadFromStore(); this.toast(c.message + " — undo it again from History"); },
+
+      navRows: NAV.map((n) => {
+        const on = n.id === st.nav;
+        return { key: n.id, icon: n.icon, label: n.label, hint: n.hint,
+          pillBg: on ? "var(--m3-secondary-container)" : "transparent",
+          pillFg: on ? "var(--m3-on-secondary-container)" : "var(--m3-on-surface-variant)",
+          labelFg: on ? "var(--m3-on-surface)" : "var(--m3-on-surface-variant)",
+          go: () => this.setState({ nav: n.id, listQuery: "", listRegex: null }),
+          context: (e) => this.menuAt(e, n.label, [{ key: "g", icon: "→", label: "Open " + n.label, click: () => this.setState({ menu: null, nav: n.id }) }, this.appearItem(e)]) };
+      }),
+
+      profileTabs: st.profiles.map((pr) => ({
+        key: pr.id, name: pr.name, count: pr.sessions.length, dot: pr.color, hint: pr.model + " · " + pr.approval + " · " + pr.sandbox + " · " + pr.cwd,
+        bg: pr.id === p.id ? "var(--m3-surface)" : "transparent",
+        fg: pr.id === p.id ? "var(--m3-on-surface)" : "var(--m3-on-surface-variant)",
+        go: () => { CX.store.set("activeProfile", pr.id); this.setState({ activeProfile: pr.id, activeSession: (pr.sessions[0] || {}).id, messages: this.seedMessages() }); },
+        context: (e) => this.menuAt(e, pr.name, [
+          { key: "rename", icon: "✎", label: "Rename profile", click: () => { const name = prompt("Profile name", pr.name); this.setState({ menu: null }); if (name) this.writeProfiles(st.profiles.map((x) => (x.id === pr.id ? Object.assign({}, x, { name }) : x)), "Rename profile " + pr.name + " → " + name); } },
+          { key: "dupe", icon: "⧉", label: "Duplicate profile", click: () => { const copy = JSON.parse(JSON.stringify(pr)); copy.id = "p" + Date.now(); copy.name = pr.name + " copy"; this.setState({ menu: null }); this.writeProfiles(st.profiles.concat([copy]), "Duplicate profile " + pr.name); } },
+          { key: "clear", icon: "↺", label: "Reset profile config", click: () => { this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => (x.id === pr.id ? Object.assign({}, x, { config: {} }) : x)), "Reset config of " + pr.name); } },
+          { key: "del", icon: "🗑", label: "Delete profile", danger: true, click: () => { if (st.profiles.length < 2) { this.setState({ menu: null }); this.toast("Keep at least one profile"); return; } const rest = st.profiles.filter((x) => x.id !== pr.id); this.setState({ menu: null, activeProfile: rest[0].id }); CX.store.set("activeProfile", rest[0].id); this.writeProfiles(rest, "Delete profile " + pr.name); } },
+          this.appearItem(e)
+        ])
+      })),
+      addProfile: () => {
+        const name = prompt("New profile name", "Profile " + (st.profiles.length + 1));
+        if (!name) return;
+        const pr = { id: "p" + Date.now(), name, color: "#EFB8C8", model: "gpt-5.1-codex-max", approval: "on-request", sandbox: "workspace-write", cwd: "~", config: {}, sessions: [] };
+        CX.store.set("activeProfile", pr.id);
+        this.setState({ activeProfile: pr.id });
+        this.writeProfiles(st.profiles.concat([pr]), "Create profile " + name);
+      },
+
+      listTitle: list.title,
+      listPlaceholder: st.listRegex ? "/" + st.listRegex.pattern + "/" : list.placeholder,
+      listQuery: st.listQuery,
+      listBorder: st.listRegex ? "var(--m3-primary)" : "transparent",
+      listRegexBg: st.listRegex ? "var(--m3-primary)" : "transparent",
+      listRegexFg: st.listRegex ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+      setListQuery: (e) => this.setState({ listQuery: e.target.value, listRegex: null }),
+      openListRegex: () => this.openRegexFor("list", st.listQuery),
+      listSearchMenu: (e) => this.menuAt(e, "Search", this.filterItems("list", st.listQuery || "").concat([this.appearItem(e)])),
+      listActionLabel: list.actionLabel,
+      listAction: () => {
+        if (st.nav === "chat") {
+          const s = { id: "s" + Date.now(), name: "New session", cwd: p.cwd, updated: "now", turns: 0, archived: false };
+          this.setState({ activeSession: s.id, messages: [] });
+          this.writeProfiles(st.profiles.map((x) => (x.id === p.id ? Object.assign({}, x, { sessions: [s].concat(x.sessions) }) : x)), "New session in " + p.name);
+        } else if (st.nav === "history") { v.undoLatest(); }
+        else this.toast(list.actionLabel + " — routed to `codex " + (st.nav === "console" ? sub.name : st.nav) + "`");
+      },
+      listRows: list.rows.map((r) => ({
+        key: r.key, title: r.title, subtitle: r.subtitle, meta: r.meta, initial: r.initial,
+        bg: r.active ? "var(--m3-secondary-container)" : "transparent",
+        titleFg: r.active ? "var(--m3-on-secondary-container)" : "var(--m3-on-surface)",
+        avatarBg: r.active ? "var(--m3-primary)" : "var(--m3-surface-high)",
+        avatarFg: r.active ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+        go: r.go, context: r.context
+      })),
+
+      isChat: st.nav === "chat", isConsole: st.nav === "console", isExtensions: st.nav === "ext",
+      isSettings: st.nav === "settings", isCost: st.nav === "cost", isHealth: st.nav === "health",
+      isRuntime: st.nav === "runtime", isHistory: st.nav === "history",
+
+      runtimeIntro: "Every tab can own a WSL instance. Spawn one and the tab's commands are wrapped in `wsl.exe -d <distro> --cd <path> --` automatically, so Codex runs against Linux tooling while the GUI stays native. Instances are per session, so two tabs never share a shell, a cwd or an environment.",
+      spawnAllWsl: () => Promise.all(p.sessions.map((s) => this.wslSpawn(s))).then(() => this.toast("Spawned a WSL instance for every tab in " + p.name)),
+      stopAllWsl: () => Promise.all(p.sessions.map((s) => CX.bridge.invoke("codex_wsl_stop", { session: s.id }))).then(() => { this.setState({ tick: st.tick + 1 }); this.toast("Stopped every instance in " + p.name); }),
+      runtimeRows: p.sessions.map((s) => {
+        const inst = this.wslFor(s.id);
+        const running = !!inst && inst.status === "running";
+        const auto = !!inst && inst.auto;
+        return {
+          key: s.id, title: s.name,
+          detail: inst ? "pid " + inst.pid + " · " + inst.memMB + " MB · up " + Math.max(1, Math.round((Date.now() - inst.startedAt) / 60000)) + " min" : "not spawned · Windows host shell",
+          border: s.id === st.activeSession ? "var(--m3-primary)" : "var(--m3-outline-variant)",
+          dot: running ? "var(--m3-ok)" : inst ? "var(--m3-warn)" : "var(--m3-outline)",
+          distro: inst ? inst.distro : CX.sim.wslDistros[0],
+          distroRows: CX.sim.wslDistros.map((d) => ({ key: d, value: d, label: d })),
+          setDistro: (e) => { const distro = e.target.value; if (inst) CX.bridge.invoke("codex_wsl_set", { session: s.id, patch: { distro } }).then(() => this.setState({ tick: st.tick + 1 })); else this.wslSpawn(s, distro); },
+          openDistro: (e) => this.openDropdown(e, {
+            title: "WSL distribution", value: inst ? inst.distro : CX.sim.wslDistros[0], width: 260,
+            options: CX.sim.wslDistros.map((d) => ({ value: d, label: d })),
+            onPick: (o) => {
+              this.setState({ dd: null });
+              if (inst) CX.bridge.invoke("codex_wsl_set", { session: s.id, patch: { distro: o.value } }).then(() => this.setState({ tick: this.state.tick + 1 }));
+              else this.wslSpawn(s, o.value);
+            }
+          }),
+          autoLabel: auto ? "Auto-route on" : "Auto-route off",
+          autoBg: auto ? "var(--m3-primary)" : "transparent",
+          autoFg: auto ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+          toggleAuto: () => { if (!inst) { this.wslSpawn(s); return; } CX.bridge.invoke("codex_wsl_set", { session: s.id, patch: { auto: !auto } }).then(() => this.setState({ tick: st.tick + 1 })); },
+          primaryLabel: running ? "Stop" : inst ? "Restart" : "Spawn",
+          primaryBg: running ? "var(--m3-error-container)" : "var(--m3-primary)",
+          primaryFg: running ? "var(--m3-on-error-container)" : "var(--m3-on-primary)",
+          primary: () => running
+            ? CX.bridge.invoke("codex_wsl_stop", { session: s.id }).then(() => this.setState({ tick: st.tick + 1 }))
+            : this.wslSpawn(s, inst ? inst.distro : undefined),
+          cwd: inst ? inst.cwd : "/mnt/c/Users/ding",
+          setCwd: (e) => { const cwd = e.target.value; if (inst) CX.bridge.invoke("codex_wsl_set", { session: s.id, patch: { cwd } }).then(() => this.setState({ tick: st.tick + 1 })); },
+          command: this.wslCommand(s, inst, "codex --profile " + p.id + " exec \"…\""),
+          exec: () => CX.bridge.invoke("codex_wsl_exec", { session: s.id, command: "uname -sr && codex --version" }).then((r) => this.toast((r.lines || []).map((l) => l.text).join("  ·  "))),
+          open: () => this.setState({ nav: "chat", activeSession: s.id }),
+          context: (e) => this.menuAt(e, s.name, [
+            { key: "sp", icon: "▶", label: running ? "Stop instance" : "Spawn instance", click: () => { this.setState({ menu: null }); running ? CX.bridge.invoke("codex_wsl_stop", { session: s.id }).then(() => this.setState({ tick: st.tick + 1 })) : this.wslSpawn(s); } },
+            { key: "kill", icon: "🗑", label: "Remove instance", danger: true, click: () => { this.setState({ menu: null }); CX.bridge.invoke("codex_wsl_kill", { session: s.id }).then(() => this.setState({ tick: st.tick + 1 })); } },
+            this.copyItem(this.wslCommand(s, inst)),
+            this.appearItem(e)
+          ])
+        };
+      }),
+
+      headerTitle: st.nav === "chat" ? activeSession.name
+        : st.nav === "console" ? "codex " + (sub.name === "(interactive)" ? "" : sub.name)
+        : st.nav === "ext" ? ((EXT_CATEGORIES.find((c) => c.id === st.extCat) || {}).title || "")
+        : st.nav === "settings" ? section.title
+        : st.nav === "cost" ? "API-equivalent cost"
+        : st.nav === "health" ? "Health · " + st.healthView
+        : st.nav === "runtime" ? "Per-tab runtimes · " + p.name : "Local history",
+      headerSubtitle: st.nav === "chat" ? p.name + " · " + activeSession.cwd + " · " + p.model + " · " + p.approval + " · " + p.sandbox
+        : st.nav === "console" ? sub.group + (sub.alias ? " · alias " + sub.alias : "") + " · " + (sub.args || []).length + " command flags + " + DATA.GLOBAL_FLAGS.length + " global"
+        : st.nav === "ext" ? extItems.length + " of " + allExt.length + " shown"
+        : st.nav === "settings" ? section.desc + " · profile " + p.name
+        : st.nav === "cost" ? "Priced as if this workload ran on the API"
+        : st.nav === "health" ? "Live checks from the CLI"
+        : st.nav === "runtime" ? Object.keys(CX.sim.wsl).filter((k) => CX.sim.wsl[k].status === "running").length + " running · one WSL instance per tab"
+        : CX.vcs.log.length + " commits · every undo is itself a commit",
+      headerChips: st.nav === "chat" ? [
+        { key: "model", label: p.model, hint: "Model (/model)", bg: "transparent", fg: "var(--m3-on-surface)",
+          click: () => { const ids = DATA.MODELS.map((m) => m.id); this.patchProfile({ model: ids[(ids.indexOf(p.model) + 1) % ids.length] }, "Change model on " + p.name); },
+          context: (e) => this.menuAt(e, "Model", DATA.MODELS.map((m) => ({ key: m.id, icon: "•", label: m.id, click: () => { this.setState({ menu: null }); this.patchProfile({ model: m.id }, "Set model " + m.id); } })).concat([this.appearItem(e)])) },
+        { key: "approval", label: p.approval, hint: "Approval policy", bg: "transparent", fg: "var(--m3-on-surface)",
+          click: () => { const o = DATA.ENUMS.approval; this.patchProfile({ approval: o[(o.indexOf(p.approval) + 1) % o.length] }, "Change approval on " + p.name); },
+          context: (e) => this.menuAt(e, "Approval policy", DATA.ENUMS.approval.map((a) => ({ key: a, icon: "•", label: a, click: () => { this.setState({ menu: null }); this.patchProfile({ approval: a }, "Set approval " + a); } })).concat([this.appearItem(e)])) },
+        { key: "sandbox", label: p.sandbox, hint: "Sandbox policy",
+          bg: p.sandbox === "danger-full-access" ? "var(--m3-error-container)" : "transparent",
+          fg: p.sandbox === "danger-full-access" ? "var(--m3-on-error-container)" : "var(--m3-on-surface)",
+          click: () => { const o = DATA.ENUMS.sandbox; this.patchProfile({ sandbox: o[(o.indexOf(p.sandbox) + 1) % o.length] }, "Change sandbox on " + p.name); },
+          context: (e) => this.menuAt(e, "Sandbox", DATA.ENUMS.sandbox.map((s) => ({ key: s, icon: "•", label: s, click: () => { this.setState({ menu: null }); this.patchProfile({ sandbox: s }, "Set sandbox " + s); } })).concat([this.appearItem(e)])) },
+        { key: "wsl", label: (() => { const i = this.wslFor(st.activeSession); return i ? (i.status === "running" ? "🐧 " + i.distro : "🐧 stopped") : "🐧 host shell"; })(),
+          hint: "Per-tab WSL runtime — click to spawn or stop, right-click for the manager",
+          bg: (() => { const i = this.wslFor(st.activeSession); return i && i.status === "running" ? "var(--m3-primary-container)" : "transparent"; })(),
+          fg: (() => { const i = this.wslFor(st.activeSession); return i && i.status === "running" ? "var(--m3-on-primary-container)" : "var(--m3-on-surface-variant)"; })(),
+          click: () => { const i = this.wslFor(st.activeSession); if (i && i.status === "running") CX.bridge.invoke("codex_wsl_stop", { session: st.activeSession }).then(() => this.setState({ tick: st.tick + 1 })); else this.wslSpawn(activeSession).then(() => this.toast("WSL instance up for this tab — commands now run through it")); },
+          context: (e) => this.menuAt(e, "WSL runtime", [
+            { key: "m", icon: "🐧", label: "Open the per-tab manager", click: () => this.setState({ menu: null, nav: "runtime" }) },
+            { key: "s", icon: "▶", label: "Spawn for this tab", click: () => { this.setState({ menu: null }); this.wslSpawn(activeSession); } },
+            this.appearItem(e)
+          ]) },
+        { key: "yolo", label: st.yolo ? "YOLO on" : "YOLO", hint: "One-click bypass, remembered", bg: st.yolo ? "var(--m3-error-container)" : "transparent", fg: st.yolo ? "var(--m3-on-error-container)" : "var(--m3-on-surface-variant)", click: () => this.setYolo(!st.yolo), context: (e) => this.menuAt(e, "YOLO", [this.appearItem(e)]) }
+      ] : st.nav === "cost" ? [
+        { key: "m", label: p.model, hint: "Model priced in the headline", bg: "var(--m3-secondary-container)", fg: "var(--m3-on-secondary-container)",
+          click: () => { const ids = DATA.MODELS.map((m) => m.id); this.patchProfile({ model: ids[(ids.indexOf(p.model) + 1) % ids.length] }, "Change model on " + p.name); },
+          context: (e) => this.menuAt(e, "Model", [this.appearItem(e)]) }
+      ] : [],
+
+      messages: st.messages.map((m, i) => {
+        const mine = m.role === "user", tool = m.role === "tool", reasoning = m.role === "reasoning";
+        return {
+          key: i, text: m.text, meta: (mine ? "you" : m.role) + " · " + m.at,
+          align: mine ? "flex-end" : "flex-start",
+          maxWidth: mine ? "74%" : "88%",
+          bg: mine ? "var(--m3-primary-container)" : reasoning ? "transparent" : tool ? "var(--m3-surface-dim)" : "var(--m3-surface-container)",
+          fg: mine ? "var(--m3-on-primary-container)" : reasoning ? "var(--m3-on-surface-variant)" : "var(--m3-on-surface)",
+          border: reasoning ? "1px dashed var(--m3-outline-variant)" : "1px solid transparent",
+          radius: mine ? "18px 18px 6px 18px" : "18px 18px 18px 6px",
+          font: tool ? "'Roboto Mono',monospace" : "inherit",
+          hasOut: !!m.out, out: m.out || "",
+          context: (e) => this.menuAt(e, m.role, [
+            this.copyItem(m.text),
+            { key: "retry", icon: "↻", label: "Put back in composer", click: () => this.setState({ menu: null, chatInput: m.text }) },
+            { key: "filter", icon: "⌕", label: "Filter sessions by this text", click: () => this.setState({ menu: null, nav: "chat", listQuery: m.text.split(" ").slice(0, 2).join(" "), listRegex: null }) },
+            this.appearItem(e)
+          ])
+        };
+      }),
+      thinking: st.thinking,
+      chatInput: st.chatInput,
+      composerPlaceholder: st.lang === "yue" ? "同 Codex 講你想點，打 / 開指令目錄" : st.lang === "bi" ? "Message Codex · 打 / 開指令目錄" : "Message Codex — type / for the command catalog",
+      onChatInput: (e) => {
+        const value = e.target.value;
+        const open = value.startsWith("/");
+        this.setState({ chatInput: value, slashOpen: open, slashQuery: open ? value.slice(1).split(" ")[0] : st.slashQuery });
+      },
+      onChatKey: (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); v.sendChat(); } },
+      openSlash: () => this.setState({ slashOpen: !st.slashOpen, slashQuery: "", slashView: "list" }),
+      closeSlash: () => this.setState({ slashOpen: false, slashView: "list" }),
+      slashOpen: st.slashOpen,
+      slashListView: st.slashView !== "wizard",
+      slashWizardView: st.slashView === "wizard",
+      slashBack: () => this.setState({ slashView: "list" }),
+      slashDetailTag: pick.duringTask ? "runs during a task" : "idle only",
+
+      /* command catalog */
+      slashQuery: st.slashQuery,
+      slashPlaceholder: st.slashRegex ? "/" + st.slashRegex.pattern + "/" : "Search " + DATA.SLASH.length + " slash commands",
+      slashCount: slashItems.length + "/" + DATA.SLASH.length,
+      slashRegexBg: st.slashRegex ? "var(--m3-primary)" : "transparent",
+      slashRegexFg: st.slashRegex ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+      setSlashQuery: (e) => this.setState({ slashQuery: e.target.value, slashRegex: null }),
+      openSlashRegex: () => this.openRegexFor("slash", st.slashQuery),
+      slashSearchMenu: (e) => this.menuAt(e, "Command search", this.filterItems("slash", st.slashQuery || "").concat([this.appearItem(e)])),
+      slashMatches: slashItems.map((s) => ({
+        key: s.name, name: s.name, tag: s.duringTask ? "live" : "idle", desc: s.desc,
+        detail: (SLASH_NOTES[s.name] || ((SLASH_WIZARDS[s.name] || []).length ? "Opens a wizard: " + SLASH_WIZARDS[s.name].map((w) => w.label.toLowerCase()).join(", ") + "." : "No arguments — runs as-is.")),
+        bg: s.name === pick.name ? "var(--m3-secondary-container)" : "transparent",
+        fg: s.name === pick.name ? "var(--m3-on-secondary-container)" : "var(--m3-primary)",
+        select: () => this.setState({ slashPick: s.name, slashView: "wizard" }),
+        context: (e) => this.menuAt(e, "/" + s.name, [
+          { key: "w", icon: "→", label: "Open wizard", click: () => this.setState({ menu: null, slashPick: s.name, slashView: "wizard" }) },
+          { key: "i", icon: "↵", label: "Insert into composer", click: () => this.setState({ menu: null, chatInput: "/" + s.name + " ", slashOpen: false }) },
+          this.copyItem("/" + s.name)
+        ].concat(this.filterItems("slash", s.name)).concat([this.appearItem(e)]))
+      })),
+      slashDetailName: pick.name,
+      slashDetailDesc: pick.desc,
+      slashDetailNotes: (SLASH_NOTES[pick.name] || "") + (SLASH_NOTES[pick.name] ? " " : "") +
+        (pick.duringTask ? "Available while a task is running." : "Only available when the agent is idle."),
+      slashWizard: (SLASH_WIZARDS[pick.name] || []).map((w) => ({
+        key: w.id, label: w.label, hint: w.hint,
+        isEnum: w.type === "enum", isText: w.type !== "enum",
+        value: slashArgs[w.id] || "", placeholder: w.placeholder || "",
+        valueLabel: slashArgs[w.id] || "— none —",
+        openMenu: (e) => this.openDropdown(e, {
+          title: w.label, value: slashArgs[w.id] || "", width: 320,
+          options: (w.options || []).filter(Boolean).map((o) => ({ value: o, label: o })),
+          allowUnset: true, unsetLabel: "No value",
+          onPick: (o) => {
+            const args = Object.assign({}, this.state.slashArgs);
+            args[pick.name] = Object.assign({}, args[pick.name] || {}, { [w.id]: o.value });
+            this.setState({ slashArgs: args, dd: null });
+          }
+        }),
+        optionRows: (w.options || []).map((o) => ({ key: o || "none", value: o, label: o || "— none —" })),
+        set: (e) => {
+          const args = Object.assign({}, st.slashArgs);
+          args[pick.name] = Object.assign({}, args[pick.name] || {}, { [w.id]: e.target.value });
+          this.setState({ slashArgs: args });
+        }
+      })),
+      slashPreview: this.slashPreviewText(),
+      slashInsert: () => this.setState({ chatInput: this.slashPreviewText() + " ", slashOpen: false }),
+      slashRun: () => { this.setState({ chatInput: this.slashPreviewText(), slashOpen: false }, () => v.sendChat()); },
+
+      sendChat: () => {
+        const text = (this.state.chatInput || "").trim();
+        if (!text) return;
+        const at = new Date().toTimeString().slice(0, 5);
+        const messages = this.state.messages.concat([{ role: "user", text, at }]);
+        this.setState({ messages, chatInput: "", slashOpen: false, thinking: true });
+        CX.bridge.invoke("codex_run", { command: "codex " + (text.startsWith("/") ? text.slice(1) : JSON.stringify(text)), model: p.model }).then((res) => {
+          const reply = text.startsWith("/")
+            ? { role: "tool", text: "codex " + text.slice(1), out: (res.lines || []).map((l) => l.text).join("\n"), at }
+            : { role: "assistant", text: "Working on it. " + ((res.lines || []).map((l) => l.text).slice(-1)[0] || ""), at };
+          this.setState({ thinking: false, messages: messages.concat([reply]) });
+        }).catch(() => this.setState({ thinking: false }));
+      },
+
+      consoleSubDesc: sub.desc,
+      consoleFlags: this.flagList().map((f, i) => {
+        const val = st.flagValues[f.flag], on = !!val;
+        const kind = f.type === "bool" ? "bool" : f.type === "enum" ? "enum" : "text";
+        const opts = f.options || (f.enum ? DATA.ENUMS[f.enum] : []) || [];
+        return Object.assign({
+          key: f.flag + i, flag: f.flag + (f.short ? "  (" + f.short + ")" : ""), desc: f.desc,
+          tone: f.danger ? "var(--m3-error)" : "var(--m3-primary)",
+          isBool: kind === "bool", isEnum: kind === "enum", isText: kind === "text",
+          value: val == null ? "" : String(val), placeholder: f.type === "list" ? "comma separated" : "value",
+          valueLabel: val == null || val === "" ? "— unset —" : String(val),
+          openMenu: (e) => this.openDropdown(e, {
+            title: f.flag, value: val == null ? "" : String(val),
+            options: opts.map((o) => ({ value: o, label: o })),
+            allowUnset: true, unsetLabel: "Unset flag",
+            onPick: (o) => this.setState({ dd: null, flagValues: Object.assign({}, this.state.flagValues, { [f.flag]: o.value }) })
+          }),
+          optionRows: [{ key: "_", value: "", label: "— unset —" }].concat(opts.map((o) => ({ key: o, value: o, label: o }))),
+          toggle: () => this.setState({ flagValues: Object.assign({}, st.flagValues, { [f.flag]: !on }) }),
+          set: (e) => this.setState({ flagValues: Object.assign({}, st.flagValues, { [f.flag]: e.target.value }) }),
+          context: (e) => this.menuAt(e, f.flag, [
+            this.copyItem(f.flag),
+            { key: "clear", icon: "↺", label: "Unset this flag", click: () => { const fv = Object.assign({}, st.flagValues); delete fv[f.flag]; this.setState({ menu: null, flagValues: fv }); } },
+            { key: "only", icon: "⌕", label: "Find commands with this flag", click: () => this.setState({ menu: null, listQuery: f.flag.replace(/^-+/, ""), listRegex: null }) },
+            this.appearItem(e)
+          ])
+        }, this.toggleRow(on));
+      }),
+      runCommand: cmd,
+      copyLabel: st.copied ? "Copied" : "Copy",
+      copyCommand: () => { navigator.clipboard.writeText(cmd); this.setState({ copied: true }); setTimeout(() => this.setState({ copied: false }), 1400); },
+      doRun: () => {
+        this.setState({ runOutput: [{ level: "cmd", text: "$ " + cmd }] });
+        CX.bridge.invoke("codex_run", { command: cmd, args: cmd.split(" ").slice(1), cwd: p.cwd, stream: "codex://stdout" })
+          .then((res) => this.setState({ runOutput: [{ level: "cmd", text: "$ " + cmd }].concat(res.lines || []).concat([{ level: "dim", text: "exit " + (res.code || 0) }]) }))
+          .catch((e) => this.setState({ runOutput: [{ level: "error", text: String(e) }] }));
+      },
+      runOutput: st.runOutput.map((l, i) => ({
+        key: i, text: l.text,
+        color: l.level === "error" ? "var(--m3-error)" : l.level === "ok" ? "var(--m3-ok)" : l.level === "cmd" ? "var(--m3-primary)" : l.level === "head" ? "var(--m3-warn)" : "#9F9AA6"
+      })),
+
+      extQuery: st.extQuery,
+      extPlaceholder: st.extRegex ? "/" + st.extRegex.pattern + "/" : "Filter " + ((EXT_CATEGORIES.find((c) => c.id === st.extCat) || {}).title || "").toLowerCase(),
+      extBorder: st.extRegex ? "var(--m3-primary)" : "transparent",
+      extRegexBg: st.extRegex ? "var(--m3-primary)" : "transparent",
+      extRegexFg: st.extRegex ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+      extCount: extItems.length + "/" + allExt.length,
+      setExtQuery: (e) => this.setState({ extQuery: e.target.value, extRegex: null }),
+      openExtRegex: () => this.openRegexFor("ext", st.extQuery),
+      extSearchMenu: (e) => this.menuAt(e, "Filter", this.filterItems("ext", st.extQuery || "").concat([this.appearItem(e)])),
+      extRows: extItems.map((x) => Object.assign({
+        key: x.id, title: x.title, subtitle: x.subtitle, badge: x.badge, initial: x.title[0].toUpperCase(),
+        iconBg: x.on ? "var(--m3-primary-container)" : "var(--m3-surface-high)",
+        iconFg: x.on ? "var(--m3-on-primary-container)" : "var(--m3-on-surface-variant)",
+        badgeBg: x.badge === "removed" ? "var(--m3-error-container)" : "var(--m3-surface-high)",
+        badgeFg: x.badge === "removed" ? "var(--m3-on-error-container)" : "var(--m3-on-surface-variant)",
+        subFont: x.mono ? "'Roboto Mono',monospace" : "inherit",
+        cursor: x.locked ? "not-allowed" : "pointer",
+        toggleHint: x.locked ? "Locked — untrusted or removed" : "Enable / disable",
+        toggle: () => this.toggleExt(x),
+        context: (e) => this.menuAt(e, x.title, [
+          { key: "t", icon: x.on ? "○" : "●", label: x.on ? "Disable" : "Enable", click: () => { this.setState({ menu: null }); this.toggleExt(x); } },
+          this.copyItem(x.title),
+          { key: "cmd", icon: "▶", label: "Copy CLI equivalent", click: () => { navigator.clipboard.writeText(this.extCommand(x)); this.setState({ menu: null }); this.toast(this.extCommand(x)); } }
+        ].concat(this.filterItems("ext", x.title)).concat([this.appearItem(e)]))
+      }, this.toggleRow(x.on))),
+
+      setQuery: st.setQuery,
+      setPlaceholder: st.setRegex ? "/" + st.setRegex.pattern + "/" : "Filter " + section.title.toLowerCase() + " settings",
+      setBorder: st.setRegex ? "var(--m3-primary)" : "transparent",
+      setRegexBg: st.setRegex ? "var(--m3-primary)" : "transparent",
+      setRegexFg: st.setRegex ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+      setCount: settingFields.length + "/" + section.fields.length,
+      setSetQuery: (e) => this.setState({ setQuery: e.target.value, setRegex: null }),
+      openSetRegex: () => this.openRegexFor("set", st.setQuery),
+      setSearchMenu: (e) => this.menuAt(e, "Filter", this.filterItems("set", st.setQuery || "").concat([this.appearItem(e)])),
+      settingRows: settingFields.map((f) => {
+        const val = this.configValue(f), on = val === true;
+        const isBool = f.type === "bool", isEnum = f.type === "enum", isArea = f.type === "textarea";
+        return Object.assign({
+          key: f.key, label: f.label, desc: f.desc || "", value: Array.isArray(val) ? val.join(", ") : String(val),
+          valueLabel: val === "" || val == null ? "— default —" : String(val),
+          openMenu: (e) => this.openDropdown(e, {
+            title: f.key, value: String(val),
+            options: (f.options || []).map((o) => ({ value: o, label: o })),
+            allowUnset: true, unsetLabel: "Reset to default",
+            onPick: (o) => { this.setState({ dd: null }); this.setConfig(f.key, o.value); }
+          }),
+          labelFg: f.danger ? "var(--m3-error)" : "var(--m3-on-surface)",
+          isBool, isEnum, isArea, isInput: !isBool && !isEnum && !isArea,
+          placeholder: f.type === "list" ? "comma separated" : f.type === "int" ? "number" : "unset",
+          font: f.type === "path" || f.type === "list" ? "'Roboto Mono',monospace" : "inherit",
+          optionRows: [{ key: "_", value: "", label: "— default —" }].concat((f.options || []).map((o) => ({ key: o, value: o, label: o }))),
+          toggle: () => this.setConfig(f.key, !on),
+          set: (e) => {
+            const raw = e.target.value;
+            this.setConfig(f.key, f.type === "int" ? (raw === "" ? "" : Number(raw)) : f.type === "list" ? (raw ? raw.split(",").map((s) => s.trim()).filter(Boolean) : "") : raw);
+          },
+          context: (e) => this.menuAt(e, f.key, [
+            this.copyItem(f.key),
+            { key: "cli", icon: "▶", label: "Copy as -c override", click: () => { navigator.clipboard.writeText("-c " + f.key + "=" + JSON.stringify(val)); this.setState({ menu: null }); this.toast("Copied -c override"); } },
+            { key: "reset", icon: "↺", label: "Reset to default", click: () => { this.setState({ menu: null }); this.setConfig(f.key, ""); } }
+          ].concat(this.filterItems("set", f.key)).concat([this.appearItem(e)]))
+        }, this.toggleRow(on));
+      }),
+      tomlPath: "~/.codex/" + (p.id === "personal" ? "config.toml" : p.id + ".config.toml"),
+      tomlText: toml,
+      copyTomlLabel: st.copiedToml ? "Copied" : "Copy",
+      copyToml: () => { navigator.clipboard.writeText(toml); this.setState({ copiedToml: true }); setTimeout(() => this.setState({ copiedToml: false }), 1400); },
+      saveLabel: st.savedAt ? "Saved" : "Write file",
+      saveConfig: () => CX.bridge.invoke("codex_write_config", { config: cfg, toml_text: toml, toml }).then((r) => {
+        this.setState({ savedAt: Date.now() });
+        CX.vcs.commit("Write " + ("~/.codex/" + (p.id === "personal" ? "config.toml" : p.id + ".config.toml")), "config");
+        this.toast("Wrote " + (r.bytes || toml.length) + " bytes · previous file backed up · commit added to History");
+      }),
+
+      costIntro: "Codex on a ChatGPT plan does not bill per token. This prices the same workload as if it ran on the API.",
+      costInputs: [
+        { key: "in", label: "Input tokens", desc: "Prompt, files and tool output sent to the model.", value: String(st.cost.inTok), set: (e) => this.setCost({ inTok: Number(e.target.value) || 0 }) },
+        { key: "out", label: "Output tokens", desc: "Reasoning plus visible answer and patches.", value: String(st.cost.outTok), set: (e) => this.setCost({ outTok: Number(e.target.value) || 0 }) },
+        { key: "turns", label: "Turns", desc: "Used for the per-turn average.", value: String(st.cost.turns), set: (e) => this.setCost({ turns: Number(e.target.value) || 1 }) },
+        { key: "plan", label: "Your plan ($/month)", desc: "Plus is 20, Pro is 200. Set 0 if you use an API key.", value: String(st.cost.plan), set: (e) => this.setCost({ plan: Number(e.target.value) || 0 }) }
+      ],
+      cacheRate: String(st.cacheRate),
+      cacheRateLabel: st.cacheRate + "%",
+      setCacheRate: (e) => { const cacheRate = Number(e.target.value); CX.store.set("cacheRate", cacheRate); this.setState({ cacheRate }); },
+      loadSessionUsage: () => {
+        const u = CX.sim.usage;
+        this.setCost({ inTok: u.input, outTok: u.output });
+        this.setState({ cacheRate: Math.round((u.cached / u.input) * 100) });
+        this.toast("Loaded " + u.input.toLocaleString() + " in / " + u.output.toLocaleString() + " out");
+      },
+      costTotal: this.money(total),
+      costTotalNote: p.model + " · " + this.money(total / Math.max(1, st.cost.turns)) + " per turn · " + st.cacheRate + "% cached",
+      planVerdict: st.cost.plan === 0 ? "API key — you pay this" : total > st.cost.plan ? "Plan wins" : "API would be cheaper",
+      planNote: st.cost.plan === 0
+        ? "No subscription set, so the figure on the left is your bill for this workload."
+        : total > st.cost.plan
+          ? "This workload prices at " + this.money(total) + " against a " + this.money(st.cost.plan) + " plan — the subscription is " + (total / st.cost.plan).toFixed(1) + "× cheaper."
+          : "This workload prices at " + this.money(total) + ", under the " + this.money(st.cost.plan) + " plan.",
+      costRows: DATA.MODELS.map((m) => {
+        const pr = st.prices[m.id] || { in: 0, cached: 0, out: 0 };
+        const setPrice = (part) => (e) => {
+          const prices = JSON.parse(JSON.stringify(st.prices));
+          prices[m.id] = Object.assign({}, prices[m.id], { [part]: Number(e.target.value) || 0 });
+          CX.store.set("prices", prices);
+          this.setState({ prices });
+        };
+        return {
+          key: m.id, model: m.id, breakdown: m.note + " · in " + pr.in + " / cached " + pr.cached + " / out " + pr.out,
+          nameFg: m.id === p.model ? "var(--m3-primary)" : "var(--m3-on-surface)",
+          costFg: m.id === p.model ? "var(--m3-primary)" : "var(--m3-on-surface)",
+          priceIn: String(pr.in), priceCached: String(pr.cached), priceOut: String(pr.out),
+          setIn: setPrice("in"), setCached: setPrice("cached"), setOut: setPrice("out"),
+          cost: this.money(this.costFor(m.id)),
+          context: (e) => this.menuAt(e, m.id, [
+            { key: "use", icon: "•", label: "Use this model on " + p.name, click: () => { this.setState({ menu: null }); this.patchProfile({ model: m.id }, "Set model " + m.id); } },
+            this.copyItem(m.id + " " + this.money(this.costFor(m.id))),
+            this.appearItem(e)
+          ])
+        };
+      }),
+      costDisclaimer: "Prices are per 1M tokens and editable — set them from the current price list before quoting anyone. Local --oss models are priced at zero because the compute is yours.",
+
+      healthCards: this.healthCards(st.healthView),
+
+      historyIntro: "Every profile, session and config change is committed to a local git repo in $CODEX_HOME/studio. Undo writes a revert commit instead of popping a stack, so an undo can itself be undone — as many times as you like.",
+      historyRows: CX.vcs.log.filter((c) => st.historyKind === "all" || c.kind === st.historyKind).slice(0, 60).map((c, i) => ({
+        key: c.id, sha: c.id, message: c.message,
+        meta: new Date(c.at).toLocaleString() + " · " + c.kind + (i === 0 && st.historyKind === "all" ? " · HEAD" : ""),
+        border: i === 0 && st.historyKind === "all" ? "var(--m3-primary)" : "var(--m3-outline-variant)",
+        revertLabel: c.kind === "revert" ? "Undo this undo" : "Undo this",
+        revert: () => { const nc = CX.vcs.revert(c.id); if (nc) { this.reloadFromStore(); this.toast(nc.message); } },
+        restore: () => { const nc = CX.vcs.checkout(c.id); if (nc) { this.reloadFromStore(); this.toast(nc.message); } },
+        context: (e) => this.menuAt(e, c.id, [
+          { key: "u", icon: "↺", label: c.kind === "revert" ? "Undo this undo" : "Undo this change", click: () => { this.setState({ menu: null }); const nc = CX.vcs.revert(c.id); if (nc) { this.reloadFromStore(); this.toast(nc.message); } } },
+          { key: "r", icon: "⤺", label: "Restore this snapshot", click: () => { this.setState({ menu: null }); CX.vcs.checkout(c.id); this.reloadFromStore(); } },
+          this.copyItem(c.id + " " + c.message),
+          { key: "k", icon: "⌕", label: "Filter to " + c.kind + " commits", click: () => this.setState({ menu: null, historyKind: c.kind }) },
+          this.appearItem(e)
+        ])
+      })),
+
+      /* Material dropdowns — filterable, with the regex builder on every one */
+      ddOpen: !!st.dd,
+      ddTop: st.dd ? st.dd.y + "px" : "0",
+      ddLeft: st.dd ? st.dd.x + "px" : "0",
+      ddWidth: st.dd ? Math.max(st.dd.width, 240) + "px" : "240px",
+      ddQuery: st.ddQuery,
+      ddPlaceholder: st.ddRegex ? "/" + st.ddRegex.pattern + "/" : "Filter " + (st.dd ? st.dd.title.toLowerCase() : "options"),
+      ddRegexBg: st.ddRegex ? "var(--m3-primary)" : "transparent",
+      ddRegexFg: st.ddRegex ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+      ddCount: (() => { const o = st.dd ? st.dd.options : []; const m = this.matcher(st.ddQuery, st.ddRegex); return o.filter((x) => m(x.label)).length + "/" + o.length; })(),
+      setDdQuery: (e) => this.setState({ ddQuery: e.target.value, ddRegex: null }),
+      openDdRegex: () => this.openRegexFor("dd", st.ddQuery),
+      ddSearchMenu: (e) => this.menuAt(e, "Option filter", this.filterItems("dd", st.ddQuery || "")),
+      ddClear: () => this.setState({ ddQuery: "", ddRegex: null }),
+      ddUnsetLabel: st.dd && st.dd.unsetLabel ? st.dd.unsetLabel : "Close",
+      ddUnset: () => { const dd = st.dd; if (dd && dd.allowUnset) dd.onPick({ value: "", label: "" }); else this.setState({ dd: null }); },
+      ddRows: (() => {
+        if (!st.dd) return [];
+        const m = this.matcher(st.ddQuery, st.ddRegex);
+        return st.dd.options.filter((o) => m(o.label)).map((o) => ({
+          key: o.value || "_none", label: o.label, check: o.value === st.dd.value ? "✓" : "",
+          bg: o.value === st.dd.value ? "var(--m3-secondary-container)" : "transparent",
+          fg: o.value === st.dd.value ? "var(--m3-on-secondary-container)" : "var(--m3-on-surface)",
+          font: /monospace|^-|\./.test(o.value || "") ? "'Roboto Mono',monospace" : "inherit",
+          pick: () => st.dd.onPick(o),
+          context: (e) => this.menuAt(e, o.label, [this.copyItem(o.value || o.label)].concat(this.filterItems("dd", o.label)))
+        }));
+      })(),
+
+      /* Ctrl+Shift+F command palette */
+      paletteOpen: st.paletteOpen,
+      closePalette: () => this.setState({ paletteOpen: false }),
+      paletteQuery: st.paletteQuery,
+      palettePlaceholder: st.paletteRegex ? "regex · /" + st.paletteRegex.pattern + "/" : "Search commands, settings, sessions, plugins, flags…",
+      paletteRegexBg: st.paletteRegex ? "var(--m3-primary)" : "transparent",
+      paletteRegexFg: st.paletteRegex ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+      setPaletteQuery: (e) => this.setState({ paletteQuery: e.target.value, paletteRegex: null }),
+      openPaletteRegex: () => this.openRegexFor("palette", st.paletteQuery),
+      paletteSearchMenu: (e) => this.menuAt(e, "Palette search", this.filterItems("palette", st.paletteQuery || "")),
+      paletteCount: (() => { const m = this.matcher(st.paletteQuery, st.paletteRegex); return this.paletteItems().filter((i) => m(i.title + " " + i.subtitle)).length + " results"; })(),
+      paletteRows: (() => {
+        const m = this.matcher(st.paletteQuery, st.paletteRegex);
+        return this.paletteItems().filter((i) => m(i.title + " " + i.subtitle)).slice(0, 60).map((i, idx) => ({
+          key: i.group + i.title + idx, group: i.group, title: i.title, subtitle: i.subtitle, hint: i.hint,
+          font: i.mono ? "'Roboto Mono',monospace" : "inherit",
+          bg: idx === 0 ? "var(--m3-surface-container)" : "transparent",
+          run: i.run,
+          context: (e) => this.menuAt(e, i.title, [this.copyItem(i.title)].concat(this.filterItems("palette", i.title)))
+        }));
+      })(),
+      paletteFooter: "Ctrl+Shift+F opens this anywhere · Esc closes · every field here and in the app has its own regex builder",
+
+      menuOpen: !!st.menu,
+      menuTitle: st.menu ? st.menu.title : "",
+      menuTop: st.menu ? st.menu.y + "px" : "0",
+      menuLeft: st.menu ? st.menu.x + "px" : "0",
+      menuItems: st.menu ? st.menu.items.map((m) => ({ key: m.key, icon: m.icon, label: m.label, fg: m.danger ? "var(--m3-error)" : "var(--m3-on-surface)", click: m.click })) : [],
+      onContextMenu: (e) => {
+        if (st.menu) return;
+        const host = e.target.closest ? e.target.closest("[data-appear]") : null;
+        if (!host) return;
+        e.preventDefault();
+        const name = host.getAttribute("data-appear");
+        const at = { x: Math.min(e.clientX, window.innerWidth - 350), y: Math.max(8, Math.min(e.clientY, window.innerHeight - 470)) };
+        if (e.shiftKey) { this.setState({ appearOpen: true, appearTarget: name, appearAt: at }); return; }
+        this.menuAt(e, name, [
+          { key: "appear", icon: "🎨", label: "Edit appearance — " + name, click: () => this.setState({ menu: null, appearOpen: true, appearTarget: name, appearAt: at }) },
+          { key: "reset", icon: "↺", label: "Reset this element's appearance", click: () => { const appearance = Object.assign({}, st.appearance); delete appearance[name]; CX.store.set("appearance", appearance); this.setState({ menu: null, appearance }); } }
+        ]);
+      },
+
+      regexOpen: st.regexOpen,
+      regexTop: st.regexAt.y + "px",
+      regexLeft: st.regexAt.x + "px",
+      regexTargetLabel: "Anchored to the " + (st.regexTarget === "ext" ? "extensions filter" : st.regexTarget === "set" ? "settings filter" : st.regexTarget === "slash" ? "command catalog search" : st.regexTarget === "dd" ? "dropdown option filter" : st.regexTarget === "palette" ? "command palette" : "sidebar search") + " — Apply syncs pattern, flags and mode back into that field only.",
+      regexPattern: st.regexPattern,
+      setRegexPattern: (e) => this.setState({ regexPattern: e.target.value }),
+      regexFlagString: st.regexFlags.join(""),
+      regexBorder: rx && !rx.ok ? "var(--m3-error)" : "var(--m3-outline-variant)",
+      regexFlagRows: CX.FLAGS.map(([flag, desc]) => {
+        const on = st.regexFlags.includes(flag);
+        return { key: flag, flag, desc, bg: on ? "var(--m3-primary)" : "transparent", fg: on ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+          toggle: () => this.setState({ regexFlags: on ? st.regexFlags.filter((f) => f !== flag) : st.regexFlags.concat([flag]) }) };
+      }),
+      constructGroups: CX.CONSTRUCTS.map((g) => ({
+        key: g.group, group: g.group,
+        items: g.items.map(([token, desc]) => ({ key: token, token, desc, insert: () => this.setState({ regexPattern: this.state.regexPattern + token }) }))
+      })),
+      regexSample: st.regexSample,
+      setRegexSample: (e) => this.setState({ regexSample: e.target.value }),
+      regexStatus: !rx ? "" : rx.ok
+        ? rx.matches.length + " match" + (rx.matches.length === 1 ? "" : "es") + " in " + rx.ms + " ms" + (rx.truncated ? " (truncated at " + CX.LIMITS.matches + ")" : "")
+        : rx.error,
+      regexStatusFg: rx && !rx.ok ? "var(--m3-error)" : "var(--m3-on-surface-variant)",
+      regexMatchRows: (rx && rx.ok ? rx.matches : []).slice(0, 60).map((m, i) => ({
+        key: i, index: String(m.index), text: m.text === "" ? "∅ zero-width" : m.text,
+        groups: m.groups.length ? "( " + m.groups.map((x) => (x == null ? "–" : x)).join(" | ") + " )" : ""
+      })),
+      regexEngineNote: "Engine: JavaScript RegExp — the same engine that filters these lists. Limits: pattern " + CX.LIMITS.pattern + " chars, sample " + CX.LIMITS.sample + " chars, " + CX.LIMITS.matches + " matches, " + CX.LIMITS.ms + " ms. Nothing is persisted or sent anywhere.",
+      copyRegexLabel: st.copiedRegex ? "Copied" : "Copy",
+      copyRegex: () => { navigator.clipboard.writeText("/" + st.regexPattern + "/" + st.regexFlags.join("")); this.setState({ copiedRegex: true }); setTimeout(() => this.setState({ copiedRegex: false }), 1400); },
+      closeRegex: () => this.setState({ regexOpen: false }),
+      applyRegex: () => {
+        const target = st.regexTarget || "list";
+        const patch = { regexOpen: false };
+        patch[target + "Regex"] = st.regexPattern ? { pattern: st.regexPattern, flags: st.regexFlags.slice() } : null;
+        patch[target + "Query"] = st.regexPattern;
+        this.setState(patch);
+      },
+
+      appearOpen: st.appearOpen,
+      appearTarget: st.appearTarget || "",
+      appearTop: st.appearAt.y + "px",
+      appearLeft: st.appearAt.x + "px",
+      closeAppear: () => this.setState({ appearOpen: false }),
+      fontRows: [
+        { key: "d", value: "", label: "Default (Roboto)" },
+        { key: "m", value: "'Roboto Mono', monospace", label: "Roboto Mono" },
+        { key: "g", value: "Georgia, serif", label: "Georgia" },
+        { key: "h", value: "'Helvetica Neue', Helvetica, sans-serif", label: "Helvetica Neue" },
+        { key: "s", value: "system-ui, sans-serif", label: "System UI" }
+      ],
+      appearFontLabel: (([{ v: "", l: "Default (Roboto)" }, { v: "'Roboto Mono', monospace", l: "Roboto Mono" }, { v: "Georgia, serif", l: "Georgia" }, { v: "'Helvetica Neue', Helvetica, sans-serif", l: "Helvetica Neue" }, { v: "system-ui, sans-serif", l: "System UI" }].find((x) => x.v === (appear.font || "")) || { l: "Default (Roboto)" }).l),
+      openFontMenu: (e) => this.openDropdown(e, {
+        title: "Font family", value: appear.font || "", width: 300,
+        options: [
+          { value: "", label: "Default (Roboto)" },
+          { value: "'Roboto Mono', monospace", label: "Roboto Mono" },
+          { value: "Georgia, serif", label: "Georgia" },
+          { value: "'Helvetica Neue', Helvetica, sans-serif", label: "Helvetica Neue" },
+          { value: "system-ui, sans-serif", label: "System UI" }
+        ],
+        onPick: (o) => { this.patchAppear({ font: o.value }); this.setState({ dd: null }); }
+      }),
+      appearFont: appear.font || "",
+      setAppearFont: (e) => this.patchAppear({ font: e.target.value }),
+      appearSize: String(appear.size || 100),
+      appearSizeLabel: (appear.size || 100) + "%",
+      setAppearSize: (e) => this.patchAppear({ size: Number(e.target.value) }),
+      appearWeight: String(appear.weight || 400),
+      setAppearWeight: (e) => this.patchAppear({ weight: Number(e.target.value) }),
+      appearToggles: [
+        { key: "i", label: "Italic", on: !!appear.italic, prop: "italic" },
+        { key: "u", label: "Underline", on: !!appear.underline, prop: "underline" },
+        { key: "s", label: "Strike", on: !!appear.strike, prop: "strike" },
+        { key: "w", label: "Wide", on: !!appear.wide, prop: "wide" }
+      ].map((t) => ({ key: t.key, label: t.label, bg: t.on ? "var(--m3-primary)" : "transparent", fg: t.on ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)", toggle: () => this.patchAppear({ [t.prop]: !t.on }) })),
+      appearColor: appearColor,
+      appearColorText: appearColor,
+      setAppearColorText: (e) => this.patchAppear({ color: e.target.value }),
+      appearHue: String(Math.round(hsv.h)),
+      appearSat: String(Math.round(hsv.s)),
+      appearVal: String(Math.round(hsv.v)),
+      setAppearHue: (e) => this.patchAppear({ color: CX.color.rgbToHex(CX.color.hsvToRgb({ h: Number(e.target.value), s: hsv.s, v: hsv.v })) }),
+      setAppearSat: (e) => this.patchAppear({ color: CX.color.rgbToHex(CX.color.hsvToRgb({ h: hsv.h, s: Number(e.target.value), v: hsv.v })) }),
+      setAppearVal: (e) => this.patchAppear({ color: CX.color.rgbToHex(CX.color.hsvToRgb({ h: hsv.h, s: hsv.s, v: Number(e.target.value) })) }),
+      colorRows: CX.color.translate(appearColor).map(([space, value]) => ({ key: space, space, value, copy: () => { navigator.clipboard.writeText(value); this.toast(space + " copied"); } })),
+      contrastLabel: (() => {
+        const fg = CX.color.hexToRgb(appearColor);
+        const bg = st.theme === "dark" ? { r: 20, g: 18, b: 24 } : { r: 254, g: 247, b: 255 };
+        if (!fg) return "Enter a valid colour to see contrast.";
+        const ratio = CX.color.contrast(fg, bg);
+        return "Contrast vs surface " + ratio.toFixed(2) + ":1 — " + (ratio >= 4.5 ? "passes AA body text" : ratio >= 3 ? "large text only" : "fails AA");
+      })(),
+      resetAppear: () => { const appearance = Object.assign({}, st.appearance); delete appearance[st.appearTarget]; CX.store.set("appearance", appearance); this.setState({ appearance }); },
+      resetAllAppear: () => { CX.store.set("appearance", {}); this.setState({ appearance: {} }); }
+    };
+    return v;
+  }
+
+  patchAppear(patch) {
+    const appearance = Object.assign({}, this.state.appearance);
+    appearance[this.state.appearTarget] = Object.assign({}, appearance[this.state.appearTarget] || {}, patch);
+    CX.store.set("appearance", appearance);
+    this.setState({ appearance });
+  }
+}
+</script>
+</body>
+</html>
