@@ -6,7 +6,7 @@ Nothing here is predicted, and nothing is claimed green that was not observed gr
 
 | | |
 | --- | --- |
-| **Snapshot commit** | `c9c2763` — *A restore now restores all of it, not the half that happened to be listed* |
+| **Snapshot commit** | `2e814fb` — *Replace every screenshot, move the fixture off the operator's disk, stop CI cancelling runs* |
 | **Branch** | `main` |
 | **Captured** | 2026-07-30 |
 | **Platform** | Windows-only Electron app (`electron/main.js`), no macOS or Linux target |
@@ -44,6 +44,37 @@ node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/captur
 > removing `unsafe-eval`; the app will not start. Do not ignore a non-zero exit: it has caught
 > three real regressions, including one where every binding in the window was empty and the
 > harness still wrote nineteen screenshots of a black rectangle.
+
+## Where things stand, and what to pick up
+
+**Done and verified at this commit**
+
+- Every README screenshot is new. The shot list in `tools/capture-main.cjs` was rewritten so each surface shows its feature *in use* rather than at rest, and four surfaces that had never been photographed were added: the command palette, the filtered history, the feature-flag list and the Cantonese Studio panel. 24 shots.
+- The capture fixture lives at `C:\Users\Public\codex-studio-capture`, **not** inside the checkout. The Config panel prints the absolute path of the file it writes, so a fixture under the repository puts the operator's account name straight back into a screenshot.
+- `assets/smoke.json` is redacted before it is written. It is committed, and it used to record the absolute path of the `codex` binary.
+- CI no longer stops runs. See below.
+
+**Open, in priority order**
+
+1. **92 secondary labels are still hard-coded English** — mostly the Console flag panel and the Config section list, plus labels living inside ternaries and positional arguments that a mechanical pass cannot reach. Bilingual mode is therefore not complete.
+2. **The appearance editor covers eight typography properties**, not the word-processor set the rules describe.
+3. **The installers are unsigned.** That needs a code-signing certificate this project does not have, so SmartScreen warns on first run. Blocked, not pending.
+
+**Two traps worth knowing before you touch the harnesses**
+
+> [!WARNING]
+> **`CODEX_HOME` is one directory, not a sandbox.** Skills are not under it: `skillList()` enumerates the machine's real `~/.agents/skills` and `skillToggle()` renames a directory there. Check what a command actually touches before adding it to the smoke test's exercised set — pointing `CODEX_HOME` at a fixture does not contain it.
+
+> [!WARNING]
+> **Anything committed can leak the operator, not just screenshots.** The username reached this repository twice by different routes: once through a screenshot of a path, once through a JSON report. `git ls-files -z | xargs -0 grep -lI "<your-username>"` should return nothing.
+
+## CI does not cancel runs
+
+The concurrency group used to be `ci-${{ github.ref }}` with `cancel-in-progress: false`. That reads as safe and is not: GitHub keeps at most **one pending run per group**, so a third push evicts the second while the first is still running. Build `fa7975e` was cancelled that way with nobody asking for it.
+
+The group is `ci-${{ github.run_id }}` now — unique per run, so it never matches another run and therefore never queues, evicts or cancels. **Every push gets its own run and its own release.**
+
+The serialisation had been protecting the dim sum code name, which was derived from a count of releases already carrying a dish; two overlapping runs read the same count and claim the same dish. The index is `GITHUB_RUN_NUMBER` instead, which is unique per run by construction. The cost is that a re-run build skips a dish — a gap in a decorative sequence, not a fault.
 
 ## The smoke test is the one that matters
 
