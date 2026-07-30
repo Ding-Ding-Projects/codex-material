@@ -14,6 +14,8 @@ A Material 3 Windows desktop app that drives the OpenAI Codex CLI. Every action 
 > Every green build publishes a release. `package.json` says `0.1.0`; each build gets its own immutable tag (`v0.1.0+build.<n>`) carrying an NSIS `.exe`, an MSI, and the build's dim sum code-name photograph. **The installers are not code-signed**, so SmartScreen will warn on first run.
 >
 > Releases numbered `build.2` through `build.9` are the **Tauri** shell and render a blank window. They are annotated as such and left in place because tags here are immutable. Take the newest one.
+>
+> **Builds 10 to 533 are missing on purpose.** A workflow trigger fault published 524 releases in nine bursts of fifty-odd, all within about an hour, each carrying the same handful of builds. The trigger is fixed (`tags-ignore: ["**"]` plus a concurrency group) and those releases have been deleted. Their tags remain, because tags here are immutable and a tag that once pointed at a published artifact should keep pointing at it. The gap in the numbering is that incident, not a gap in the history.
 
 ---
 
