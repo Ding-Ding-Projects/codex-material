@@ -81,6 +81,18 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **The transcript has an empty state.** A freshly opened session left roughly sixty
+  percent of the app's flagship screen as an unexplained black rectangle. It now says
+  what the pane is, which profile and model will run, and shows the exact command the
+  composer will execute.
+- **`codex doctor` warnings are no longer painted as errors.** Every status that was
+  not `ok` collapsed to red, so two warnings read as failures; and the colour was the
+  only signal, which is useless to anyone who cannot separate the two hues. There are
+  three states now, each with its own glyph and the status word beside it.
+- **The bulk-close confirm button is legible.** It paired `on-error-container` — the
+  foreground colour for the *container* role — with the `error` background, giving
+  pale pink text on light pink for the one genuinely destructive control in the app.
+
 - **Notifications were invisible, and the cause was the app building itself twice.**
   The module scripts sat inside the template block, so the browser ran them once when
   it parsed the document and the dc runtime ran them again when it re-appended the

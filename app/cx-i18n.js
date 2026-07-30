@@ -1535,6 +1535,32 @@
     },
 
     /* ---- local history ---- */
+    /* The transcript's empty state. Level 1 is a plain statement of fact; level 5
+       gets to be funny about the silence but still names the profile, the model and
+       the command, because a user who cannot tell what will run learns nothing from
+       a joke. */
+    "chat.emptyTitle": {
+      en: ["No messages in this session", "No messages in this session", "Nothing here yet",
+        "This session has not said anything yet", "Beautifully, completely empty"],
+      yue: ["呢個 session 未有訊息", "呢個 session 未有訊息", "仲未有嘢",
+        "呢個 session 一句都未講過", "空空如也，靚到有啲淒涼"]
+    },
+    "chat.emptyBody": {
+      en: [
+        "Type below to start. Runs as {profile} on {model}.",
+        "Type below to start. Runs as {profile} on {model}.",
+        "Type a message below to start. It runs as {profile} on {model}.",
+        "Say something below and it runs for real — profile {profile}, model {model}.",
+        "Go on, say something. It runs for real as {profile} on {model} — no rehearsal, no undo button hiding in the corner."
+      ],
+      yue: [
+        "喺下面打字開始。用 {profile}、{model} 執行。",
+        "喺下面打字開始。用 {profile}、{model} 執行。",
+        "喺下面打段字就開始。會用 {profile}、{model} 幫你行。",
+        "下面講句嘢，佢就真係會行 —— profile 係 {profile}，model 係 {model}。",
+        "講啦，唔使驚。佢係真係會行㗎 —— {profile} 配 {model}，冇綵排，角落頭都冇個 undo 掣等你。"
+      ]
+    },
     "history.search": {
       en: ["Search revisions", "Search revisions", "Search revisions",
         "Search every revision", "Search every revision — message, action or hash"],
