@@ -1035,7 +1035,7 @@ const EXT_CATEGORIES = [
 const SLASH_WIZARDS = {
   model: [{ id: "model", label: "Model", type: "enum", options: DATA.MODELS.map((m) => m.id), hint: "Sets the model for this thread only." },
           { id: "effort", label: "Reasoning effort", type: "enum", options: DATA.ENUMS.reasoningEffort, hint: "Higher effort costs more output tokens." }],
-  permissions: [{ id: "policy", label: "Approval policy", type: "enum", options: DATA.ENUMS.approval, hint: "untrusted asks for everything; never asks for nothing." }],
+  permissions: [{ id: "policy", label: CX.i18n.t("opt.approvalPolicy"), type: "enum", options: DATA.ENUMS.approval, hint: "untrusted asks for everything; never asks for nothing." }],
   personality: [{ id: "p", label: "Personality", type: "enum", options: DATA.ENUMS.personality, hint: "Communication style only — never changes safety behaviour." }],
   review: [{ id: "scope", label: "What to review", type: "text", placeholder: "uncommitted changes / a branch / a path", hint: "Left empty, Codex reviews the current diff." }],
   rename: [{ id: "name", label: "New thread name", type: "text", placeholder: "payments regression", hint: "Renames the saved session." }],
@@ -1045,15 +1045,15 @@ const SLASH_WIZARDS = {
   mcp: [{ id: "verbose", label: "Detail", type: "enum", options: ["", "verbose"], hint: "verbose lists every tool each server exposes." }],
   theme: [{ id: "theme", label: "Syntax theme", type: "text", placeholder: "kebab-case name", hint: "Custom themes live in $CODEX_HOME/themes." }],
   pets: [{ id: "pet", label: "Pet", type: "text", placeholder: "id, or 'hide'", hint: "Custom pets resolve from CODEX_HOME/pets/<id>/pet.json." }],
-  "sandbox-add-read-dir": [{ id: "dir", label: "Absolute path", type: "text", placeholder: "C:/src/vendor", hint: "Windows only. Grants the sandbox read access." }],
+  "sandbox-add-read-dir": [{ id: "dir", label: CX.i18n.t("opt.absolutePath"), type: "text", placeholder: "C:/src/vendor", hint: "Windows only. Grants the sandbox read access." }],
   side: [{ id: "topic", label: "Side topic", type: "text", placeholder: "quick question", hint: "Runs in an ephemeral fork; the main thread is untouched." }],
   btw: [{ id: "topic", label: "Side topic", type: "text", placeholder: "quick question", hint: "Same as /side." }],
   usage: [{ id: "what", label: "Scope", type: "enum", options: ["", "reset"], hint: "reset uses a usage-limit reset if one is available." }],
-  keymap: [{ id: "binding", label: "Action to rebind", type: "text", placeholder: "composer.submit", hint: "Context bindings win over global ones." }],
+  keymap: [{ id: "binding", label: CX.i18n.t("opt.actionToRebind"), type: "text", placeholder: "composer.submit", hint: "Context bindings win over global ones." }],
   new: [{ id: "prompt", label: "Opening prompt", type: "text", placeholder: "optional", hint: "Starts a fresh chat in the same profile." }],
   clear: [{ id: "prompt", label: "Opening prompt", type: "text", placeholder: "optional", hint: "Clears the terminal and starts a new chat." }],
   raw: [{ id: "mode", label: "Raw mode", type: "enum", options: ["", "on", "off"], hint: "Copy-friendly scrollback for terminal selection." }],
-  ide: [{ id: "what", label: "Context to include", type: "text", placeholder: "selection / open files", hint: "Pulls current IDE context into the thread." }]
+  ide: [{ id: "what", label: CX.i18n.t("opt.contextToInclude"), type: "text", placeholder: "selection / open files", hint: "Pulls current IDE context into the thread." }]
 };
 
 const SLASH_NOTES = {
@@ -1471,10 +1471,10 @@ class Component extends DCLogic {
       { key: "f3", icon: "^", label: "Filter: starts with this", click: () => setRe("^" + esc) },
       { key: "f4", icon: "=", label: "Filter: exact match", click: () => setRe("^" + esc + "$") },
       { key: "f5", icon: ".*", label: "Open regex builder with this", click: () => { this.setState({ menu: null }); this.openRegexFor(target, text); } },
-      { key: "f6", icon: "✕", label: "Clear this filter", click: () => setQ("") }
+      { key: "f6", icon: "✕", label: CX.i18n.t("destructive.clearFilter"), click: () => setQ("") }
     ];
   }
-  copyItem(text) { return { key: "copy", icon: "⧉", label: "Copy", click: () => { navigator.clipboard.writeText(text); this.setState({ menu: null }); this.toast("Copied"); } }; }
+  copyItem(text) { return { key: "copy", icon: "⧉", label: CX.i18n.t("copy.copy"), click: () => { navigator.clipboard.writeText(text); this.setState({ menu: null }); this.toast("Copied"); } }; }
   /** Where the appearance editor should sit for a given element.
    *
    *  Beside it, never on top of it: preferring the right-hand side, falling back to
@@ -1900,7 +1900,7 @@ class Component extends DCLogic {
         key: s.id, title: s.name + (s.archived ? " (archived)" : ""), subtitle: s.cwd, meta: s.updated, initial: s.name[0].toUpperCase(), active: s.id === st.activeSession,
         go: () => this.setState({ activeSession: s.id, messages: this.seedMessages() }),
         context: (e) => this.menuAt(e, s.name, [
-          { key: "resume", icon: "▶", label: "Resume session", click: () => { this.setState({ menu: null, activeSession: s.id }); this.toast("codex resume " + s.id); } },
+          { key: "resume", icon: "▶", label: CX.i18n.t("opt.resumeSession"), click: () => { this.setState({ menu: null, activeSession: s.id }); this.toast("codex resume " + s.id); } },
           { key: "fork", icon: "⑂", label: "Fork session", click: () => { const ns = Object.assign({}, s, { id: "s" + Date.now(), name: s.name + " (fork)" }); this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => (x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.concat([ns]) }) : x)), "Fork session " + s.name); } },
           { key: "arch", icon: "🗄", label: s.archived ? "Unarchive" : "Archive", click: () => { this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => (x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.map((y) => (y.id === s.id ? Object.assign({}, y, { archived: !y.archived }) : y)) }) : x)), (s.archived ? "Unarchive" : "Archive") + " " + s.name); } },
           { key: "move", icon: "→", label: "Move to another profile", click: () => { const other = st.profiles.filter((x) => x.id !== p.id)[0]; if (!other) return; this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.filter((y) => y.id !== s.id) }) : x.id === other.id ? Object.assign({}, x, { sessions: x.sessions.concat([s]) }) : x), "Move " + s.name + " to " + other.name); } },
@@ -1990,7 +1990,7 @@ class Component extends DCLogic {
     if (nav === "cost") {
       /* Each branch resolves its own profile — listConfig has no shared `p`. */
       const p = this.profile();
-      return mk("Models", "Search models", "Reset prices", DATA.MODELS.filter((m) => match(m.id + " " + m.note)).map((m) => {
+      return mk("Models", "Search models", CX.i18n.t("destructive.resetPrices"), DATA.MODELS.filter((m) => match(m.id + " " + m.note)).map((m) => {
         const known = this.priced(m.id);
         return {
           key: m.id,
@@ -2081,13 +2081,13 @@ class Component extends DCLogic {
       langLabel: st.lang === "en" ? "EN" : st.lang === "yue" ? "廣東話" : "EN·粵",
       openLangMenu: (e) => this.openDropdown(e, {
         title: "Language mode", value: st.lang, width: 240,
-        options: [{ value: "en", label: "English" }, { value: "yue", label: "廣東話 (playful HK Cantonese)" }, { value: "bi", label: "Bilingual · EN + 粵" }],
+        options: [{ value: "en", label: CX.i18n.t("opt.langEnglish") }, { value: "yue", label: CX.i18n.t("opt.langCantonese") }, { value: "bi", label: CX.i18n.t("opt.langBilingual") }],
         onPick: (o) => { CX.i18n.mode = o.value; CX.i18n.save(); this.setState({ lang: o.value, dd: null }); }
       }),
       lifetimeLabel: st.lifetime.days >= 365 ? (st.lifetime.days / 365).toFixed(st.lifetime.days % 365 ? 1 : 0) + " y" : st.lifetime.days + " d",
       openLifetimeMenu: (e) => this.openDropdown(e, {
         title: "Lifetime window", value: String(st.lifetime.days), width: 240,
-        options: [7, 30, 90, 180, 365, 730].map((d) => ({ value: String(d), label: d >= 365 ? d / 365 + " year" + (d > 365 ? "s" : "") : d + " days" })).concat([{ value: "custom", label: "Custom…" }]),
+        options: [7, 30, 90, 180, 365, 730].map((d) => ({ value: String(d), label: d >= 365 ? d / 365 + " year" + (d > 365 ? "s" : "") : d + " days" })).concat([{ value: "custom", label: CX.i18n.t("opt.custom") }]),
         onPick: (o) => {
           let days = o.value;
           if (days === "custom") { const a = prompt("How many days should the lifetime total cover?", String(st.lifetime.days)); if (!a) { this.setState({ dd: null }); return; } days = Math.max(1, Number(a) || st.lifetime.days); }
@@ -2573,7 +2573,7 @@ class Component extends DCLogic {
         context: (e) => this.menuAt(e, x.title, [
           { key: "t", icon: x.on ? "○" : "●", label: x.on ? "Disable" : "Enable", click: () => { this.setState({ menu: null }); this.toggleExt(x); } },
           this.copyItem(x.title),
-          { key: "cmd", icon: "▶", label: "Copy CLI equivalent", click: () => { navigator.clipboard.writeText(this.extCommand(x)); this.setState({ menu: null }); this.toast(this.extCommand(x)); } }
+          { key: "cmd", icon: "▶", label: CX.i18n.t("copy.cliEquivalent"), click: () => { navigator.clipboard.writeText(this.extCommand(x)); this.setState({ menu: null }); this.toast(this.extCommand(x)); } }
         ].concat(this.filterItems("ext", x.title)).concat([this.appearItem(e)]))
       }, this.toggleRow(x.on))),
 
@@ -2610,7 +2610,7 @@ class Component extends DCLogic {
           },
           context: (e) => this.menuAt(e, f.key, [
             this.copyItem(f.key),
-            { key: "cli", icon: "▶", label: "Copy as -c override", click: () => { navigator.clipboard.writeText("-c " + f.key + "=" + JSON.stringify(val)); this.setState({ menu: null }); this.toast("Copied -c override"); } },
+            { key: "cli", icon: "▶", label: CX.i18n.t("copy.cOverride"), click: () => { navigator.clipboard.writeText("-c " + f.key + "=" + JSON.stringify(val)); this.setState({ menu: null }); this.toast("Copied -c override"); } },
             { key: "reset", icon: "↺", label: "Reset to default", click: () => { this.setState({ menu: null }); this.setConfig(f.key, ""); } }
           ].concat(this.filterItems("set", f.key)).concat([this.appearItem(e)]))
         }, this.toggleRow(on));
@@ -3527,17 +3527,17 @@ class Component extends DCLogic {
   tabMenu(e, t, inGroup) {
     const groups = CX.tabs.groups();
     const items = [
-      { key: "pin", icon: t.pinned ? "📌" : "📍", label: t.pinned ? "Unpin tab" : "Pin tab", click: () => { CX.tabs.pin(t.id); this.setState({ menu: null }); } },
-      { key: "rename", icon: "✎", label: "Rename tab…", click: () => { this.setState({ menu: null }); this.renameTabPrompt(t); } },
+      { key: "pin", icon: t.pinned ? "📌" : "📍", label: CX.i18n.t(t.pinned ? "tabs.unpin" : "tabs.pin"), click: () => { CX.tabs.pin(t.id); this.setState({ menu: null }); } },
+      { key: "rename", icon: "✎", label: CX.i18n.t("tabs.rename"), click: () => { this.setState({ menu: null }); this.renameTabPrompt(t); } },
       /* The pointer equivalent of Ctrl+Shift+Arrow. Both call the same mover, so the
          two routes cannot drift apart. */
       { key: "mvl", icon: "◂", label: "Move left  ·  Ctrl+Shift+←", click: () => this.moveTabBy(t, -1) },
       { key: "mvr", icon: "▸", label: "Move right  ·  Ctrl+Shift+→", click: () => this.moveTabBy(t, 1) },
-      { key: "close", icon: "✕", label: "Close tab", click: () => { this.setState({ menu: null }); this.closeTab(t); } },
-      { key: "others", icon: "⨯", label: "Close other tabs", click: () => { this.setState({ menu: null }); this.reportClose(CX.tabs.closeOthers(t.id, false)); } },
-      { key: "right", icon: "→", label: "Close tabs to the right", click: () => { this.setState({ menu: null }); this.reportClose(CX.tabs.closeToRight(t.id, false)); } },
-      { key: "bulkin", icon: "⌕", label: "Close tabs containing text…", click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, false); } },
-      { key: "bulkout", icon: "∌", label: "Close tabs not containing text…", click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, true); } },
+      { key: "close", icon: "✕", label: CX.i18n.t("tabs.close"), click: () => { this.setState({ menu: null }); this.closeTab(t); } },
+      { key: "others", icon: "⨯", label: CX.i18n.t("tabs.closeOthers"), click: () => { this.setState({ menu: null }); this.reportClose(CX.tabs.closeOthers(t.id, false)); } },
+      { key: "right", icon: "→", label: CX.i18n.t("tabs.closeRight"), click: () => { this.setState({ menu: null }); this.reportClose(CX.tabs.closeToRight(t.id, false)); } },
+      { key: "bulkin", icon: "⌕", label: CX.i18n.t("tabs.bulkContaining"), click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, false); } },
+      { key: "bulkout", icon: "∌", label: CX.i18n.t("tabs.bulkNotContaining"), click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, true); } },
       { key: "newgroup", icon: "▣", label: "Move to a new group…", click: () => { this.setState({ menu: null }); const g = CX.tabs.createGroup("Group " + (groups.length + 1), "#D0BCFF"); CX.tabs.assign(t.id, g.id); } }
     ];
     groups.forEach((g) => {
@@ -3567,7 +3567,7 @@ class Component extends DCLogic {
       { key: "rename", icon: "✎", label: "Rename group…", click: () => { this.setState({ menu: null }); this.renameGroupPrompt(g); } },
       { key: "colour", icon: "🎨", label: "Group colour…", click: () => { this.setState({ menu: null }); this.groupColourPrompt(g); } },
       { key: "search", icon: "⌕", label: "Search this group…", click: () => { this.setState({ menu: null }); this.openGroupSearch(e, g); } },
-      { key: "bulk", icon: "∌", label: "Close tabs in this group containing text…", click: () => { this.setState({ menu: null }); this.openBulk({ kind: "group", id: g.id }, false); } },
+      { key: "bulk", icon: "∌", label: CX.i18n.t("tabs.bulkGroupContaining"), click: () => { this.setState({ menu: null }); this.openBulk({ kind: "group", id: g.id }, false); } },
       { key: "ungroup", icon: "▢", label: "Ungroup (keeps every tab)", click: () => { CX.tabs.removeGroup(g.id); this.setState({ menu: null }); } },
       this.appearItem(e)
     ];
@@ -3615,8 +3615,8 @@ class Component extends DCLogic {
       { key: "s2", icon: "▤", label: "Search inside a group…", click: () => { this.setState({ menu: null }); this.openGroupPicker(e); } },
       { key: "s3", icon: "▣", label: "Search tab groups by name…", click: () => { this.setState({ menu: null }); this.openGroupsSearch(e); } },
       { key: "s4", icon: "✦", label: "Search every tab, everywhere…", click: () => { this.setState({ menu: null }); this.openMasterSearch(e); } },
-      { key: "b1", icon: "⨯", label: "Close tabs containing text…", click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, false); } },
-      { key: "b2", icon: "∌", label: "Close tabs not containing text…", click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, true); } }
+      { key: "b1", icon: "⨯", label: CX.i18n.t("tabs.bulkContaining"), click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, false); } },
+      { key: "b2", icon: "∌", label: CX.i18n.t("tabs.bulkNotContaining"), click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, true); } }
     ]);
   }
 
@@ -3892,7 +3892,7 @@ class Component extends DCLogic {
             st.lang === "en" ? "English" : st.lang === "yue" ? "廣東話" : "Bilingual · EN + 粵",
             (e) => this.openDropdown(e, {
               title: "Language mode", value: st.lang, width: 280,
-              options: [{ value: "en", label: "English" }, { value: "yue", label: "廣東話 (playful HK Cantonese)" }, { value: "bi", label: "Bilingual · EN + 粵" }],
+              options: [{ value: "en", label: CX.i18n.t("opt.langEnglish") }, { value: "yue", label: CX.i18n.t("opt.langCantonese") }, { value: "bi", label: CX.i18n.t("opt.langBilingual") }],
               onPick: (o) => { CX.i18n.setMode(o.value); this.setState({ lang: o.value, dd: null }); CX.vcs.commit("Language mode set to " + o.value, "settings"); }
             })),
           slider("Funny level — English", "How playfully the English copy is written. Level 1 reads fully professional.", "funnyen", funny.en || 3,
@@ -3918,7 +3918,7 @@ class Component extends DCLogic {
             se.get("narratorLang", "en") === "en" ? "English" : se.get("narratorLang", "en") === "yue" ? "廣東話" : "Both",
             (e) => this.openDropdown(e, {
               title: "Narrated language", value: se.get("narratorLang", "en"), width: 260,
-              options: [{ value: "en", label: "English" }, { value: "yue", label: "廣東話" }, { value: "both", label: "Both — English then 廣東話" }],
+              options: [{ value: "en", label: CX.i18n.t("opt.langEnglish") }, { value: "yue", label: "廣東話" }, { value: "both", label: CX.i18n.t("opt.narratorBoth") }],
               onPick: (o) => { se.set("narratorLang", o.value); CX.narrator.lang = o.value; this.setState({ dd: null }); }
             }))
         ]
@@ -3979,7 +3979,7 @@ class Component extends DCLogic {
           pick("Theme", "Material 3 light and dark palettes.", "theme", st.theme === "dark" ? "Dark" : "Light",
             (e) => this.openDropdown(e, {
               title: "Theme", value: st.theme, width: 240,
-              options: [{ value: "dark", label: "Dark" }, { value: "light", label: "Light" }],
+              options: [{ value: "dark", label: CX.i18n.t("opt.themeDark") }, { value: "light", label: CX.i18n.t("opt.themeLight") }],
               onPick: (o) => { document.documentElement.setAttribute("data-theme", o.value); CX.store.set("theme", o.value); this.setState({ theme: o.value, dd: null }); }
             })),
           action("Export appearance to a file", "Every saved element style, as a file you can keep, share or re-import after a reinstall.", "appexport", "Export", "var(--m3-on-surface)",
@@ -4000,7 +4000,7 @@ class Component extends DCLogic {
    *  list is just the bundled five, which is a smaller truth rather than a wrong one. */
   fontOptions() {
     const base = [
-      { value: "", label: "Default (Roboto, bundled)" },
+      { value: "", label: CX.i18n.t("opt.fontDefault") },
       { value: "'Roboto Mono', monospace", label: "Roboto Mono (bundled)" },
       { value: "Georgia, serif", label: "Georgia" },
       { value: "'Helvetica Neue', Helvetica, sans-serif", label: "Helvetica Neue" },

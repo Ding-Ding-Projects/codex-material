@@ -81,6 +81,14 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **The context menus speak Cantonese too.** Fifty-one menu and button labels moved out
+  of hard-coded English and into the string table, five levels in each language — tab
+  management, the destructive actions, and the copy/export/open group. Hard-coded
+  `label:` values are down from 116 to 92 and `CX.i18n.t()` call sites up from 119 to
+  160. The destructive ones keep their warning at every level: "Reset prices — your
+  numbers go", 「啲價打返原形，你改嗰啲冇晒」. A label that stops reading as destructive
+  because the slider moved has failed the user, not amused them.
+
 - **Deleting an MCP server can be undone.** The snapshot was a list of `localStorage`
   keys, so everything the app owns that lives in the CLI's own file — MCP servers,
   hooks, the profile sections — sat outside it. That is the exact failure the

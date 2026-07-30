@@ -144,30 +144,26 @@ process.
 Every entry below was re-verified against this commit. Four gaps recorded in the previous
 handoff are now closed and appear under *Recently closed* instead — do not re-report them.
 
-### 1. The language mode still misses most secondary labels
+### 1. The language mode still misses some secondary labels
 
-The app's **primary** surface is done: the navigation rail, the Extend category list and
-the window chrome now resolve through `CX.i18n` at render time, so switching to 廣東話 or
-bilingual translates them without a restart. The rest is not.
+The app's **primary** surface is done — navigation rail, Extend categories, window chrome — and
+so are the tab, destructive-action and copy/export menus. The rest is not.
 
-Measured at this commit: **127** `CX.i18n.t()` call sites plus 6 uses of the nav/ext
-helpers, against **29** literal text nodes in the template and **244** hard-coded
-`label`/`title`/`placeholder`/`hint` values in the logic. The remaining offenders are the
-context menus, the Console flag panel, the Config section list and most button labels.
-
-The string table now holds **273** keys.
+Measured at this commit: **160** `CX.i18n.t()` call sites, against **29** literal text nodes in
+the template and **92** hard-coded `label:` values (down from 116). What remains is mostly the
+Console flag panel, the Config section list, and labels that live inside ternaries or positional
+arguments rather than a plain `label: "…"`.
 
 ```bash
 grep -c "CX.i18n.t(" app/index.html
 ```
 
 > [!NOTE]
-> **Check for unreachable keys before adding new ones.** The table already contained
-> navigation entries keyed `nav.chats`, `nav.extend` and `nav.config`, while the
-> navigation ids are `chat`, `ext` and `settings` — so nothing ever looked them up, and
-> from the outside the table looked like it had coverage it did not have. Those three are
-> reconciled; assume others like them exist. A key that resolves to itself is a key
-> nothing is using.
+> **Check for unreachable keys before adding new ones.** The table already contained navigation
+> entries keyed `nav.chats`, `nav.extend` and `nav.config`, while the navigation ids are `chat`,
+> `ext` and `settings` — so nothing ever looked them up, and from the outside the table looked
+> like it had coverage it did not have. Those three are reconciled; assume others like them
+> exist. A key that resolves to itself is a key nothing is using.
 
 ### 2. Levels 1 and 2 of the funny sliders are byte-identical for almost every key
 

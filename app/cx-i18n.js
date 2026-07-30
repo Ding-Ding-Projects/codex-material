@@ -1662,6 +1662,202 @@
       en: ["Load session usage", "Load usage from the latest session", "Load the latest session's real token counts", "Grab the real token counts off your newest session", "Yank the real token counts out of your newest session"],
       yue: ["載入 session 用量", "由最新 session 載入用量", "攞最新 session 嘅真實 token 數", "攞返最新 session 嗰啲真數字入嚟", "直接搶最新 session 嗰堆 token 數入嚟"]
     },
+    /* Context-menu items and buttons. These were hard-coded English literals, so a
+       Cantonese user got a translated toast and an English menu. The destructive ones
+       keep their warning at every level — a label that stops reading as destructive
+       because the slider moved has failed the user, not amused them. */
+    "tabs.closeOthers": {
+      en: ["Close other tabs", "Close all other tabs", "Close the other tabs", "Shut every other tab", "Shut every other tab, bye bye"],
+      yue: ["關閉其他分頁", "關閉所有其他分頁", "閂晒其他 tab", "其他 tab 一次過閂晒", "其他 tab 一次過閂晒，拜拜"]
+    },
+    "tabs.close": {
+      en: ["Close tab", "Close the tab", "Close this tab", "Shut this tab", "Shut this tab, bye tab"],
+      yue: ["關閉分頁", "關閉呢個分頁", "閂咗呢個 tab", "呢個 tab，閂咗佢", "呢個 tab 閂咗佢，拜拜"]
+    },
+    "tabs.bulkContaining": {
+      en: ["Close tabs containing text…", "Close tabs containing chosen text…", "Close tabs whose title contains…", "Close tabs with this in the title…", "Close tabs caught saying this text…"],
+      yue: ["關閉包含指定文字嘅分頁…", "關閉標題包含指定文字嘅分頁…", "閂晒標題有呢段字嘅 tab…", "標題有呢段字嘅 tab，閂晒…", "邊個 tab 標題講呢句就閂咗佢…"]
+    },
+    "tabs.bulkGroupContaining": {
+      en: ["Close tabs in this group containing text…", "Close this group's tabs containing text…", "In this group, close tabs with this text…", "In this group, close tabs that say this…", "In this group, close tabs caught saying this…"],
+      yue: ["關閉呢個群組入面包含指定文字嘅分頁…", "關閉呢個群組入面標題有指定文字嘅分頁…", "喺呢組入面，閂晒標題有呢段字嘅 tab…", "淨係喺呢組，標題有呢段字嘅 tab 閂晒…", "淨係呢組，邊個 tab 講呢句就閂咗佢…"]
+    },
+    "tabs.bulkNotContaining": {
+      en: ["Close tabs not containing text…", "Close tabs without the chosen text…", "Close tabs whose title lacks this…", "Close every tab that does not say this…", "Close every tab that never mentions this…"],
+      yue: ["關閉唔包含指定文字嘅分頁…", "關閉標題冇指定文字嘅分頁…", "閂晒標題冇呢段字嘅 tab…", "標題冇呢段字嘅 tab，全部閂晒…", "邊個 tab 唔提呢句就閂咗佢…"]
+    },
+    "tabs.closeRight": {
+      en: ["Close tabs to the right", "Close all tabs to the right", "Close every tab to the right", "Shut every tab to the right", "Shut every tab to the right, gone"],
+      yue: ["關閉右邊嘅分頁", "關閉右邊所有分頁", "閂晒右邊啲 tab", "右邊啲 tab 一次過閂晒", "右邊啲 tab 閂晒，一個都唔留"]
+    },
+    "tabs.pin": {
+      en: ["Pin tab", "Pin this tab", "Pin this tab in place", "Pin this tab down", "Pin this tab down for good"],
+      yue: ["釘住分頁", "釘住呢個分頁", "釘住呢個 tab", "釘實呢個 tab", "釘實呢個 tab，郁都唔准郁"]
+    },
+    "tabs.rename": {
+      en: ["Rename tab…", "Rename this tab…", "Give this tab a new name…", "Give this tab a better name…", "Give this tab a name it deserves…"],
+      yue: ["重新命名分頁…", "重新命名呢個分頁…", "幫呢個 tab 改個名…", "幫呢個 tab 改個好啲嘅名…", "幫呢個 tab 改個似樣啲嘅名…"]
+    },
+    "tabs.unpin": {
+      en: ["Unpin tab", "Unpin this tab", "Take the pin off this tab", "Pull the pin out of this tab", "Unpin this tab, let it roam"],
+      yue: ["取消釘住分頁", "取消釘住呢個分頁", "唔再釘住呢個 tab", "拔咗呢個 tab 嘅釘", "拔咗枝釘，放呢個 tab 走"]
+    },
+    "destructive.clearFilter": {
+      en: ["Clear this filter", "Clear the active filter", "Clear the filter", "Clear the filter, show everything", "Bin the filter, show everything"],
+      yue: ["清除呢個篩選", "清除目前嘅篩選", "清走個篩選", "清走個篩選，全部顯示返", "篩選唔要喇，全部畀我睇晒"]
+    },
+    "destructive.resetAll": {
+      en: ["Reset all", "Reset all elements", "Reset every element", "Reset every last element", "Reset the lot — every element"],
+      yue: ["全部重設", "重設所有元素", "每個元素都重設", "所有元素一次過打返原形", "全部元素打返原形，一個唔留"]
+    },
+    "destructive.resetElement": {
+      en: ["Reset element", "Reset this element", "Reset just this element", "Reset this one element only", "Reset this element, styling gone"],
+      yue: ["重設元素", "重設呢個元素", "淨係重設呢個元素", "淨係呢個元素打返原形", "呢個元素打返原形，樣式冇晒"]
+    },
+    "destructive.resetPrices": {
+      en: ["Reset prices", "Reset the prices", "Reset prices to defaults", "Reset prices back to defaults", "Reset prices — your numbers go"],
+      yue: ["重設價格", "重設啲價格", "價格重設返做預設", "啲價打返原形，用返預設", "啲價打返原形，你改嗰啲冇晒"]
+    },
+    "destructive.resetSection": {
+      en: ["Reset this section", "Reset this entire section", "Reset every key in this section", "Reset the whole section, all keys", "Reset this section — all keys go"],
+      yue: ["重設呢個區段", "重設成個區段", "呢個區段每個 key 都重設", "成個區段所有 key 打返原形", "成個區段打返原形，key 清晒"]
+    },
+    "destructive.stopAll": {
+      en: ["Stop all", "Stop all instances", "Stop every instance", "Stop every instance now", "Stop the lot — every instance"],
+      yue: ["全部停止", "停止所有 instance", "所有 instance 停晒", "即刻停晒所有 instance", "所有 instance 停晒，一個唔剩"]
+    },
+    "copy.copy": {
+      en: ["Copy", "Copy to clipboard", "Copy it", "Grab a copy", "Yoink it to the clipboard"],
+      yue: ["複製", "複製去剪貼簿", "複製佢", "抄咗佢去剪貼簿", "一嘢抄佢入剪貼簿"]
+    },
+    "copy.cliEquivalent": {
+      en: ["Copy CLI equivalent", "Copy the CLI equivalent", "Copy this as a CLI command", "Grab the CLI line for this", "Yoink the CLI line for this"],
+      yue: ["複製 CLI 等效指令", "複製對應嘅 CLI 指令", "複製返做 CLI 指令", "抄低呢個嘅 CLI 指令", "一嘢抄走佢句 CLI 指令"]
+    },
+    "copy.cOverride": {
+      en: ["Copy as -c override", "Copy as a -c override", "Copy this as a -c override", "Grab it as a -c override", "Snag it as a -c override"],
+      yue: ["複製做 -c override", "複製成一個 -c override", "複製呢個做 -c override", "抄低佢做 -c override", "一嘢抄走佢做 -c override"]
+    },
+    "copy.exportAppearance": {
+      en: ["Export appearance…", "Export appearance to a file…", "Export your appearance to a file…", "Bottle this appearance into a file…", "Cram the whole appearance into a file…"],
+      yue: ["匯出外觀…", "匯出外觀做檔案…", "將你個外觀匯出成檔案…", "將成個外觀打包入檔案…", "成套外觀一次過打包入檔案…"]
+    },
+    "copy.filterByThis": {
+      en: ["Filter by this", "Filter the list by this", "Filter the list down to this", "Filter down to just this", "Filter down to this, hide the rest"],
+      yue: ["用呢個篩選", "用呢個篩選個列表", "將個列表篩到淨返呢個", "篩到淨低呢個", "篩到淨低呢個，其他收埋"]
+    },
+    "copy.importAppearance": {
+      en: ["Import appearance…", "Import appearance from a file…", "Load an appearance file…", "Load a saved appearance from a file…", "Yank a saved appearance out of a file…"],
+      yue: ["匯入外觀…", "由檔案匯入外觀…", "載入一個外觀檔案…", "由檔案攞返個儲低咗嘅外觀…", "由檔案度掹返成套外觀入嚟…"]
+    },
+    "copy.open": {
+      en: ["Open", "Open it", "Open it up", "Pop it open", "Fling it open"],
+      yue: ["開啟", "開啟佢", "打開佢", "撳開佢", "一嘢撳開佢"]
+    },
+    "copy.openInEditor": {
+      en: ["Open in editor", "Open in your editor", "Open it in your editor", "Pop it open in your editor", "Fling it open in your editor"],
+      yue: ["喺編輯器開啟", "喺你嘅編輯器開啟", "用你個編輯器開佢", "攞去你個編輯器度開", "掟入你個編輯器度開佢"]
+    },
+    "copy.showOnlyThis": {
+      en: ["Show only this", "Show only this one", "Show just this one", "Show this one and nothing else", "Show this one, hide everybody else"],
+      yue: ["只顯示呢個", "只顯示呢一個", "淨係顯示呢個", "淨係顯示呢個，其他唔理", "淨係留低呢個，其餘全部收埋"]
+    },
+    "opt.absolutePath": {
+      en: ["Absolute path", "Full absolute path", "Full path to the folder", "Full path — no shortcuts", "Full path, drive letter and all"],
+      yue: ["絕對路徑", "完整絕對路徑", "資料夾嘅完整路徑", "完整路徑，唔准偷懶", "完整路徑，連碟符都要"]
+    },
+    "opt.actionToRebind": {
+      en: ["Action to rebind", "Action id to rebind", "Which action to rebind", "Which action needs a new key", "Which action is swapping keys?"],
+      yue: ["要重新綁定嘅動作", "要重新綁定嘅動作 id", "邊個動作要重新綁定", "邊個動作要換掣", "邊個動作要換過個掣呀？"]
+    },
+    "opt.approvalPolicy": {
+      en: ["Approval policy", "Command approval policy", "When Codex asks before acting", "When Codex has to ask you first", "How much Codex asks before it acts"],
+      yue: ["批准政策", "指令批准政策", "Codex 幾時要問過你先", "Codex 幾時要問准你先郁手", "Codex 郁手之前要問你幾多次"]
+    },
+    "opt.langBilingual": {
+      en: ["Bilingual · EN + 粵", "Bilingual, both shown · EN + 粵", "Both at once · EN + 粵", "Both languages together · EN + 粵", "Two languages, one screen · EN + 粵"],
+      yue: ["雙語 · EN + 粵", "雙語並列 · EN + 粵", "兩種一齊出 · EN + 粵", "兩種語言一齊嚟 · EN + 粵", "英文粵文孖住出 · EN + 粵"]
+    },
+    "opt.narratorBoth": {
+      en: ["Both — English then 廣東話", "Both, in order — English then 廣東話", "Both — English first, then 廣東話", "Both — English first, 廣東話 after", "Both — English talks, then 廣東話"],
+      yue: ["兩種都要 — 先英文，後廣東話", "兩種都讀 — 先英文，再廣東話", "兩樣都講 — 先英文，跟住廣東話", "兩樣都講 — 英文行先，廣東話跟尾", "兩樣都講 — 英文講先，廣東話再嚟多次"]
+    },
+    "opt.contextToInclude": {
+      en: ["Context to include", "IDE context to include", "What context to pull in", "What to drag in from the IDE", "What to haul in from the IDE"],
+      yue: ["要包含嘅上下文", "要包含嘅 IDE 上下文", "要攞入嚟嘅內容", "要由 IDE 攞入嚟嘅嘢", "由 IDE 攞乜入嚟，講低佢"]
+    },
+    "opt.custom": {
+      en: ["Custom…", "Custom value…", "Something else…", "Pick your own…", "Pick your own number…"],
+      yue: ["自訂…", "自訂數值…", "自己揀…", "自己填個數…", "自己填個數，你話事…"]
+    },
+    "opt.themeDark": {
+      en: ["Dark", "Dark theme", "Dark", "Dark, lights off", "Dark — kill the lights"],
+      yue: ["深色", "深色主題", "深色", "深色，閂燈模式", "深色 — 閂晒燈嗰隻"]
+    },
+    "opt.fontDefault": {
+      en: ["Default (Roboto, bundled)", "Default font (Roboto, bundled)", "Default — Roboto, bundled", "Default — Roboto, comes with the app", "Default — plain old bundled Roboto"],
+      yue: ["預設（Roboto，內置）", "預設字型（Roboto，內置）", "預設 — 內置 Roboto", "預設 — 內置 Roboto，出廠就有", "預設 — 老老實實嘅內置 Roboto"]
+    },
+    "opt.langEnglish": {
+      en: ["English", "English only", "English", "English all the way", "English only, plain and simple"],
+      yue: ["英文", "淨係英文", "英文", "淨係英文，一於咁話", "淨係講英文，唔撈粵語"]
+    },
+    "opt.exactMatch": {
+      en: ["Exact match", "Exact match only", "Matches exactly", "Exactly this, nothing else", "Exactly this — character for character"],
+      yue: ["完全相符", "只限完全相符", "要一模一樣", "一模一樣先算數", "一模一樣，差一個字都唔算"]
+    },
+    "opt.excerpt": {
+      en: ["Excerpt", "Text excerpt", "Just the excerpt", "Just a snippet", "Just a snippet, not the whole thing"],
+      yue: ["節錄", "文字節錄", "淨係節錄", "淨係一小段", "淨係一小段，唔係成篇"]
+    },
+    "opt.languageMode": {
+      en: ["Language mode", "Interface language mode", "Which language it uses", "Which language it talks in", "What language this app yaps in"],
+      yue: ["語言模式", "介面語言模式", "用邊種語言", "用邊種語言同你講嘢", "用邊種語言同你吹水"]
+    },
+    "opt.themeLight": {
+      en: ["Light", "Light theme", "Light", "Light, lights on", "Light — full brightness"],
+      yue: ["淺色", "淺色主題", "淺色", "淺色，開晒燈", "淺色 — 光到眯埋眼嗰隻"]
+    },
+    "opt.moveLeft": {
+      en: ["Move left", "Move one place left", "Move left", "Shove it left", "Shove it one to the left"],
+      yue: ["向左移", "向左移一格", "向左移", "推佢去左邊", "推佢向左行一格"]
+    },
+    "opt.moveRight": {
+      en: ["Move right", "Move one place right", "Move right", "Shove it right", "Shove it one to the right"],
+      yue: ["向右移", "向右移一格", "向右移", "推佢去右邊", "推佢向右行一格"]
+    },
+    "opt.off": {
+      en: ["Off", "Switched off", "Off", "Off, not running", "Off — doing absolutely nothing"],
+      yue: ["關閉", "已關閉", "閂咗", "閂咗，唔會郁", "閂咗 — 乜都唔做"]
+    },
+    "opt.on": {
+      en: ["On", "Switched on", "On", "On, running", "On — up and running"],
+      yue: ["開啟", "已開啟", "開咗", "開咗，行緊", "開咗 — 行緊喇"]
+    },
+    "opt.resumeSession": {
+      en: ["Resume session", "Resume this session", "Carry on with this session", "Pick this session back up", "Pick up where you left this session"],
+      yue: ["繼續工作階段", "繼續呢個工作階段", "繼續做返呢個 session", "接返呢個 session 落去", "由停低嗰度接返呢個 session"]
+    },
+    "opt.run": {
+      en: ["Run", "Run command", "Run", "Run it", "Run it — go on"],
+      yue: ["執行", "執行指令", "行", "行啦", "撳落去，行啦"]
+    },
+    "opt.sandboxMode": {
+      en: ["Sandbox mode", "Sandbox enforcement mode", "Sandbox mode — how locked down", "How boxed in Codex is", "How tight Codex's sandbox is"],
+      yue: ["沙盒模式", "沙盒執行模式", "沙盒模式 — 收得幾緊", "Codex 畀困得幾實", "Codex 個沙盒夾得幾實"]
+    },
+    "opt.spawnAll": {
+      en: ["Spawn all", "Spawn all instances", "Spawn all of them", "Spawn the whole lot", "Spawn the whole lot at once"],
+      yue: ["全部啟動", "啟動全部實例", "全部都開晒", "一次過開晒全部", "一次過開晒全部，一個都唔漏"]
+    },
+    "opt.startsWith": {
+      en: ["Starts with", "Starts with the text", "Begins with this", "Starts with this, ends anywhere", "Starts with this — rest is free"],
+      yue: ["開頭相符", "以呢段文字開頭", "開頭係咁", "開頭啱就得，後面隨便", "開頭啱就算，後面點都得"]
+    },
+    "opt.langCantonese": {
+      en: ["廣東話 (playful HK Cantonese)", "廣東話 — playful HK Cantonese", "廣東話 (playful HK style)", "廣東話 (cheeky HK Cantonese)", "廣東話 (full-on cheeky HK)"],
+      yue: ["廣東話（香港口語）", "廣東話（香港地道口語）", "廣東話（港式生鬼中文）", "廣東話（港式抵死中文）", "廣東話（港式抵死，玩到盡）"]
+    },
     "act.open": {
       en: ["Open", "Open", "Open", "Open", "Open"],
       yue: ["開啟", "開啟", "打開", "打開", "打開"]
