@@ -138,12 +138,22 @@ jobs:
           # Derived from the monotonic build number, never claimed by writing a file
           # back to the branch — a release job that pushes to its own trigger is an
           # infinite loop. The tag reproduces the choice, so it stays auditable.
-          # Index by how many releases already exist, not by the run number. The two
-          # diverge the moment a run is cancelled, re-run, or fired by something other
-          # than a branch push — and a sparse index burns through the catalog while
-          # most of it is still unused.
-          $existing = (gh release list --limit 1000 --json tagName | ConvertFrom-Json).Count
-          $index = $existing + 1
+          # Index by how many releases have actually CONSUMED a dish, not by the run
+          # number and not by the raw release count. The run number jumps whenever a
+          # run is cancelled or re-run; the release count is polluted by the ~520
+          # releases a trigger loop produced before it was caught. Counting the
+          # releases that carry a `codex-studio-*.png` asset is dense in the only
+          # thing that matters — dishes used — and is auditable from the releases
+          # themselves without a ledger this job would have to push back to the branch.
+          $withDish = 0
+          $releases = gh release list --limit 1000 --json tagName | ConvertFrom-Json
+          foreach ($r in $releases) {
+            $names = gh release view $r.tagName --json assets | ConvertFrom-Json |
+              Select-Object -ExpandProperty assets | Select-Object -ExpandProperty name
+            if ($names | Where-Object { $_ -like 'codex-studio-*.png' }) { $withDish++ }
+          }
+          $index = $withDish + 1
+          Write-Host "$withDish release(s) already carry a dish; this build takes #$index."
           $json = node tools/release-codename.mjs --derive $index | ConvertFrom-Json
           $blank = @('assigned=false', 'codeName=', 'slug=', 'asset=', 'alt=')
           if (-not $json.assigned) {
