@@ -1584,9 +1584,31 @@ class Component extends DCLogic {
         context: (e) => this.menuAt(e, i.title, this.filterItems("list", i.title).concat([this.appearItem(e)]))
       })));
     }
+    if (nav === "changelog") {
+      /* The sidebar lists the releases the viewer parsed, so the panel beside it is
+         never labelled with a different screen's heading. */
+      const eng = window.CX_CHANGELOG;
+      const parsed = eng && st.clogText ? eng.parse(st.clogText) : null;
+      const releases = (parsed && (parsed.releases || parsed)) || [];
+      return mk("Releases", "Search versions", "Export", releases.filter((r) => match(r.version + " " + (r.date || ""))).map((r) => ({
+        key: r.version, title: r.version, subtitle: r.date || CX.i18n.t("changelog.noDate"),
+        meta: (r.sections || []).reduce((n, sec) => n + (sec.entries || []).length, 0) + "",
+        initial: "≡", active: st.clogQuery === r.version,
+        go: () => this.setState({ clogQuery: r.version, clogRegex: null }),
+        context: (e) => this.menuAt(e, r.version, [this.copyItem(r.version)].concat(this.filterItems("list", r.version)).concat([this.appearItem(e)]))
+      })));
+    }
+    if (nav === "studio") {
+      return mk("Settings", "Search settings", "Reset", this.studioRows().filter((g) => match(g.title + " " + g.desc)).map((g) => ({
+        key: g.key, title: g.title, subtitle: g.rows.length + " settings",
+        meta: "", initial: g.title[0], active: st.studioQuery === g.title,
+        go: () => this.setState({ studioQuery: g.title, studioRegex: null }),
+        context: (e) => this.menuAt(e, g.title, [this.copyItem(g.title)].concat(this.filterItems("list", g.title)).concat([this.appearItem(e)]))
+      })));
+    }
     const kinds = [{ id: "all", title: "All commits" }, { id: "profile", title: "Profile changes" }, { id: "config", title: "Config writes" }, { id: "revert", title: "Undos" }];
     return mk("History filter", "Search commits", "Undo", kinds.filter((k) => match(k.title)).map((k) => ({
-      key: k.id, title: k.title, subtitle: (k.id === "all" ? CX.vcs.log.length : CX.vcs.log.filter((c) => c.kind === k.id).length) + " commits",
+      key: k.id, title: k.title, subtitle: (() => { const log = (this._gitLog && this._gitLog.length) ? this._gitLog : CX.vcs.log; return (k.id === "all" ? log.length : log.filter((c) => c.kind === k.id).length) + " commits"; })(),
       meta: "", initial: "↺", active: st.historyKind === k.id,
       go: () => this.setState({ historyKind: k.id }),
       context: (e) => this.menuAt(e, k.title, this.filterItems("list", k.title).concat([this.appearItem(e)]))
@@ -1825,7 +1847,9 @@ class Component extends DCLogic {
         : st.nav === "settings" ? section.title
         : st.nav === "cost" ? "API-equivalent cost"
         : st.nav === "health" ? "Health · " + st.healthView
-        : st.nav === "runtime" ? "Per-tab runtimes · " + p.name : "Local history",
+        : st.nav === "runtime" ? "Per-tab runtimes · " + p.name
+        : st.nav === "changelog" ? "Changelog"
+        : st.nav === "studio" ? "Studio settings" : "Local history",
       headerSubtitle: st.nav === "chat" ? p.name + " · " + activeSession.cwd + " · " + p.model + " · " + p.approval + " · " + p.sandbox
         : st.nav === "console" ? sub.group + (sub.alias ? " · alias " + sub.alias : "") + " · " + (sub.args || []).length + " command flags + " + DATA.GLOBAL_FLAGS.length + " global"
         : st.nav === "ext" ? extItems.length + " of " + allExt.length + " shown"
@@ -1833,7 +1857,9 @@ class Component extends DCLogic {
         : st.nav === "cost" ? "Priced as if this workload ran on the API"
         : st.nav === "health" ? "Live checks from the CLI"
         : st.nav === "runtime" ? Object.keys(CX.sim.wsl).filter((k) => CX.sim.wsl[k].status === "running").length + " running · one WSL instance per tab"
-        : CX.vcs.log.length + " commits · every undo is itself a commit",
+        : st.nav === "changelog" ? "Every released version — filter by date, search with the regex builder"
+        : st.nav === "studio" ? "Language, narrator, dim sum, external editor, history and appearance"
+        : ((this._gitLog && this._gitLog.length) || CX.vcs.log.length) + " commits · every undo is itself a commit",
       headerChips: st.nav === "chat" ? [
         { key: "model", label: p.model, hint: "Model (/model)", bg: "transparent", fg: "var(--m3-on-surface)",
           click: () => { const ids = DATA.MODELS.map((m) => m.id); this.patchProfile({ model: ids[(ids.indexOf(p.model) + 1) % ids.length] }, "Change model on " + p.name); },

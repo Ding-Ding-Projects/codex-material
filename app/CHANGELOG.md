@@ -12,94 +12,148 @@ starts at 0.1.0.
 
 ## [0.1.0] - 2026-07-30
 
-Not released yet: no tag has been pushed and no installer has been published, so this
-section describes the current state of `main` rather than a downloadable build. Codex
-Studio is Windows-only — there is no macOS or Linux target in the bundle configuration.
+The first Windows build. Codex Studio is Windows-only: there is no macOS or Linux
+target in the bundle configuration.
 
-The `Fixed` entries below correct the design prototype committed earlier in this same
-unreleased version (`design/`), not a shipped release.
+Codex Studio is a Material 3 desktop front end for the OpenAI Codex CLI. It composes
+flags, runs the real `codex` binary, streams its output and reads the real
+`CODEX_HOME`. Nothing about the agent, the sandbox, the config schema or the plugin
+system is reimplemented.
 
 ### Added
 
-- Windows desktop shell built on Tauri 2 (`src-tauri/`), bundling MSI and NSIS
-  installers. NSIS installs per user (`installMode: currentUser`), so setup never asks
-  for elevation. Product name `Codex Studio`, identifier `dev.codexstudio.app`,
-  publisher `Ding Ding Projects`, licensed Apache-2.0, Rust edition 2021 with a
-  minimum toolchain of 1.77.
-- Custom Material 3 title bar: the window ships with `decorations: false` at
-  1440x940 (minimum 960x640), and `src-tauri/capabilities/default.json` grants only the
-  window controls, drag region, event, dialog, OS and `shell:allow-open` permissions the
-  frontend actually needs.
-- 47 Tauri commands, split across `src-tauri/src/` into `cli.rs`, `config.rs`,
-  `catalog.rs`, `wsl.rs`, `history.rs` and `editors.rs`: version and state probes,
-  `config.toml` read/write/set, run and capture, doctor, MCP list/add/remove/toggle,
-  plugin catalog/install/uninstall, marketplace sources, skills, hooks, feature flags,
-  session listing and actions, login/logout, WSL spawn/stop/kill/set/exec, git history
-  commit/log/show/diff/prune, external editors, reveal-in-explorer, installed fonts and
-  bounded text reads.
-- Eight-tab navigation: Chats, Console, Extend, Config, Cost, Runtime, Health, History.
-  Extend is itself sectioned into MCP servers, plugin marketplace, installed plugins,
-  registries, skills, hooks and feature flags.
-- Command catalog in `app/codex-data.js`: the CLI's subcommands and flags, every
+- **Windows desktop shell on Electron 40** (`electron/`), packaged by electron-builder
+  into an NSIS installer and an MSI. Both install per user, so setup never asks for
+  elevation. Product name `Codex Studio`, application id `dev.codexstudio.app`,
+  publisher `Ding Ding Projects`, licensed Apache-2.0.
+- **The Codex CLI is bundled** (~410 MB unpacked), staged by `tools/fetch-codex.mjs`
+  from OpenAI's own published npm artifact, so a machine that has never installed
+  Codex works on first launch. Binary resolution is `CODEX_BIN`, then whatever `codex`
+  is on PATH, then the bundled copy — the user's own install always wins, because it
+  owns their login and their `~/.codex`. The app reports which one it is using.
+- **50 IPC commands** across `electron/lib/`: `cli.js` (find and run the binary,
+  stream both pipes concurrently), `config.js` (`config.toml` read/write with a backup
+  before every write, dotted-path edits), `catalog.js` (MCP servers, plugins,
+  marketplaces, skills, hooks, feature flags, saved sessions, auth, doctor), `wsl.js`
+  (per-tab WSL runtimes), `history.js` (git-backed snapshots), `editors.js` (external
+  editor detection). The preload exposes an explicit allow-list, not a generic invoke.
+- **Chats that actually run Codex.** The composer runs `codex exec` in the active
+  profile's working directory with that profile's model, approval policy and sandbox
+  applied as `-c` overrides, and streams the agent's output into the transcript as it
+  arrives rather than after it exits. A slash command is forwarded as the subcommand
+  it names.
+- **Real sessions and profiles.** The session list is read from the rollout files under
+  `CODEX_HOME`; profiles come from `[profiles.*]` in the real `config.toml`. A machine
+  with no saved sessions shows an empty list.
+- **Ten-tab navigation**: Chats, Console, Extend, Config, Cost, Runtime, Health,
+  History, Changelog and Studio. Extend is itself sectioned into MCP servers, plugin
+  marketplace, installed plugins, registries, skills, hooks and feature flags.
+- **Browser-style tab strip** (`app/cx-tabs.js`): pinning with its own stable region,
+  groups that collapse and persist, an overflow surface, and four tab-discovery
+  searches — this strip, inside one group, groups by name, and every tab across every
+  workspace. Bulk close by text builds "containing" and "NOT containing" from a single
+  predicate, so the two directions cannot drift apart; pinned tabs are excluded unless
+  explicitly included, and every close shows a reviewable preview first.
+- **Command catalog** in `app/codex-data.js`: the CLI's subcommands and flags, every
   `config.toml` setting with its enum values, the slash commands and the feature-flag
-  keys, transcribed from codex-rs (`cli/src/main.rs`, `tui/src/cli.rs`,
-  `tui/src/slash_command.rs`, `utils/cli/src/shared_options.rs`,
-  `config/src/config_toml.rs`, `config/src/types.rs`, `features/src/lib.rs`).
-- Runtime core in `app/codex-core.js` exporting `window.CX`: the Tauri bridge with a
-  browser-only fallback for development, a TOML writer, the bounded regex engine, colour
-  translation across HEX/HEX8, RGB, HSL, HSV, HWB, LAB, LCH, OKLab, OKLCH and CMYK with
-  a WCAG contrast ratio, the i18n table, the speech narrator and the local version
-  history.
-- Anchored regex builder beside every search surface — the session list, the Extend
-  filter, the Config filter, the slash-command catalog, the command palette and
-  dropdown option filters — each opening next to the field it belongs to, with flag
-  toggles, a sample box, live match rows and copy.
-- Bounded regex evaluation: patterns are capped at 2000 characters, samples at 20 000,
-  results at 500 matches, and evaluation stops after 300 ms and reports catastrophic
-  backtracking rather than freezing the window. Zero-width matches advance `lastIndex`
-  instead of looping forever.
-- Three language modes (English, playful Hong Kong Cantonese, bilingual) and two
-  independent funny-level sliders from 1 to 5, one per language, persisted alongside the
-  other preferences.
-- Optional speech narrator, off by default, speaking `en-US` or `zh-HK` through a
-  serialized queue with a 6-second cooldown so utterances never overlap.
-- Local git-backed version history: profile, config, feature-flag and appearance changes
-  are committed, and an undo is written as a new revert commit rather than popping the
-  stack — so an undo can itself be undone, indefinitely.
-- Per-session WSL runtimes: spawn a distro per chat tab, set its working directory,
-  execute inside it, and stop or kill it independently of the other tabs.
-- Cost tab with an API-equivalent cost calculator over the session's token counts.
-- Bundled Roboto and Roboto Mono (`app/fonts/`, 10 woff2 faces plus the Apache-2.0
-  licence) and a vendored React 18.3.1 UMD build (`app/vendor/`, MIT). The app makes no
-  network request at runtime.
-- App icon generated by `tools/make-icon.mjs`, a dependency-free PNG writer, producing
-  the full Windows icon set from `assets/icon-source.png`.
-- This changelog and the in-app changelog viewer engine (`app/cx-changelog.js`):
-  Keep a Changelog parsing that never throws, a date filter with named presets and typed
-  ISO/`d/m/yyyy`/`m/d/yyyy` input, a composed text-and-date search with opt-in bounded
-  regex, and Markdown or plain-text export that states the exported range.
+  keys.
+- **Anchored regex builder** beside every search surface — the session list, the Extend
+  filter, the Config filter, the changelog search, the Studio settings search, the
+  slash-command catalog, the command palette and dropdown option filters. Each opens
+  next to the field it belongs to, with flag toggles, a sample box, live match rows and
+  copy.
+- **Bounded regex evaluation**: patterns capped at 2000 characters, samples at 20 000,
+  results at 500 matches, evaluation stopped after 300 ms, and zero-width matches
+  advance `lastIndex` instead of looping forever.
+- **Notification centre** (`app/cx-notify.js`): corner toasts that stack, errors and
+  warnings that stay until dismissed, actions such as undo and retry, and a reviewable
+  history so a dismissed message is not a lost one. Blocking dialogs are reserved for
+  decisions — the bulk-close gate is the only one.
+- **Three language modes** (English, playful Hong Kong Cantonese, bilingual) and two
+  independent funny-level sliders from 1 to 5, one per language, over a 199-key table
+  (`app/cx-i18n.js`). The level changes voice only: every `err.*` and `warn.*` string
+  carries the same `{placeholder}` facts at level 1 and level 5, and the test suite
+  asserts it.
+- **Optional speech narrator**, off by default, speaking `en-US` or `zh-HK` through a
+  serialised queue with a 6-second cooldown so utterances never overlap.
+- **Local git-backed version history** in `$CODEX_HOME/studio` — never a `.git` inside
+  the user's own project, never pushed. Profile, config, feature-flag, appearance and
+  settings changes are committed with a label describing what changed; an undo is
+  written as a new revision rather than popping the stack, so an undo can itself be
+  undone. Unchanged state records nothing.
+- **Changelog viewer** (`app/cx-changelog.js`): Keep-a-Changelog parsing that never
+  throws, a date filter with named presets and typed ISO/locale dates that reports an
+  invalid entry inline without discarding what was typed, a composed text-and-date
+  search with opt-in bounded regex, and Markdown or plain-text export of exactly the
+  filtered view.
+- **Per-tab WSL runtimes**: spawn a distro per chat tab, set its working directory,
+  execute inside it, and stop or kill it independently of the other tabs. `wsl -l -q`
+  output is decoded as UTF-16LE.
+- **Cost tab** with an API-equivalent cost calculator over the session's token counts.
+- **External editor integration**: VS Code, VS Code Insiders, Cursor, Windsurf, Zed,
+  Sublime Text, Notepad++, IntelliJ IDEA and Notepad, detected by executable rather
+  than assumed, with Reveal in File Explorer as the always-available fallback.
+- **Per-element appearance editor** reachable from any element's context menu, with
+  font, size, weight, style, colour, and a colour translator across HEX, HEX8, RGB,
+  RGBA, HSL, HSV, HWB, LAB, LCH, OKLab, OKLCH and CMYK with a WCAG contrast ratio.
+- **Dim sum surprise**: a 1-in-100 draw per launch showing a randomly chosen dish named
+  in both languages with its photograph, from a 20-dish slice of the shared Hong Kong
+  catalog bundled locally in `app/dimsum/`. Non-blocking, auto-dismissing, never on a
+  first run, and switchable off.
+- **Dim sum release code names**: every build carries a dish name beside its version,
+  derived from the monotonic build number so no two builds share one, with the dish's
+  photograph attached to the GitHub release.
+- **Bundled assets only**: Roboto and Roboto Mono (`app/fonts/`, 10 woff2 faces,
+  Apache-2.0) and React 18.3.1 UMD (`app/vendor/`, MIT). The app makes no network
+  request at runtime.
+- **Screenshot harness** (`tools/capture.mjs`): drives the real app through sixteen
+  surfaces in a composited off-screen window and writes real PNGs, so documentation
+  images come from the built artifact rather than a mock.
+- **CI** (`.github/workflows/ci.yml`) on every push and `workflow_dispatch`: the test
+  job must pass before the release job runs, and the release publishes one uniquely
+  tagged, non-draft GitHub Release carrying both installers and the build's dim sum
+  photograph.
+- **Test suites**: 23 frontend module tests (`tools/test-frontend.mjs`) and 22 backend
+  tests (`tools/test-backend.mjs`), both dependency-free, neither requiring Electron or
+  a `codex` binary.
 
 ### Fixed
 
-- React and Roboto were loaded from a CDN while the shell enforces
-  `default-src 'self'`, so the window would have rendered blank on every machine. Both
-  are now bundled locally and load before `support.js`.
-- Sixteen of the thirty-one frontend calls had no matching backend command and were
-  silently answered by the in-page browser simulator, so the GUI displayed invented MCP
-  servers and a fictional plan expiry date. Every listing now comes from the real
-  `codex` binary and the real `CODEX_HOME`; the simulator remains only as the
-  browser-mode development fallback.
-- `codex_run` drained stdout to completion before reading stderr, so a process that
-  wrote enough to stderr filled the unread pipe and deadlocked both sides. The two
-  streams are now drained on separate threads.
+These correct defects in the design prototype and the first shell, both committed
+earlier within this same unreleased version — not in any shipped release.
 
-### Security
+- The frontend loaded React from a CDN while the shell enforced a `default-src 'self'`
+  content-security policy, so the window rendered blank on every machine. React is now
+  vendored locally, as are the fonts.
+- The design's `sim` object served fictional MCP servers, plugins and account details
+  to the Extend, Config and Health panels even when a real backend was present. Those
+  panels now read what the CLI reports.
+- The run command drained stdout to completion before reading stderr, which deadlocks
+  as soon as a process fills the pipe nobody is reading. Both streams are now drained
+  concurrently.
+- The content-security policy omitted `unsafe-eval` while the template runtime compiles
+  the page's own markup with `new Function`, so the app refused to run its own bundled
+  code.
+- The error strings contained `{detail}` with nothing interpolating it, so a failed
+  command told the user "Could not run `codex` — {detail}".
+- The regex guard treated `{n,m}` as a safe outer repeat, and the error message
+  recommended `{1,20}` as the remedy. Measured on a 37-character sample, `(a+)+$` was
+  refused in under a millisecond while `(a+){1,20}$` ran past twenty seconds — the
+  advice was the defect. `(a|a)*` and `(x|xx)+y` were not detected at all. Both
+  engines now refuse a repeat applied to a group that already repeats, and a group
+  whose alternation branches overlap, before running it.
+- The dim sum and narrator toggles wrote their preference without recording a
+  revision, leaving the History panel with nothing to undo for those two settings.
+- The screenshot harness captured a window created with `show: false`, which Chromium
+  never paints, so every image was one state behind the surface it documented.
 
-- Runtime CSP is `default-src 'self'` with `style-src 'self' 'unsafe-inline'`,
-  `font-src 'self'`, `img-src 'self' data: blob:` and `connect-src 'self' ipc:
-  http://ipc.localhost`. Scripts, styles, fonts and images are local only.
-- Regex evaluation is bounded in pattern length, sample length, match count and wall
-  time, so a pattern pasted from anywhere cannot hang the UI thread.
-- The Tauri capability set is explicit rather than `core:default` alone — the frontend
-  is granted window control, events, dialogs, OS info and `shell:allow-open`, and
-  nothing else.
+### Changed
+
+- The desktop shell moved from Tauri 2 to Electron 40. The Tauri build produced
+  installers and launched, but rendered blank: WebView2 composites through
+  DirectComposition, which cannot be captured off-screen, so the only available check
+  for whether the window contained anything could not answer the question. Electron
+  bundles Chromium, renders identically across machines, and can screenshot itself.
+  The Rust backend was ported to Node with the same command contract.
+
+[0.1.0]: https://github.com/Ding-Ding-Projects/codex-material/releases
