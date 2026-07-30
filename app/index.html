@@ -62,6 +62,11 @@ button,input,textarea,select{font-family:inherit;color:inherit;max-width:100%}
 @keyframes cxdot{0%,80%,100%{opacity:.25}40%{opacity:1}}
 </style>
 <script src="codex-data.js"></script>
+<script src="cx-i18n.js"></script>
+<script src="cx-dimsum.js"></script>
+<script src="cx-changelog.js"></script>
+<script src="cx-notify.js"></script>
+<script src="cx-tabs.js"></script>
 <script src="codex-core.js"></script>
 </helmet>
 
@@ -90,6 +95,33 @@ button,input,textarea,select{font-family:inherit;color:inherit;max-width:100%}
     <button onClick="{{ winMin }}" title="Minimise" style="width:30px;height:26px;flex:0 0 30px;border:none;background:transparent;color:var(--m3-on-surface-variant);border-radius:7px;cursor:pointer;font-size:14px" style-hover="background:var(--m3-surface-high)">‒</button>
     <button onClick="{{ winMax }}" title="Maximise" style="width:30px;height:26px;flex:0 0 30px;border:none;background:transparent;color:var(--m3-on-surface-variant);border-radius:7px;cursor:pointer;font-size:11px" style-hover="background:var(--m3-surface-high)">◻</button>
     <button onClick="{{ winClose }}" title="Close" style="width:30px;height:26px;flex:0 0 30px;border:none;background:transparent;color:var(--m3-on-surface-variant);border-radius:7px;cursor:pointer;font-size:13px" style-hover="background:var(--m3-error-container)">✕</button>
+  </div>
+
+  <div data-appear="Tab strip" style="flex:0 0 auto;display:flex;align-items:stretch;gap:4px;min-height:38px;padding:4px 6px;background:var(--m3-surface-dim);border-bottom:1px solid var(--m3-outline-variant);overflow:hidden">
+    <div role="tablist" aria-label="{{ tabStripLabel }}" style="flex:1;min-width:0;display:flex;align-items:stretch;gap:4px;overflow:hidden">
+      <sc-for list="{{ tabGroupChips }}" as="tg" hint-placeholder-count="1">
+        <div style="flex:0 0 auto;display:flex;align-items:stretch;gap:3px;padding:0 4px;border-radius:11px;background:{{ tg.bg }};border:1px solid {{ tg.border }}">
+          <button onClick="{{ tg.toggle }}" onContextMenu="{{ tg.context }}" title="{{ tg.hint }}" aria-expanded="{{ tg.expanded }}" data-appear="Tab group header" style="flex:0 0 auto;display:flex;align-items:center;gap:5px;height:28px;align-self:center;padding:0 8px;border:none;background:transparent;color:{{ tg.fg }};cursor:pointer;font-size:11.5px;font-weight:500;white-space:nowrap">{{ tg.caret }} {{ tg.icon }}{{ tg.name }} <span style="opacity:.65;font-weight:400">{{ tg.count }}</span></button>
+          <sc-for list="{{ tg.tabs }}" as="t" hint-placeholder-count="2">
+            <button onClick="{{ t.go }}" onContextMenu="{{ t.context }}" role="tab" aria-selected="{{ t.selected }}" title="{{ t.hint }}" style="flex:0 0 auto;display:flex;align-items:center;gap:6px;height:28px;align-self:center;max-width:190px;padding:0 8px 0 10px;border-radius:9px;border:1px solid {{ t.border }};background:{{ t.bg }};color:{{ t.fg }};cursor:pointer;font-size:12px;white-space:nowrap">
+              <span style="flex:0 0 auto;font-size:10px;opacity:.9">{{ t.mark }}</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">{{ t.label }}</span>
+              <span onClick="{{ t.close }}" role="button" tabindex="0" aria-label="{{ t.closeLabel }}" title="{{ t.closeLabel }}" style="flex:0 0 auto;width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;opacity:.75">&#10005;</span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-for>
+      <sc-for list="{{ tabChips }}" as="t" hint-placeholder-count="3">
+        <button onClick="{{ t.go }}" onContextMenu="{{ t.context }}" role="tab" aria-selected="{{ t.selected }}" title="{{ t.hint }}" data-appear="Tab" style="flex:0 0 auto;display:flex;align-items:center;gap:6px;height:30px;align-self:center;max-width:{{ t.maxWidth }};padding:0 8px 0 11px;border-radius:10px;border:1px solid {{ t.border }};background:{{ t.bg }};color:{{ t.fg }};cursor:pointer;font-size:12px;white-space:nowrap">
+          <span style="flex:0 0 auto;font-size:10px;opacity:.9">{{ t.mark }}</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">{{ t.label }}</span>
+          <span onClick="{{ t.close }}" role="button" tabindex="0" aria-label="{{ t.closeLabel }}" title="{{ t.closeLabel }}" style="flex:0 0 auto;width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;opacity:.75">&#10005;</span>
+        </button>
+      </sc-for>
+    </div>
+    <button onClick="{{ newTab }}" title="{{ newTabHint }}" aria-label="{{ newTabHint }}" style="flex:0 0 auto;width:30px;height:30px;align-self:center;border-radius:15px;border:none;background:var(--m3-surface-high);color:var(--m3-on-surface);cursor:pointer;font-size:15px">+</button>
+    <button onClick="{{ openTabOverflow }}" title="{{ overflowHint }}" style="flex:0 0 auto;height:30px;align-self:center;padding:0 10px;border-radius:15px;border:1px solid {{ overflowBorder }};background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11.5px;white-space:nowrap">{{ overflowLabel }}</button>
+    <button onClick="{{ openTabSearch }}" title="{{ tabSearchHint }}" style="flex:0 0 auto;height:30px;align-self:center;padding:0 10px;border-radius:15px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11.5px;white-space:nowrap">&#8981; {{ tabSearchLabel }}</button>
   </div>
 
   <div style="flex:1;display:flex;min-height:0;overflow:hidden">
@@ -426,6 +458,91 @@ button,input,textarea,select{font-family:inherit;color:inherit;max-width:100%}
           </div>
         </sc-if>
 
+        <sc-if value="{{ isChangelog }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:20px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:12px;min-width:0">
+            <div data-appear="Changelog toolbar" style="background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <div data-anchor="clog" style="flex:1 1 240px;min-width:0;display:flex;align-items:center;gap:6px;height:38px;padding:0 6px 0 14px;border-radius:19px;background:var(--m3-surface-high);border:1px solid {{ clogBorder }}">
+                  <input value="{{ clogQuery }}" onInput="{{ setClogQuery }}" onContextMenu="{{ clogSearchMenu }}" placeholder="{{ clogPlaceholder }}" aria-label="{{ clogPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:13px" />
+                  <button onClick="{{ openClogRegex }}" title="{{ regexBuilderHint }}" style="flex:0 0 auto;height:26px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ clogRegexBg }};color:{{ clogRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+                </div>
+                <button onClick="{{ openClogPreset }}" style="flex:0 0 auto;height:38px;padding:0 14px;border-radius:19px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px;white-space:nowrap">{{ clogPresetLabel }} &#9662;</button>
+                <button onClick="{{ exportClog }}" style="flex:0 0 auto;height:38px;padding:0 14px;border-radius:19px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px;white-space:nowrap">{{ clogExportLabel }}</button>
+                <button onClick="{{ copyClog }}" style="flex:0 0 auto;height:38px;padding:0 14px;border-radius:19px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px;white-space:nowrap">{{ clogCopyLabel }}</button>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <input value="{{ clogFrom }}" onInput="{{ setClogFrom }}" placeholder="{{ clogFromPlaceholder }}" aria-label="{{ clogFromPlaceholder }}" style="flex:1 1 150px;min-width:0;height:34px;border-radius:9px;border:1px solid {{ clogFromBorder }};background:var(--m3-surface-high);padding:0 10px;font-family:'Roboto Mono',monospace;font-size:11.5px;outline:none" />
+                <input value="{{ clogTo }}" onInput="{{ setClogTo }}" placeholder="{{ clogToPlaceholder }}" aria-label="{{ clogToPlaceholder }}" style="flex:1 1 150px;min-width:0;height:34px;border-radius:9px;border:1px solid {{ clogToBorder }};background:var(--m3-surface-high);padding:0 10px;font-family:'Roboto Mono',monospace;font-size:11.5px;outline:none" />
+                <div style="flex:1 1 200px;min-width:0;font-size:11px;color:{{ clogStatusFg }};line-height:1.5">{{ clogStatus }}</div>
+              </div>
+            </div>
+            <sc-for list="{{ clogReleases }}" as="r" hint-placeholder-count="3">
+              <div data-appear="Release entry" style="background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0">
+                <div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">
+                  <div style="font-size:15px;font-weight:500;color:var(--m3-primary);font-family:'Roboto Mono',monospace">{{ r.version }}</div>
+                  <div style="font-size:11.5px;color:var(--m3-on-surface-variant)">{{ r.date }}</div>
+                  <div style="flex:1;min-width:8px"></div>
+                  <div style="font-size:11px;color:var(--m3-on-surface-variant)">{{ r.count }}</div>
+                </div>
+                <sc-for list="{{ r.sections }}" as="sec" hint-placeholder-count="2">
+                  <div style="min-width:0">
+                    <div style="font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--m3-on-surface-variant);margin-bottom:3px">{{ sec.title }}</div>
+                    <sc-for list="{{ sec.entries }}" as="e" hint-placeholder-count="2">
+                      <div style="font-size:12.5px;line-height:1.65;padding-left:12px;overflow-wrap:anywhere">&#8226; {{ e.text }}</div>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+            <sc-if value="{{ clogEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="background:var(--m3-surface-container);border:1px dashed var(--m3-outline-variant);border-radius:16px;padding:24px;text-align:center;font-size:12.5px;color:var(--m3-on-surface-variant);line-height:1.6">{{ clogEmptyText }}</div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStudio }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:20px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:12px;min-width:0">
+            <div data-appear="Studio search" data-anchor="studio" style="display:flex;align-items:center;gap:6px;height:40px;padding:0 6px 0 14px;border-radius:20px;background:var(--m3-surface-container);border:1px solid {{ studioBorder }}">
+              <input value="{{ studioQuery }}" onInput="{{ setStudioQuery }}" onContextMenu="{{ studioSearchMenu }}" placeholder="{{ studioPlaceholder }}" aria-label="{{ studioPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:13px" />
+              <button onClick="{{ openStudioRegex }}" title="{{ regexBuilderHint }}" style="flex:0 0 auto;height:26px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ studioRegexBg }};color:{{ studioRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+            </div>
+            <sc-for list="{{ studioGroups }}" as="sg" hint-placeholder-count="4">
+              <div data-appear="Settings panel" style="background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0">
+                <div style="font-size:13.5px;font-weight:500">{{ sg.title }}</div>
+                <div style="font-size:11.5px;color:var(--m3-on-surface-variant);line-height:1.6;margin-top:-6px">{{ sg.desc }}</div>
+                <sc-for list="{{ sg.rows }}" as="row" hint-placeholder-count="3">
+                  <div onContextMenu="{{ row.context }}" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-width:0;padding:8px 0 2px;border-top:1px solid var(--m3-outline-variant)">
+                    <div style="flex:1 1 220px;min-width:0">
+                      <div style="font-size:12.5px">{{ row.label }}</div>
+                      <div style="font-size:11px;color:var(--m3-on-surface-variant);line-height:1.5;margin-top:2px;overflow-wrap:anywhere">{{ row.hint }}</div>
+                    </div>
+                    <sc-if value="{{ row.isSlider }}" hint-placeholder-val="{{ true }}">
+                      <div style="flex:1 1 220px;min-width:0;display:flex;align-items:center;gap:10px">
+                        <input value="{{ row.value }}" onInput="{{ row.set }}" type="range" min="1" max="5" step="1" aria-label="{{ row.label }}" aria-valuetext="{{ row.valueLabel }}" style="flex:1;min-width:0;accent-color:var(--m3-primary)" />
+                        <div style="flex:0 0 auto;font-size:11.5px;color:var(--m3-primary);white-space:nowrap">{{ row.valueLabel }}</div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ row.isToggle }}" hint-placeholder-val="{{ false }}">
+                      <button onClick="{{ row.set }}" role="switch" aria-checked="{{ row.on }}" aria-label="{{ row.label }}" style="flex:0 0 auto;width:46px;height:26px;border-radius:13px;border:1px solid {{ row.trackBorder }};background:{{ row.track }};cursor:pointer;position:relative;padding:0">
+                        <span style="position:absolute;top:{{ row.knobTop }};left:{{ row.knobLeft }};width:{{ row.knobSize }};height:{{ row.knobSize }};border-radius:50%;background:{{ row.knob }};transition:all .15s"></span>
+                      </button>
+                    </sc-if>
+                    <sc-if value="{{ row.isPick }}" hint-placeholder-val="{{ false }}">
+                      <button onClick="{{ row.set }}" style="flex:0 0 auto;min-width:170px;height:34px;padding:0 12px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);color:var(--m3-on-surface);cursor:pointer;font-size:12px;text-align:left;display:flex;align-items:center;gap:8px"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.valueLabel }}</span><span style="flex:0 0 auto;opacity:.7">&#9662;</span></button>
+                    </sc-if>
+                    <sc-if value="{{ row.isAction }}" hint-placeholder-val="{{ false }}">
+                      <button onClick="{{ row.set }}" style="flex:0 0 auto;height:34px;padding:0 16px;border-radius:17px;border:1px solid var(--m3-outline-variant);background:transparent;color:{{ row.actionFg }};cursor:pointer;font-size:12px;white-space:nowrap">{{ row.valueLabel }}</button>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+            <sc-if value="{{ studioEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="background:var(--m3-surface-container);border:1px dashed var(--m3-outline-variant);border-radius:16px;padding:24px;text-align:center;font-size:12.5px;color:var(--m3-on-surface-variant);line-height:1.6">{{ studioEmptyText }}</div>
+            </sc-if>
+          </div>
+        </sc-if>
+
       </div>
 
       <sc-if value="{{ isChat }}" hint-placeholder-val="{{ true }}">
@@ -658,8 +775,90 @@ button,input,textarea,select{font-family:inherit;color:inherit;max-width:100%}
     </div>
   </sc-if>
 
-  <sc-if value="{{ toastOpen }}" hint-placeholder-val="{{ false }}">
-    <div style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);max-width:min(680px,calc(100vw - 32px));background:var(--m3-surface-highest);color:var(--m3-on-surface);border:1px solid var(--m3-outline-variant);border-radius:14px;padding:11px 18px;font-size:12.5px;line-height:1.5;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:95;overflow-wrap:anywhere">{{ toastText }}</div>
+  <div aria-live="polite" aria-atomic="false" style="position:fixed;right:18px;bottom:18px;z-index:96;display:flex;flex-direction:column-reverse;gap:8px;max-width:min(420px,calc(100vw - 36px));pointer-events:none">
+    <sc-for list="{{ toasts }}" as="n" hint-placeholder-count="1">
+      <div data-appear="Notification" role="{{ n.role }}" style="pointer-events:auto;background:var(--m3-surface-highest);color:var(--m3-on-surface);border:1px solid {{ n.border }};border-left:3px solid {{ n.accent }};border-radius:14px;padding:11px 13px;box-shadow:0 10px 30px rgba(0,0,0,.4);display:flex;gap:10px;align-items:flex-start;min-width:0;animation:cxin .18s ease-out">
+        <span style="flex:0 0 18px;font-size:13px;color:{{ n.accent }};line-height:1.4">{{ n.icon }}</span>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+          <div style="font-size:12.5px;font-weight:500;overflow-wrap:anywhere">{{ n.title }}</div>
+          <div style="font-size:11.5px;color:var(--m3-on-surface-variant);line-height:1.55;overflow-wrap:anywhere">{{ n.body }}</div>
+          <sc-for list="{{ n.actions }}" as="a" hint-placeholder-count="0">
+            <button onClick="{{ a.run }}" style="align-self:flex-start;margin-top:3px;height:26px;padding:0 12px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-primary);cursor:pointer;font-size:11.5px">{{ a.label }}</button>
+          </sc-for>
+        </div>
+        <button onClick="{{ n.dismiss }}" aria-label="{{ n.dismissLabel }}" title="{{ n.dismissLabel }}" style="flex:0 0 auto;width:24px;height:24px;border-radius:12px;border:none;background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11px">&#10005;</button>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ centreOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ stop }}" data-appear="Notification centre" role="dialog" aria-label="{{ centreTitle }}" style="position:fixed;right:18px;bottom:18px;width:min(430px,calc(100vw - 36px));max-height:min(560px,calc(100vh - 90px));z-index:97;background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:18px;box-shadow:0 16px 44px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden">
+      <div style="flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:12px 12px 10px 16px;border-bottom:1px solid var(--m3-outline-variant)">
+        <div style="flex:1;min-width:0;font-size:13.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ centreTitle }}</div>
+        <button onClick="{{ clearCentre }}" style="flex:0 0 auto;height:26px;padding:0 11px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11px;white-space:nowrap">{{ centreClearLabel }}</button>
+        <button onClick="{{ closeCentre }}" aria-label="{{ closeLabel }}" style="flex:0 0 auto;width:26px;height:26px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:11px">&#10005;</button>
+      </div>
+      <div style="flex:1;overflow:auto;padding:8px 10px 12px;display:flex;flex-direction:column;gap:4px">
+        <sc-for list="{{ centreRows }}" as="c" hint-placeholder-count="4">
+          <div onContextMenu="{{ c.context }}" style="border-radius:12px;padding:9px 12px;background:var(--m3-surface-container);display:flex;gap:9px;align-items:flex-start;min-width:0">
+            <span style="flex:0 0 16px;font-size:12px;color:{{ c.accent }};line-height:1.5">{{ c.icon }}</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12px;overflow-wrap:anywhere">{{ c.title }}</div>
+              <div style="font-size:11px;color:var(--m3-on-surface-variant);line-height:1.5;overflow-wrap:anywhere">{{ c.body }}</div>
+            </div>
+            <span style="flex:0 0 auto;font-size:10px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ c.when }}</span>
+          </div>
+        </sc-for>
+        <sc-if value="{{ centreEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:26px 12px;text-align:center;font-size:12px;color:var(--m3-on-surface-variant);line-height:1.6">{{ centreEmptyText }}</div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ bulkOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:98;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:20px">
+      <div onClick="{{ stop }}" role="dialog" aria-modal="true" aria-label="{{ bulkTitle }}" data-appear="Bulk close dialog" style="width:min(560px,100%);max-height:calc(100vh - 60px);background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:20px;box-shadow:0 18px 50px rgba(0,0,0,.55);display:flex;flex-direction:column;overflow:hidden">
+        <div style="flex:0 0 auto;padding:16px 18px 12px;border-bottom:1px solid var(--m3-outline-variant)">
+          <div style="font-size:15px;font-weight:500">{{ bulkTitle }}</div>
+          <div style="font-size:12px;color:var(--m3-on-surface-variant);line-height:1.6;margin-top:4px;overflow-wrap:anywhere">{{ bulkSummary }}</div>
+        </div>
+        <div style="flex:0 0 auto;padding:12px 18px;display:flex;flex-direction:column;gap:9px;border-bottom:1px solid var(--m3-outline-variant)">
+          <div data-anchor="bulk" style="display:flex;align-items:center;gap:6px;height:38px;padding:0 6px 0 14px;border-radius:19px;background:var(--m3-surface-container);border:1px solid {{ bulkBorder }}">
+            <input value="{{ bulkQuery }}" onInput="{{ setBulkQuery }}" placeholder="{{ bulkPlaceholder }}" aria-label="{{ bulkPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:13px" />
+            <button onClick="{{ openBulkRegex }}" title="{{ regexBuilderHint }}" style="flex:0 0 auto;height:26px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ bulkRegexBg }};color:{{ bulkRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onClick="{{ toggleBulkInvert }}" style="flex:1 1 200px;height:32px;border-radius:16px;border:1px solid var(--m3-outline-variant);background:{{ bulkInvertBg }};color:{{ bulkInvertFg }};cursor:pointer;font-size:11.5px">{{ bulkInvertLabel }}</button>
+            <button onClick="{{ toggleBulkPinned }}" style="flex:1 1 200px;height:32px;border-radius:16px;border:1px solid var(--m3-outline-variant);background:{{ bulkPinnedBg }};color:{{ bulkPinnedFg }};cursor:pointer;font-size:11.5px">{{ bulkPinnedLabel }}</button>
+          </div>
+        </div>
+        <div style="flex:1;overflow:auto;padding:10px 18px;display:flex;flex-direction:column;gap:3px;min-height:60px">
+          <sc-for list="{{ bulkPreview }}" as="b" hint-placeholder-count="3">
+            <div style="display:flex;gap:8px;align-items:center;font-size:12px;padding:4px 0;min-width:0">
+              <span style="flex:0 0 auto;color:{{ b.fg }};font-size:11px">{{ b.mark }}</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:{{ b.fg }}">{{ b.label }}</span>
+              <span style="flex:0 0 auto;font-size:10.5px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ b.note }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="flex:0 0 auto;padding:12px 18px 16px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--m3-outline-variant);flex-wrap:wrap">
+          <button onClick="{{ closeBulk }}" style="height:38px;padding:0 20px;border-radius:19px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12.5px">{{ cancelLabel }}</button>
+          <button onClick="{{ applyBulk }}" style="height:38px;padding:0 20px;border-radius:19px;border:none;background:{{ bulkApplyBg }};color:{{ bulkApplyFg }};cursor:{{ bulkApplyCursor }};font-size:12.5px;font-weight:500">{{ bulkApplyLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ dimSumOpen }}" hint-placeholder-val="{{ false }}">
+    <div role="status" aria-live="polite" style="position:fixed;left:18px;bottom:18px;z-index:94;width:min(320px,calc(100vw - 36px));background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:18px;box-shadow:0 12px 34px rgba(0,0,0,.42);padding:13px 14px;display:flex;gap:12px;align-items:center;animation:cxin .22s ease-out">
+      <img src="{{ dimSumArt }}" alt="{{ dimSumAlt }}" title="{{ dimSumAlt }}" style="flex:0 0 56px;width:56px;height:56px;border-radius:12px" />
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:500;overflow-wrap:anywhere">{{ dimSumName }}</div>
+        <div style="font-size:11px;color:var(--m3-on-surface-variant);line-height:1.5;margin-top:2px;overflow-wrap:anywhere">{{ dimSumGreeting }}</div>
+      </div>
+      <button onClick="{{ closeDimSum }}" aria-label="{{ closeLabel }}" title="{{ closeLabel }}" style="flex:0 0 auto;width:24px;height:24px;border-radius:12px;border:none;background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11px">&#10005;</button>
+    </div>
   </sc-if>
 </div>
 
@@ -684,7 +883,9 @@ const NAV = [
   { id: "cost", icon: "$", label: "Cost", hint: "API-equivalent cost calculator" },
   { id: "runtime", icon: "🐧", label: "Runtime", hint: "Per-tab WSL instances — spawn one per session and route work through it" },
   { id: "health", icon: "✚", label: "Health", hint: "Doctor, account, usage, cloud tasks" },
-  { id: "history", icon: "↺", label: "History", hint: "Local git history — undo anything, including an undo" }
+  { id: "history", icon: "↺", label: "History", hint: "Local git history — undo anything, including an undo" },
+  { id: "changelog", icon: "≡", label: "Changelog", hint: "Every released version, filtered by date and searched with the regex builder" },
+  { id: "studio", icon: "◐", label: "Studio", hint: "Language, funny level, narrator, dim sum, external editor and history retention" }
 ];
 
 const EXT_CATEGORIES = [
@@ -777,22 +978,65 @@ class Component extends DCLogic {
     lifetime: CX.store.get("lifetime", { days: 90, perDayIn: 1200000, perDayOut: 180000, startedAt: Date.now() - 90 * 86400000 }),
     dd: null, ddQuery: "", ddRegex: null,
     paletteOpen: false, paletteQuery: "", paletteRegex: null,
-    menu: null, tick: 0, toast: null
+    menu: null, tick: 0, toast: null,
+    /* notification centre */
+    centreOpen: false, notifyTick: 0,
+    /* tab strip */
+    tabTick: 0,
+    /* bulk close — a real decision, so it is the one thing that gets a modal */
+    bulkOpen: false, bulkQuery: "", bulkRegex: null, bulkInvert: false, bulkPinned: false, bulkScope: { kind: "strip" },
+    /* changelog viewer */
+    clogQuery: "", clogRegex: null, clogFrom: "", clogTo: "", clogPreset: "all", clogText: null, clogError: null,
+    /* studio settings */
+    studioQuery: "", studioRegex: null, editors: [],
+    /* dim sum surprise */
+    dimSum: null
   };
 
   componentDidMount() {
     document.documentElement.setAttribute("data-theme", this.state.theme);
     this.setState({ messages: this.seedMessages() });
-    CX.bridge.invoke("codex_version").then((v) => this.setState({ cliVersion: (v.version || "codex").replace(/^codex-cli /, "codex ") })).catch(() => {});
+    CX.bridge.invoke("codex_version")
+      .then((v) => this.setState({ cliVersion: (v.version || "codex").replace(/^codex-cli /, "codex ") }))
+      .catch((e) => CX.notifyBackendFailure("version", e));
     if (!CX.vcs.log.length) CX.vcs.commit("Initial Studio state", "init");
     this.applyAppearance();
+
+    /* Replace the simulated catalogue with what the real CLI reports. Panels read
+       CX.sim.* directly, so hydrating in place is all the wiring they need. */
+    CX.live.hydrate(this.profile().cwd).then(() => this.setState({ tick: this.state.tick + 1 }));
+    CX.bridge.invoke("codex_editors").then((r) => this.setState({ editors: (r && r.editors) || [] })).catch(() => {});
+    this.loadChangelog();
+
+    /* Tabs: seed the strip from the active profile's sessions the first time, then
+       persist whatever the user rearranges. */
+    if (CX.tabs) {
+      CX.tabs.load(this.profile().sessions.map((sn) => ({ id: sn.id, title: sn.name, kind: "chat", payload: { session: sn.id } })));
+      this._untabs = CX.tabs.subscribe(() => this.setState({ tabTick: this.state.tabTick + 1 }));
+    }
+    if (CX.notify) {
+      this._unnotify = CX.notify.subscribe(() => this.setState({ notifyTick: this.state.notifyTick + 1 }));
+    }
+
+    /* One draw per launch, never on a first run, never during an error path. */
+    const dish = CX.dimsum.draw();
+    if (dish) {
+      this.setState({ dimSum: dish });
+      this._dimTimer = setTimeout(() => this.setState({ dimSum: null }), 9000);
+    }
     this._key = (e) => {
       if (e.key === "Escape") this.setState({ menu: null, regexOpen: false, appearOpen: false, slashOpen: false, dd: null, paletteOpen: false });
       if (e.ctrlKey && e.shiftKey && (e.key === "F" || e.key === "f")) { e.preventDefault(); this.setState({ paletteOpen: true, paletteQuery: "", paletteRegex: null }); }
     };
     window.addEventListener("keydown", this._key);
   }
-  componentWillUnmount() { window.removeEventListener("keydown", this._key); }
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this._key);
+    clearTimeout(this._dimTimer);
+    clearTimeout(this._toast);
+    if (this._untabs) this._untabs();
+    if (this._unnotify) this._unnotify();
+  }
   componentDidUpdate() { this.applyAppearance(); }
 
   applyAppearance() {
@@ -808,11 +1052,18 @@ class Component extends DCLogic {
       el.style.color = a && a.color ? a.color : "";
     });
   }
-  toast(text) {
+  /** Kept as the app-wide shorthand: every call site now raises a real
+   *  notification, so nothing that was worth saying is lost when it fades. */
+  toast(text, kind) {
+    if (CX.notify) {
+      CX.notify.push({ kind: kind || "info", title: String(text) });
+      return;
+    }
     this.setState({ toast: text });
     clearTimeout(this._toast);
     this._toast = setTimeout(() => this.setState({ toast: null }), 2600);
   }
+  notifyError(what, err) { CX.notifyBackendFailure(what, err); }
   reloadFromStore() {
     this.setState({
       profiles: CX.store.get("profiles", DEFAULT_PROFILES),
@@ -1897,7 +2148,641 @@ class Component extends DCLogic {
       resetAppear: () => { const appearance = Object.assign({}, st.appearance); delete appearance[st.appearTarget]; CX.store.set("appearance", appearance); this.setState({ appearance }); },
       resetAllAppear: () => { CX.store.set("appearance", {}); this.setState({ appearance: {} }); }
     };
+    Object.assign(v, this.tabVals(), this.notifyVals(), this.changelogVals(), this.studioVals(), this.dimSumVals());
     return v;
+  }
+
+  /* ---------------------------------------------------------- tab bindings */
+  tabVals() {
+    if (!CX.tabs) return { tabChips: [], tabGroupChips: [], overflowLabel: "", overflowBorder: "var(--m3-outline-variant)" };
+    const cap = this.tabCapacity();
+    const loose = CX.tabs.loose();
+    const hidden = CX.tabs.overflow(cap);
+    const hiddenIds = {};
+    hidden.forEach((t) => { hiddenIds[t.id] = true; });
+    return {
+      tabStripLabel: CX.i18n.t("tab.strip"),
+      tabChips: loose.filter((t) => !hiddenIds[t.id]).map((t) => this.tabChipFor(t, false)),
+      tabGroupChips: CX.tabs.groups().map((g) => ({
+        key: g.id,
+        name: g.name,
+        icon: g.icon ? g.icon + " " : "",
+        caret: g.collapsed ? "▸" : "▾",
+        expanded: g.collapsed ? "false" : "true",
+        count: CX.tabs.inGroup(g.id).length,
+        hint: g.name + " — " + CX.tabs.inGroup(g.id).length + " tabs" + (g.collapsed ? ", collapsed" : ""),
+        bg: "color-mix(in srgb, " + g.color + " 14%, transparent)",
+        border: g.color,
+        fg: "var(--m3-on-surface)",
+        toggle: () => CX.tabs.toggleCollapsed(g.id),
+        context: (e) => this.groupMenu(e, g),
+        tabs: g.collapsed ? [] : CX.tabs.inGroup(g.id).map((t) => this.tabChipFor(t, true))
+      })),
+      newTabHint: CX.i18n.t("tab.new"),
+      newTab: () => { const t = CX.tabs.open({ title: CX.i18n.t("tab.untitled"), kind: "chat" }); this.openTabPayload(t); },
+      overflowLabel: hidden.length ? "⋯ " + hidden.length : "⋯",
+      overflowBorder: hidden.length ? "var(--m3-primary)" : "var(--m3-outline-variant)",
+      overflowHint: hidden.length ? CX.i18n.t("tab.overflow", { count: hidden.length }) : CX.i18n.t("tab.noOverflow"),
+      openTabOverflow: (e) => this.openTabOverflow(e),
+      tabSearchLabel: String(CX.tabs.count()),
+      tabSearchHint: CX.i18n.t("tab.searchHint"),
+      openTabSearch: (e) => this.tabSearchMenu(e)
+    };
+  }
+
+  /* ------------------------------------------------- notification bindings */
+  notifyVals() {
+    const st = this.state;
+    if (!CX.notify) return { toasts: [], centreOpen: false, centreRows: [], centreEmpty: true };
+    const accent = { info: "var(--m3-primary)", success: "var(--m3-ok)", progress: "var(--m3-primary)", warning: "var(--m3-warn)", error: "var(--m3-error)" };
+    const when = (at) => {
+      const s = Math.floor((Date.now() - at) / 1000);
+      return s < 60 ? s + "s" : s < 3600 ? Math.floor(s / 60) + "m" : Math.floor(s / 3600) + "h";
+    };
+    const rows = CX.notify.log();
+    return {
+      toasts: CX.notify.visible().map((n) => ({
+        key: n.id,
+        icon: CX_NOTIFY.ICON[n.kind] || "ⓘ",
+        accent: accent[n.kind] || "var(--m3-primary)",
+        border: n.kind === "error" ? "var(--m3-error)" : "var(--m3-outline-variant)",
+        /* An error is announced assertively; everything else is polite, so a
+           success toast never interrupts what a screen reader is reading. */
+        role: n.kind === "error" || n.kind === "warning" ? "alert" : "status",
+        title: n.title,
+        body: n.body,
+        dismissLabel: CX.i18n.t("notify.dismiss"),
+        dismiss: () => CX.notify.dismiss(n.id),
+        actions: (n.actions || []).map((a, i) => ({ key: "a" + i, label: a.label, run: () => { a.run(); CX.notify.dismiss(n.id); } }))
+      })),
+      centreOpen: !!st.centreOpen,
+      centreTitle: CX.i18n.t("notify.centre", { count: CX.notify.unread() }),
+      centreClearLabel: CX.i18n.t("notify.clear"),
+      closeLabel: CX.i18n.t("act.close"),
+      cancelLabel: CX.i18n.t("act.cancel"),
+      centreEmpty: rows.length === 0,
+      centreEmptyText: CX.i18n.t("notify.empty"),
+      centreRows: rows.slice(0, 100).map((n) => ({
+        key: n.id,
+        icon: CX_NOTIFY.ICON[n.kind] || "ⓘ",
+        accent: accent[n.kind] || "var(--m3-primary)",
+        title: n.title,
+        body: n.body,
+        when: when(n.at),
+        context: (e) => this.menuAt(e, n.title, [this.copyItem(n.title + (n.body ? " — " + n.body : ""))])
+      })),
+      openCentre: () => { CX.notify.markRead(); this.setState({ centreOpen: true }); },
+      closeCentre: () => this.setState({ centreOpen: false }),
+      clearCentre: () => CX.notify.clearHistory(),
+      unreadLabel: CX.notify.unread() ? String(CX.notify.unread()) : ""
+    };
+  }
+
+  /* --------------------------------------------------- changelog bindings */
+  changelogVals() {
+    const st = this.state;
+    const eng = g.CX_CHANGELOG;
+    const empty = { isChangelog: st.nav === "changelog", clogReleases: [], clogEmpty: true };
+    if (!eng) return Object.assign(empty, { clogEmptyText: CX.i18n.t("changelog.unavailable") });
+    if (st.clogError) return Object.assign(empty, { clogEmptyText: st.clogError });
+    if (st.clogText == null) return Object.assign(empty, { clogEmptyText: CX.i18n.t("changelog.loading") });
+
+    const parsed = eng.parse(st.clogText);
+    const releases = (parsed && parsed.releases) || parsed || [];
+    const fromR = st.clogFrom ? eng.parseDate(st.clogFrom) : { ok: true, date: null };
+    const toR = st.clogTo ? eng.parseDate(st.clogTo) : { ok: true, date: null };
+    const range = { from: fromR.ok ? fromR.date : null, to: toR.ok ? toR.date : null };
+    const query = { text: st.clogQuery, regex: st.clogRegex };
+    const result = eng.filter(releases, range, query) || { releases: [], matchCount: 0 };
+    const shown = result.releases || [];
+
+    /* A date the user is still typing reports inline and keeps what they typed —
+       it never silently discards the input or resets the field. */
+    const badFrom = st.clogFrom && !fromR.ok;
+    const badTo = st.clogTo && !toR.ok;
+
+    return {
+      isChangelog: st.nav === "changelog",
+      clogQuery: st.clogQuery,
+      setClogQuery: (e) => this.setState({ clogQuery: e.target.value, clogRegex: null }),
+      clogPlaceholder: CX.i18n.t("changelog.search"),
+      clogBorder: st.clogRegex ? "var(--m3-primary)" : "var(--m3-outline-variant)",
+      clogRegexBg: st.clogRegex ? "var(--m3-primary)" : "transparent",
+      clogRegexFg: st.clogRegex ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+      openClogRegex: () => this.openRegexFor("clog", st.clogQuery),
+      clogSearchMenu: (e) => this.menuAt(e, "Changelog search", this.filterItems("clog", st.clogQuery)),
+      regexBuilderHint: CX.i18n.t("search.builder"),
+      clogFrom: st.clogFrom,
+      clogTo: st.clogTo,
+      setClogFrom: (e) => this.setState({ clogFrom: e.target.value, clogPreset: "custom" }),
+      setClogTo: (e) => this.setState({ clogTo: e.target.value, clogPreset: "custom" }),
+      clogFromPlaceholder: CX.i18n.t("changelog.from"),
+      clogToPlaceholder: CX.i18n.t("changelog.to"),
+      clogFromBorder: badFrom ? "var(--m3-error)" : "var(--m3-outline-variant)",
+      clogToBorder: badTo ? "var(--m3-error)" : "var(--m3-outline-variant)",
+      clogStatusFg: badFrom || badTo ? "var(--m3-error)" : "var(--m3-on-surface-variant)",
+      clogStatus: badFrom
+        ? CX.i18n.t("changelog.badDate", { value: st.clogFrom })
+        : badTo
+          ? CX.i18n.t("changelog.badDate", { value: st.clogTo })
+          : CX.i18n.t("changelog.status", { versions: shown.length, matches: result.matchCount || 0 }),
+      clogPresetLabel: (eng.PRESETS.find((x) => x.id === st.clogPreset) || { label: { en: "All time" } }).label.en || "All time",
+      openClogPreset: (e) => this.openDropdown(e, {
+        title: "Date range", value: st.clogPreset, width: 260,
+        options: eng.PRESETS.map((x) => ({ value: x.id, label: x.label.en })),
+        onPick: (o) => {
+          const preset = eng.PRESETS.find((x) => x.id === o.value);
+          const r = preset && preset.range ? preset.range(new Date()) : { from: null, to: null };
+          const iso = (d) => (d ? new Date(d).toISOString().slice(0, 10) : "");
+          this.setState({ clogPreset: o.value, clogFrom: iso(r.from), clogTo: iso(r.to), dd: null });
+        }
+      }),
+      clogExportLabel: CX.i18n.t("changelog.export"),
+      clogCopyLabel: CX.i18n.t("act.copy"),
+      exportClog: () => {
+        const text = eng.exportView(releases, range, query, "markdown");
+        const blob = new Blob([text], { type: "text/markdown" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "codex-studio-changelog.md";
+        a.click();
+        URL.revokeObjectURL(a.href);
+        this.toast(CX.i18n.t("changelog.exported"), "success");
+      },
+      copyClog: () => {
+        navigator.clipboard.writeText(eng.exportView(releases, range, query, "text"));
+        this.toast(CX.i18n.t("changelog.copied"), "success");
+      },
+      clogReleases: shown.map((r) => ({
+        key: r.version,
+        version: r.version,
+        date: r.date || CX.i18n.t("changelog.noDate"),
+        count: CX.i18n.t("changelog.entries", { count: (r.sections || []).reduce((n, sec) => n + (sec.entries || []).length, 0) }),
+        sections: (r.sections || []).map((sec) => ({
+          key: sec.title,
+          title: sec.title,
+          entries: (sec.entries || []).map((text, i) => ({ key: i, text: text }))
+        }))
+      })),
+      clogEmpty: shown.length === 0,
+      clogEmptyText: CX.i18n.t("changelog.empty")
+    };
+  }
+
+  /* ------------------------------------------------------ studio bindings */
+  studioVals() {
+    const st = this.state;
+    const match = this.matcher(st.studioQuery, st.studioRegex);
+    const groups = this.studioRows()
+      .map((sg) => Object.assign({}, sg, { rows: sg.rows.filter((r) => match(r.label + " " + r.hint + " " + sg.title)) }))
+      .filter((sg) => sg.rows.length);
+    return {
+      isStudio: st.nav === "studio",
+      studioQuery: st.studioQuery,
+      setStudioQuery: (e) => this.setState({ studioQuery: e.target.value, studioRegex: null }),
+      studioPlaceholder: CX.i18n.t("settings.search"),
+      studioBorder: st.studioRegex ? "var(--m3-primary)" : "var(--m3-outline-variant)",
+      studioRegexBg: st.studioRegex ? "var(--m3-primary)" : "transparent",
+      studioRegexFg: st.studioRegex ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+      openStudioRegex: () => this.openRegexFor("studio", st.studioQuery),
+      studioSearchMenu: (e) => this.menuAt(e, "Studio search", this.filterItems("studio", st.studioQuery)),
+      studioGroups: groups,
+      studioEmpty: groups.length === 0,
+      studioEmptyText: CX.i18n.t("settings.noMatch", { query: st.studioQuery })
+    };
+  }
+
+  /* ----------------------------------------------- dim sum + bulk bindings */
+  dimSumVals() {
+    const st = this.state;
+    const dish = st.dimSum;
+    const yue = st.lang !== "en";
+    const preview = st.bulkOpen
+      ? CX.tabs.previewBulkClose({ text: st.bulkQuery, regex: st.bulkRegex, invert: st.bulkInvert, includePinned: st.bulkPinned, scope: st.bulkScope })
+      : null;
+    return {
+      dimSumOpen: !!dish,
+      dimSumArt: dish ? "data:image/svg+xml;charset=utf-8," + encodeURIComponent(dish.art) : "",
+      dimSumName: dish ? dish.en + " · " + dish.yue : "",
+      dimSumAlt: dish ? (yue ? dish.alt.yue : dish.alt.en) : "",
+      dimSumGreeting: dish ? CX.i18n.t("dimsum.greeting", { dish: yue ? dish.yue : dish.en }) : "",
+      closeDimSum: () => { clearTimeout(this._dimTimer); this.setState({ dimSum: null }); },
+
+      bulkOpen: !!st.bulkOpen,
+      bulkTitle: st.bulkInvert ? CX.i18n.t("tab.closeNotContaining") : CX.i18n.t("tab.closeContaining"),
+      bulkSummary: preview && preview.ok
+        ? CX.i18n.t("tab.bulkSummary", { count: preview.matched.length, total: preview.total, mode: preview.mode === "regex" ? "regex" : "plain text" })
+        : CX.i18n.t("tab.bulkNeedsQuery"),
+      bulkQuery: st.bulkQuery,
+      setBulkQuery: (e) => this.setState({ bulkQuery: e.target.value, bulkRegex: null }),
+      bulkPlaceholder: CX.i18n.t("tab.bulkPlaceholder"),
+      bulkBorder: preview && !preview.ok && st.bulkQuery ? "var(--m3-error)" : st.bulkRegex ? "var(--m3-primary)" : "var(--m3-outline-variant)",
+      bulkRegexBg: st.bulkRegex ? "var(--m3-primary)" : "transparent",
+      bulkRegexFg: st.bulkRegex ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+      openBulkRegex: () => this.openRegexFor("bulk", st.bulkQuery),
+      toggleBulkInvert: () => this.setState({ bulkInvert: !st.bulkInvert }),
+      bulkInvertLabel: st.bulkInvert ? CX.i18n.t("tab.matchInverted") : CX.i18n.t("tab.matchNormal"),
+      bulkInvertBg: st.bulkInvert ? "var(--m3-secondary-container)" : "transparent",
+      bulkInvertFg: st.bulkInvert ? "var(--m3-on-secondary-container)" : "var(--m3-on-surface-variant)",
+      toggleBulkPinned: () => this.setState({ bulkPinned: !st.bulkPinned }),
+      bulkPinnedLabel: st.bulkPinned ? CX.i18n.t("tab.pinnedIncluded") : CX.i18n.t("tab.pinnedProtected"),
+      bulkPinnedBg: st.bulkPinned ? "var(--m3-error-container)" : "transparent",
+      bulkPinnedFg: st.bulkPinned ? "var(--m3-on-error-container)" : "var(--m3-on-surface-variant)",
+      bulkPreview: preview && preview.ok
+        ? preview.matched.map((t) => ({ key: t.id, mark: "✕", fg: "var(--m3-on-surface)", label: t.title, note: t.dirty ? CX.i18n.t("tab.unsaved") : "" }))
+          .concat(preview.protectedPinned.map((t) => ({ key: "p" + t.id, mark: "📌", fg: "var(--m3-on-surface-variant)", label: t.title, note: CX.i18n.t("tab.protected") })))
+        : [],
+      bulkApplyLabel: preview && preview.ok && preview.matched.length
+        ? CX.i18n.t("tab.bulkApply", { count: preview.matched.length })
+        : CX.i18n.t("tab.bulkNothing"),
+      bulkApplyBg: preview && preview.ok && preview.matched.length ? "var(--m3-error)" : "var(--m3-surface-highest)",
+      bulkApplyFg: preview && preview.ok && preview.matched.length ? "var(--m3-on-error-container)" : "var(--m3-on-surface-variant)",
+      bulkApplyCursor: preview && preview.ok && preview.matched.length ? "pointer" : "not-allowed",
+      closeBulk: () => this.setState({ bulkOpen: false }),
+      applyBulk: () => {
+        if (!preview || !preview.ok || !preview.matched.length) return;
+        const restore = CX.tabs.snapshot();
+        const result = CX.tabs.bulkClose(preview);
+        this.setState({ bulkOpen: false });
+        if (CX.notify) {
+          CX.notify.push({
+            kind: "success",
+            title: CX.i18n.t("tab.bulkClosed", { count: result.closed.length }),
+            body: result.skipped.length
+              ? CX.i18n.t("tab.bulkSkipped", { count: result.skipped.length, names: result.skipped.map((t) => t.title).join(", ") })
+              : result.closed.map((t) => t.title).join(", "),
+            actions: [{ label: CX.i18n.t("act.undo"), run: () => CX.tabs.restore(restore) }]
+          });
+        }
+      }
+    };
+  }
+
+  /* ------------------------------------------------------------ tab strip */
+
+  /** How many ordinary tabs fit before the overflow surface takes over. Pinned
+   *  tabs are never counted out of the strip — that is the point of pinning. */
+  tabCapacity() {
+    return Math.max(2, Math.floor((window.innerWidth - 520) / 150));
+  }
+
+  tabChipFor(t, inGroup) {
+    const st = this.state;
+    const on = CX.tabs.active() && CX.tabs.active().id === t.id;
+    return {
+      key: t.id,
+      label: t.title + (t.dirty ? " •" : ""),
+      mark: t.pinned ? "📌" : t.kind === "console" ? "▶" : t.kind === "changelog" ? "≡" : "💬",
+      selected: on ? "true" : "false",
+      maxWidth: t.pinned ? "150px" : "210px",
+      hint: t.title + (t.pinned ? " — pinned" : "") + " · " + t.kind,
+      bg: on ? "var(--m3-secondary-container)" : "var(--m3-surface-low)",
+      fg: on ? "var(--m3-on-secondary-container)" : "var(--m3-on-surface-variant)",
+      border: on ? "var(--m3-primary)" : "var(--m3-outline-variant)",
+      closeLabel: "Close " + t.title,
+      go: () => { CX.tabs.activate(t.id); this.openTabPayload(t); },
+      close: (e) => { e.stopPropagation(); this.closeTab(t); },
+      context: (e) => this.tabMenu(e, t, inGroup)
+    };
+  }
+
+  openTabPayload(t) {
+    if (t.kind === "changelog") this.setState({ nav: "changelog" });
+    else if (t.kind === "console") this.setState({ nav: "console" });
+    else if (t.kind === "studio") this.setState({ nav: "studio" });
+    else this.setState({ nav: "chat", activeSession: (t.payload && t.payload.session) || this.state.activeSession, messages: this.seedMessages() });
+  }
+
+  closeTab(t) {
+    const restore = CX.tabs.snapshot();
+    CX.tabs.close(t.id);
+    if (CX.notify) {
+      CX.notify.push({
+        kind: "info", category: "tab-close",
+        title: CX.i18n.t("tab.closed", { name: t.title }),
+        body: t.title,
+        actions: [{ label: CX.i18n.t("act.undo"), run: () => { CX.tabs.restore(restore); CX.notify.dismissAll(); } }]
+      });
+    }
+  }
+
+  tabMenu(e, t, inGroup) {
+    const groups = CX.tabs.groups();
+    const items = [
+      { key: "pin", icon: t.pinned ? "📌" : "📍", label: t.pinned ? "Unpin tab" : "Pin tab", click: () => { CX.tabs.pin(t.id); this.setState({ menu: null }); } },
+      { key: "rename", icon: "✎", label: "Rename tab…", click: () => { this.setState({ menu: null }); this.renameTabPrompt(t); } },
+      { key: "close", icon: "✕", label: "Close tab", click: () => { this.setState({ menu: null }); this.closeTab(t); } },
+      { key: "others", icon: "⨯", label: "Close other tabs", click: () => { this.setState({ menu: null }); this.reportClose(CX.tabs.closeOthers(t.id, false)); } },
+      { key: "right", icon: "→", label: "Close tabs to the right", click: () => { this.setState({ menu: null }); this.reportClose(CX.tabs.closeToRight(t.id, false)); } },
+      { key: "bulkin", icon: "⌕", label: "Close tabs containing text…", click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, false); } },
+      { key: "bulkout", icon: "∌", label: "Close tabs not containing text…", click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, true); } },
+      { key: "newgroup", icon: "▣", label: "Move to a new group…", click: () => { this.setState({ menu: null }); const g = CX.tabs.createGroup("Group " + (groups.length + 1), "#D0BCFF"); CX.tabs.assign(t.id, g.id); } }
+    ];
+    groups.forEach((g) => {
+      if (inGroup && g.id === t.groupId) return;
+      items.push({ key: "g" + g.id, icon: "▤", label: "Move to “" + g.name + "”", click: () => { CX.tabs.assign(t.id, g.id); this.setState({ menu: null }); } });
+    });
+    if (t.groupId) items.push({ key: "ungroup", icon: "▢", label: "Remove from group", click: () => { CX.tabs.assign(t.id, null); this.setState({ menu: null }); } });
+    items.push(this.copyItem(t.title));
+    items.push(this.appearItem(e));
+    this.menuAt(e, t.title, items);
+  }
+
+  renameTabPrompt(t) {
+    this.openDropdown({ stopPropagation: () => {}, currentTarget: { getBoundingClientRect: () => ({ left: 120, bottom: 60, width: 280 }) } }, {
+      title: "Rename “" + t.title + "”",
+      value: t.title,
+      width: 320,
+      options: [t.title, t.title + " (copy)", (t.payload && t.payload.session) || t.id].map((x) => ({ value: x, label: x })),
+      allowFree: true,
+      onPick: (o) => { CX.tabs.rename(t.id, o.value); this.setState({ dd: null }); }
+    });
+  }
+
+  groupMenu(e, g) {
+    const items = [
+      { key: "collapse", icon: g.collapsed ? "▸" : "▾", label: g.collapsed ? "Expand group" : "Collapse group", click: () => { CX.tabs.toggleCollapsed(g.id); this.setState({ menu: null }); } },
+      { key: "rename", icon: "✎", label: "Rename group…", click: () => { this.setState({ menu: null }); this.renameGroupPrompt(g); } },
+      { key: "colour", icon: "🎨", label: "Group colour…", click: () => { this.setState({ menu: null }); this.groupColourPrompt(g); } },
+      { key: "search", icon: "⌕", label: "Search this group…", click: () => { this.setState({ menu: null }); this.openGroupSearch(e, g); } },
+      { key: "bulk", icon: "∌", label: "Close tabs in this group containing text…", click: () => { this.setState({ menu: null }); this.openBulk({ kind: "group", id: g.id }, false); } },
+      { key: "ungroup", icon: "▢", label: "Ungroup (keeps every tab)", click: () => { CX.tabs.removeGroup(g.id); this.setState({ menu: null }); } },
+      this.appearItem(e)
+    ];
+    this.menuAt(e, g.name, items);
+  }
+
+  renameGroupPrompt(g) {
+    this.openDropdown({ stopPropagation: () => {}, currentTarget: { getBoundingClientRect: () => ({ left: 120, bottom: 60, width: 280 }) } }, {
+      title: "Rename group",
+      value: g.name,
+      width: 320,
+      options: ["Review", "Payments", "Infra", "Docs", g.name].map((x) => ({ value: x, label: x })),
+      allowFree: true,
+      onPick: (o) => { CX.tabs.renameGroup(g.id, o.value); this.setState({ dd: null }); }
+    });
+  }
+
+  groupColourPrompt(g) {
+    this.openDropdown({ stopPropagation: () => {}, currentTarget: { getBoundingClientRect: () => ({ left: 120, bottom: 60, width: 260 }) } }, {
+      title: "Group colour",
+      value: g.color,
+      width: 300,
+      options: ["#D0BCFF", "#9BD5A8", "#F1C27A", "#EFB8C8", "#8FC7E8", "#CAC4D0"].map((c) => ({ value: c, label: c })),
+      allowFree: true,
+      onPick: (o) => { CX.tabs.setGroup(g.id, { color: o.value }); this.setState({ dd: null }); }
+    });
+  }
+
+  reportClose(result) {
+    if (!CX.notify) return;
+    if (result.error) { CX.notify.error(CX.i18n.t("err.bulkclose"), result.error, { detail: result.error }); return; }
+    CX.notify.success(
+      CX.i18n.t("tab.bulkClosed", { count: result.closed.length }),
+      result.skipped.length
+        ? CX.i18n.t("tab.bulkSkipped", { count: result.skipped.length, names: result.skipped.map((t) => t.title).join(", ") })
+        : result.closed.map((t) => t.title).join(", ")
+    );
+  }
+
+  /* ---- the four tab searches, each opening its own anchored builder ---- */
+
+  tabSearchMenu(e) {
+    this.menuAt(e, "Find tabs", [
+      { key: "s1", icon: "⌕", label: "Search this tab strip…", click: () => { this.setState({ menu: null }); this.openStripSearch(e); } },
+      { key: "s2", icon: "▤", label: "Search inside a group…", click: () => { this.setState({ menu: null }); this.openGroupPicker(e); } },
+      { key: "s3", icon: "▣", label: "Search tab groups by name…", click: () => { this.setState({ menu: null }); this.openGroupsSearch(e); } },
+      { key: "s4", icon: "✦", label: "Search every tab, everywhere…", click: () => { this.setState({ menu: null }); this.openMasterSearch(e); } },
+      { key: "b1", icon: "⨯", label: "Close tabs containing text…", click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, false); } },
+      { key: "b2", icon: "∌", label: "Close tabs not containing text…", click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, true); } }
+    ]);
+  }
+
+  anchorAt(e) {
+    return { stopPropagation: () => {}, currentTarget: { getBoundingClientRect: () => ({ left: Math.max(8, (e && e.clientX) || 200) - 150, bottom: ((e && e.clientY) || 80) + 8, width: 320 }) } };
+  }
+
+  openStripSearch(e) {
+    const rows = CX.tabs.all();
+    this.openDropdown(this.anchorAt(e), {
+      title: "Search this tab strip", value: "", width: 380, searchOnly: true,
+      options: rows.map((t) => ({ value: t.id, label: (t.pinned ? "📌 " : "") + t.title + (t.groupId ? "   ▤ " + (CX.tabs.getGroup(t.groupId) || {}).name : "") })),
+      onPick: (o) => { CX.tabs.activate(o.value); const t = CX.tabs.get(o.value); if (t) this.openTabPayload(t); this.setState({ dd: null }); }
+    });
+  }
+
+  openGroupPicker(e) {
+    const groups = CX.tabs.groups();
+    if (!groups.length) { this.toast(CX.i18n.t("tab.noGroups"), "info"); return; }
+    this.openDropdown(this.anchorAt(e), {
+      title: "Which group?", value: "", width: 320,
+      options: groups.map((g) => ({ value: g.id, label: g.name + "  (" + CX.tabs.inGroup(g.id).length + ")" })),
+      onPick: (o) => { this.setState({ dd: null }); setTimeout(() => this.openGroupSearch(e, CX.tabs.getGroup(o.value)), 0); }
+    });
+  }
+
+  openGroupSearch(e, g) {
+    if (!g) return;
+    const rows = CX.tabs.inGroup(g.id);
+    this.openDropdown(this.anchorAt(e), {
+      title: "Search “" + g.name + "”", value: "", width: 380,
+      options: rows.map((t) => ({ value: t.id, label: (t.pinned ? "📌 " : "") + t.title })),
+      onPick: (o) => { CX.tabs.activate(o.value); const t = CX.tabs.get(o.value); if (t) this.openTabPayload(t); this.setState({ dd: null }); }
+    });
+  }
+
+  openGroupsSearch(e) {
+    const groups = CX.tabs.groups();
+    this.openDropdown(this.anchorAt(e), {
+      title: "Search tab groups", value: "", width: 360,
+      options: groups.map((g) => ({ value: g.id, label: g.name + "  ·  " + CX.tabs.inGroup(g.id).length + " tabs" + (g.collapsed ? "  ·  collapsed" : "") })),
+      onPick: (o) => { const g = CX.tabs.getGroup(o.value); if (g && g.collapsed) CX.tabs.toggleCollapsed(g.id); this.setState({ dd: null }); }
+    });
+  }
+
+  /** The master search spans every workspace the app owns — here, every profile —
+   *  and says which one each hit came from so a result is never ambiguous. */
+  openMasterSearch(e) {
+    const rows = [];
+    CX.tabs.all().forEach((t) => rows.push({ value: "tab:" + t.id, label: "▸ this workspace · " + (t.pinned ? "📌 " : "") + t.title }));
+    this.state.profiles.forEach((pr) => {
+      if (pr.id === this.state.activeProfile) return;
+      (pr.sessions || []).forEach((sn) => rows.push({ value: "session:" + pr.id + ":" + sn.id, label: "▸ " + pr.name + " · " + sn.name }));
+    });
+    this.openDropdown(this.anchorAt(e), {
+      title: "Every tab, every workspace", value: "", width: 440,
+      options: rows,
+      onPick: (o) => {
+        const parts = o.value.split(":");
+        if (parts[0] === "tab") { CX.tabs.activate(parts[1]); const t = CX.tabs.get(parts[1]); if (t) this.openTabPayload(t); }
+        else { CX.store.set("activeProfile", parts[1]); this.setState({ activeProfile: parts[1], activeSession: parts[2], nav: "chat" }); }
+        this.setState({ dd: null });
+      }
+    });
+  }
+
+  openTabOverflow(e) {
+    const hidden = CX.tabs.overflow(this.tabCapacity());
+    if (!hidden.length) { this.toast(CX.i18n.t("tab.noOverflow"), "info"); return; }
+    this.openDropdown(this.anchorAt(e), {
+      title: "Tabs that do not fit", value: "", width: 380,
+      options: hidden.map((t) => ({ value: t.id, label: (t.pinned ? "📌 " : "") + t.title })),
+      onPick: (o) => { CX.tabs.activate(o.value); const t = CX.tabs.get(o.value); if (t) this.openTabPayload(t); this.setState({ dd: null }); }
+    });
+  }
+
+  openBulk(scope, invert) {
+    this.setState({ bulkOpen: true, bulkScope: scope || { kind: "strip" }, bulkInvert: !!invert, bulkQuery: "", bulkRegex: null, bulkPinned: false });
+  }
+
+  /* --------------------------------------------------------- changelog */
+
+  loadChangelog() {
+    const done = (text) => this.setState({ clogText: text, clogError: null });
+    fetch("./CHANGELOG.md")
+      .then((r) => (r.ok ? r.text() : Promise.reject(new Error("HTTP " + r.status))))
+      .then(done)
+      .catch(() => CX.bridge.invoke("codex_read_text", { path: "CHANGELOG.md" })
+        .then((r) => done(r.text))
+        .catch((e) => this.setState({ clogError: e && e.message ? e.message : String(e) })));
+  }
+
+  clogRange() {
+    const parse = (t) => {
+      if (!t) return null;
+      const eng = g_CX_CHANGELOG();
+      if (!eng) return null;
+      const r = eng.parseDate(t);
+      return r && r.ok ? r.date : null;
+    };
+    return { from: parse(this.state.clogFrom), to: parse(this.state.clogTo) };
+  }
+
+  /* ----------------------------------------------------------- studio */
+
+  studioRows() {
+    const st = this.state, se = CX.settings, funny = CX.i18n.funny;
+    const level = (n) => n + " — " + ["fully professional", "measured", "balanced", "cheeky", "maximum"][Math.min(4, Math.max(0, n - 1))];
+    const toggle = (label, hint, key, current, onSet) => Object.assign({
+      key: key, label: label, hint: hint, isToggle: true, isSlider: false, isPick: false, isAction: false,
+      on: current ? "true" : "false", value: "", valueLabel: "", set: onSet,
+      context: (e) => this.menuAt(e, label, [this.copyItem(label), this.appearItem(e)])
+    }, this.toggleRow(current));
+    const pick = (label, hint, key, valueLabel, onSet) => ({
+      key: key, label: label, hint: hint, isPick: true, isToggle: false, isSlider: false, isAction: false,
+      value: "", valueLabel: valueLabel, on: "false", set: onSet,
+      context: (e) => this.menuAt(e, label, [this.copyItem(label), this.appearItem(e)])
+    });
+    const action = (label, hint, key, valueLabel, fg, onSet) => ({
+      key: key, label: label, hint: hint, isAction: true, isToggle: false, isSlider: false, isPick: false,
+      value: "", valueLabel: valueLabel, actionFg: fg, on: "false", set: onSet,
+      context: (e) => this.menuAt(e, label, [this.copyItem(label), this.appearItem(e)])
+    });
+    const slider = (label, hint, key, value, onSet) => ({
+      key: key, label: label, hint: hint, isSlider: true, isToggle: false, isPick: false, isAction: false,
+      value: String(value), valueLabel: level(value), on: "false", set: onSet,
+      context: (e) => this.menuAt(e, label, [this.copyItem(label), this.appearItem(e)])
+    });
+
+    const editorLabel = (st.editors.find((x) => x.id === se.get("editor", "")) || {}).label
+      || (st.editors.length ? st.editors[0].label + " (first found)" : "none detected");
+
+    return [
+      {
+        key: "lang",
+        title: "Language",
+        desc: "Three modes and two independent funny sliders. The level changes the voice only — every message still names the file, the count and what is irreversible, at level 1 and at level 5 alike. This includes errors, warnings and destructive confirmations; no category is exempt.",
+        rows: [
+          pick("Language mode", "English · playful Hong Kong Cantonese · bilingual", "langmode",
+            st.lang === "en" ? "English" : st.lang === "yue" ? "廣東話" : "Bilingual · EN + 粵",
+            (e) => this.openDropdown(e, {
+              title: "Language mode", value: st.lang, width: 280,
+              options: [{ value: "en", label: "English" }, { value: "yue", label: "廣東話 (playful HK Cantonese)" }, { value: "bi", label: "Bilingual · EN + 粵" }],
+              onPick: (o) => { CX.i18n.setMode(o.value); this.setState({ lang: o.value, dd: null }); CX.vcs.commit("Language mode set to " + o.value, "settings"); }
+            })),
+          slider("Funny level — English", "How playfully the English copy is written. Level 1 reads fully professional.", "funnyen", funny.en || 3,
+            (e) => { CX.i18n.setFunny("en", e.target.value); this.setState({ tick: this.state.tick + 1 }); }),
+          slider("Funny level — 廣東話", "廣東話 嗰邊嘅玩味程度。1 係好正經，5 係玩到盡。", "funnyyue", funny.yue || 4,
+            (e) => { CX.i18n.setFunny("yue", e.target.value); this.setState({ tick: this.state.tick + 1 }); })
+        ]
+      },
+      {
+        key: "narrator",
+        title: "Spoken narrator",
+        desc: "Off by default. When on it speaks one line at a time through a serialised queue, never overlapping, and yields to an active screen reader. Spoken errors still name the actual failure and are never suppressed by the rate limit.",
+        rows: [
+          toggle("Narrate app events", "Uses the platform voice. Off unless you turn it on.", "tts", !!se.get("narrator", false),
+            () => { const on = !se.get("narrator", false); se.set("narrator", on); CX.narrator.enabled = on; this.setState({ tick: this.state.tick + 1 }); }),
+          pick("Narrated language", "Both speaks English first, then 廣東話, strictly one after the other.", "ttslang",
+            se.get("narratorLang", "en") === "en" ? "English" : se.get("narratorLang", "en") === "yue" ? "廣東話" : "Both",
+            (e) => this.openDropdown(e, {
+              title: "Narrated language", value: se.get("narratorLang", "en"), width: 260,
+              options: [{ value: "en", label: "English" }, { value: "yue", label: "廣東話" }, { value: "both", label: "Both — English then 廣東話" }],
+              onPick: (o) => { se.set("narratorLang", o.value); CX.narrator.lang = o.value; this.setState({ dd: null }); }
+            }))
+        ]
+      },
+      {
+        key: "delight",
+        title: "Dim sum surprise",
+        desc: "A 1-in-100 chance at launch of a randomly chosen dim sum dish, named in both languages. It never blocks startup, never steals focus, and never appears on a first run or during an error.",
+        rows: [
+          toggle("Show the dim sum surprise", "One fresh draw per launch, at most 1%. Bundled artwork, no network.", "dimsum", !!se.get("dimSum", true),
+            () => { se.set("dimSum", !se.get("dimSum", true)); this.setState({ tick: this.state.tick + 1 }); }),
+          action("Show one now", "Preview the surface without waiting for the draw.", "dimsumtest", "Preview", "var(--m3-primary)",
+            () => { const cat = g.CX_DIMSUM; const d = cat ? cat.draw(1) : null; if (d) { clearTimeout(this._dimTimer); this.setState({ dimSum: d }); this._dimTimer = setTimeout(() => this.setState({ dimSum: null }), 9000); } })
+        ]
+      },
+      {
+        key: "editor",
+        title: "External editor",
+        desc: "Opens the active profile's working directory in the editor you choose. Only editors actually found on this machine are offered.",
+        rows: [
+          pick("Editor", st.editors.length ? st.editors.length + " detected on this machine" : "No supported editor was found — install one, or use Reveal in Explorer.", "editor", editorLabel,
+            (e) => this.openDropdown(e, {
+              title: "External editor", value: se.get("editor", ""), width: 320,
+              options: st.editors.map((x) => ({ value: x.id, label: x.label })),
+              onPick: (o) => { se.set("editor", o.value); this.setState({ dd: null }); CX.vcs.commit("External editor set to " + o.value, "settings"); }
+            })),
+          action("Open the working directory", this.profile().cwd, "openext", "Open", "var(--m3-primary)",
+            () => CX.bridge.invoke("codex_open_external", { path: this.profile().cwd, editor: CX.settings.get("editor", "") })
+              .then((r) => this.toast(CX.i18n.t("editor.opened", { path: r.opened }), "success"))
+              .catch((e) => this.notifyError("editor", e))),
+          action("Reveal in File Explorer", "Always available, even with no editor installed.", "reveal", "Reveal", "var(--m3-on-surface)",
+            () => CX.bridge.invoke("codex_reveal", { path: this.profile().cwd }).catch((e) => this.notifyError("editor", e)))
+        ]
+      },
+      {
+        key: "history",
+        title: "Local version history",
+        desc: "A git repository beside the app's own data — never inside your project, never pushed. Restoring writes a new revision instead of rewinding, so an undo can itself be undone.",
+        rows: [
+          action("Open the history repository", CX.sim.codexHome + "/studio", "histopen", "Reveal", "var(--m3-on-surface)",
+            () => CX.bridge.invoke("codex_reveal", { path: CX.sim.codexHome + "/studio" }).catch((e) => this.notifyError("history", e))),
+          action("Prune old revisions", "Keeps the newest " + se.get("historyKeep", 200) + ". Only you can trigger this; nothing is pruned automatically.", "histprune", "Prune", "var(--m3-error)",
+            () => CX.bridge.invoke("codex_history_prune", { keep: se.get("historyKeep", 200) })
+              .then((r) => this.toast(CX.i18n.t("history.pruned", { count: r.pruned, kept: r.kept }), "success"))
+              .catch((e) => this.notifyError("history", e)))
+        ]
+      },
+      {
+        key: "appearance",
+        title: "Appearance",
+        desc: "Theme and density apply live. Every individual element also has its own editor — right-click any surface and choose Edit appearance.",
+        rows: [
+          pick("Theme", "Material 3 light and dark palettes.", "theme", st.theme === "dark" ? "Dark" : "Light",
+            (e) => this.openDropdown(e, {
+              title: "Theme", value: st.theme, width: 240,
+              options: [{ value: "dark", label: "Dark" }, { value: "light", label: "Light" }],
+              onPick: (o) => { document.documentElement.setAttribute("data-theme", o.value); CX.store.set("theme", o.value); this.setState({ theme: o.value, dd: null }); }
+            })),
+          action("Export appearance presets", "Writes every saved element style to a file you can re-import after a reinstall.", "appexport", "Export", "var(--m3-on-surface)",
+            () => { const blob = JSON.stringify({ version: 1, appearance: CX.store.get("appearance", {}) }, null, 2); navigator.clipboard.writeText(blob); this.toast(CX.i18n.t("appearance.exported"), "success"); }),
+          action("Reset every element", "Clears all per-element appearance overrides. Recorded in History, so it is undoable.", "appreset", "Reset all", "var(--m3-error)",
+            () => { CX.store.set("appearance", {}); CX.vcs.commit("Reset every element appearance", "appearance"); this.setState({ appearance: {} }); })
+        ]
+      }
+    ];
   }
 
   patchAppear(patch) {

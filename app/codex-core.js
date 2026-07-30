@@ -370,14 +370,36 @@
   };
   const i18n = {
     mode: store.get("lang", "en"),
+    /* Two independent sliders, one per language. Level 1 reads fully professional
+       and level 5 is maximum playfulness — in BOTH languages, and in every message
+       category including errors and destructive warnings. What the level changes is
+       voice; the facts (which file, which count, what is irreversible) are identical
+       at every level, which is why each entry carries the same placeholders. */
     funny: store.get("funny", { en: 3, yue: 4 }),
     pick(v, lang) { return Array.isArray(v) ? v[Math.min(4, Math.max(0, (this.funny[lang] || 3) - 1))] : v; },
-    t(key) {
+    t(key, vars) {
+      /* cx-i18n.js holds the full table; this local one is the fallback that keeps
+         the app legible if that file is ever missing from a build. */
+      const full = g.CX_I18N;
+      if (full && full.STRINGS && full.STRINGS[key]) {
+        return vars ? full.format(key, this.mode, this.funny, vars) : full.resolve(key, this.mode, this.funny);
+      }
       const e = T[key]; if (!e) return key;
       const en = this.pick(e[0], "en"), yue = this.pick(e[1], "yue");
-      if (this.mode === "yue") return yue;
-      if (this.mode === "bi") return en === yue ? en : en + "  ·  " + yue;
-      return en;
+      const out = this.mode === "yue" ? yue : this.mode === "bi" ? (en === yue ? en : en + "  ·  " + yue) : en;
+      return vars ? String(out).replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m)) : out;
+    },
+    /** Every key the table knows, for the settings search to index. */
+    keys() {
+      const full = g.CX_I18N;
+      return Object.keys(full && full.STRINGS ? full.STRINGS : T);
+    },
+    setMode(mode) { this.mode = mode; this.save(); return this; },
+    setFunny(lang, level) {
+      this.funny = Object.assign({}, this.funny);
+      this.funny[lang] = Math.min(5, Math.max(1, Number(level) || 3));
+      this.save();
+      return this;
     },
     save() { store.set("lang", this.mode); store.set("funny", this.funny); }
   };
@@ -416,6 +438,10 @@
     id() { return Math.random().toString(16).slice(2, 9); },
     persist() { store.set("vcs.log", this.log.slice(0, 300)); store.set("vcs.head", this.head); },
     current() { return this.log.find((c) => c.id === this.head) || null; },
+    /* Everything Studio owns travels together. Restoring an account without the
+       configuration it ran under is a subtly wrong state — worse than offering no
+       undo at all — so tabs, appearance, language and pricing ride along with the
+       profiles rather than being snapshotted separately. */
     snapshot() {
       return {
         profiles: store.get("profiles", null),
@@ -423,8 +449,14 @@
         config: store.get("config", {}),
         features: store.get("features", {}),
         appearance: store.get("appearance", {}),
+        appearancePresets: store.get("appearancePresets", []),
+        tabs: store.get("tabs", null),
         prices: store.get("prices", null),
-        cost: store.get("cost", null)
+        cost: store.get("cost", null),
+        lang: store.get("lang", "en"),
+        funny: store.get("funny", null),
+        settings: store.get("settings", null),
+        yolo: store.get("yolo", false)
       };
     },
     restore(snap) {
@@ -435,7 +467,7 @@
       this.log.unshift(c);
       this.head = c.id;
       this.persist();
-      bridge.invoke("codex_git_commit", { message, kind: c.kind }).catch(() => {});
+      bridge.invoke("codex_history_commit", { message, kind: c.kind, snapshot: c.snapshot }).catch((e) => notifyBackendFailure("history", e));
       return c;
     },
     /** Revert to the state *before* commit `id`, as a new commit. */
@@ -450,7 +482,7 @@
       this.log.unshift(c);
       this.head = c.id;
       this.persist();
-      bridge.invoke("codex_git_commit", { message: c.message, kind: "revert" }).catch(() => {});
+      bridge.invoke("codex_history_commit", { message: c.message, kind: "revert", snapshot: snap }).catch((e) => notifyBackendFailure("history", e));
       return c;
     },
     undo() { return this.log.length ? this.revert(this.log[0].id) : null; },
@@ -466,5 +498,112 @@
     }
   };
 
-  g.CX = { bridge, store, toToml, evaluate, CONSTRUCTS, FLAGS, LIMITS, color, i18n, narrator, vcs, sim: state };
+  /* ------------------------------------------------ notifications, tabs, settings */
+
+  const notify = g.CX_NOTIFY ? g.CX_NOTIFY.create().load() : null;
+  const tabs = g.CX_TABS ? g.CX_TABS.create(store) : null;
+
+  /** Backend failures are surfaced, never swallowed. The title is styled by the
+      funny level; `detail` always carries what the backend literally said. */
+  function notifyBackendFailure(what, err) {
+    const detail = err && err.message ? err.message : String(err);
+    if (notify) notify.error(i18n.t("err." + what) || what, detail, { detail });
+    else console.error("[codex-studio] " + what + ": " + detail);
+    return null;
+  }
+
+  const settings = {
+    all: store.get("settings", {
+      density: "comfortable",
+      dimSum: true,
+      narrator: false,
+      narratorLang: "en",
+      reducedMotion: false,
+      editor: "",
+      editorExe: "",
+      historyKeep: 200
+    }),
+    get(key, fallback) { return key in this.all ? this.all[key] : fallback; },
+    set(key, value) {
+      this.all = Object.assign({}, this.all, { [key]: value });
+      store.set("settings", this.all);
+      return this.all;
+    }
+  };
+
+  /* ------------------------------------------------ dim sum surprise
+     A 1% draw per launch, from a fresh random number — never more frequent than
+     stated, never twice in one launch, and never on a first run or an error path,
+     because a delight that interrupts someone mid-problem is not a delight. */
+  const dimsum = {
+    drawn: false,
+    draw() {
+      if (this.drawn) return null;
+      this.drawn = true;
+      if (!settings.get("dimSum", true)) return null;
+      if (!store.get("hasLaunchedBefore", false)) { store.set("hasLaunchedBefore", true); return null; }
+      const cat = g.CX_DIMSUM;
+      return cat ? cat.draw(0.01) : null;
+    }
+  };
+
+  /* ------------------------------------------------ live backend state
+     Under Tauri the simulated `state` object is *replaced in place* with what the
+     real CLI reports, so every panel that already reads CX.sim.mcp keeps working
+     and starts showing real data. In a browser the simulation stays, which is what
+     makes the same build openable as a design preview. */
+  const live = {
+    ready: false,
+    at: 0,
+    errors: {},
+    async hydrate(cwd) {
+      if (!bridge.available) { this.ready = true; return state; }
+      let real;
+      try {
+        real = await bridge.invoke("codex_state", { cwd: cwd || null });
+      } catch (e) {
+        return notifyBackendFailure("state", e);
+      }
+      state.codexHome = real.codexHome || state.codexHome;
+      state.version = real.version || state.version;
+      state.auth = real.auth || state.auth;
+      state.mcp = (real.mcp || []).map((m) => Object.assign({ tools: null }, m));
+      state.plugins = real.plugins || [];
+      /* The marketplace browser was written against a richer catalogue than the
+         CLI exposes; fill the display-only fields rather than blanking the panel. */
+      state.catalog = (real.catalog || []).map((c) => Object.assign({
+        author: c.marketplace || "", installs: null, tags: []
+      }, c));
+      state.marketplaces = real.marketplaces || [];
+      state.skills = real.skills || [];
+      state.hooks = real.hooks || [];
+      state.features = real.features || [];
+      state.sessions = real.sessions || [];
+      state.config = real.config || {};
+      state.wslDistros = real.wslDistros || [];
+      this.errors = real.errors || {};
+      this.ready = true;
+      this.at = Date.now();
+      /* A section that failed is reported once, by name, with what the CLI said —
+         a silently empty list reads as "you have none", which is a different fact. */
+      Object.keys(this.errors).forEach((k) => {
+        if (notify) notify.warn(i18n.t("err.section", { section: k }), String(this.errors[k]), { detail: String(this.errors[k]) });
+      });
+      return state;
+    },
+    async wsl() {
+      try {
+        const r = await bridge.invoke("codex_wsl_list", {});
+        state.wslDistros = r.distros || state.wslDistros;
+        state.wsl = r.instances || {};
+        return r;
+      } catch (e) { return notifyBackendFailure("wsl", e); }
+    }
+  };
+
+  g.CX = {
+    bridge, store, toToml, evaluate, CONSTRUCTS, FLAGS, LIMITS, color, i18n, narrator, vcs,
+    notify, tabs, settings, dimsum, live, notifyBackendFailure,
+    sim: state
+  };
 })(window);
