@@ -9,3 +9,4 @@ package-lock.json
 # Local build scratch
 dist/
 *.log
+vendor/codex-bin/

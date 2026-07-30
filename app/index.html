@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Everything is bundled: no CDN, no remote font, no outbound request. `unsafe-eval`
+     is required because the design-compiler runtime (support.js) compiles this page's
+     own template and logic with `new Function` — code already in the bundle, never
+     anything fetched. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self'; media-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>Codex Studio</title>
 <!-- React is vendored locally: the shipped app runs under a strict `default-src 'self'`
      CSP and must never reach a CDN. support.js only fetches React when window.React is
@@ -60,6 +65,9 @@ button,input,textarea,select{font-family:inherit;color:inherit;max-width:100%}
 ::-webkit-scrollbar-track{background:transparent}
 @keyframes cxin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes cxdot{0%,80%,100%{opacity:.25}40%{opacity:1}}
+/* The custom title bar drags the window; anything interactive inside it has to
+   opt back out or the strip swallows the click before the button ever sees it. */
+[data-nodrag],[data-appear="Title bar"] button,[data-appear="Title bar"] input{-webkit-app-region:no-drag}
 </style>
 <script src="codex-data.js"></script>
 <script src="cx-i18n.js"></script>
@@ -72,7 +80,7 @@ button,input,textarea,select{font-family:inherit;color:inherit;max-width:100%}
 
 <div style="display:flex;flex-direction:column;height:100vh;overflow:hidden" onContextMenu="{{ onContextMenu }}" onClick="{{ onRootClick }}">
 
-  <div data-tauri-drag-region="true" data-appear="Title bar" style="flex:0 0 auto;min-height:38px;display:flex;align-items:center;gap:8px;padding:4px 6px 4px 12px;background:var(--m3-surface-low);border-bottom:1px solid var(--m3-outline-variant);user-select:none;flex-wrap:wrap;row-gap:4px">
+  <div data-appear="Title bar" style="-webkit-app-region:drag;flex:0 0 auto;min-height:38px;display:flex;align-items:center;gap:8px;padding:4px 6px 4px 12px;background:var(--m3-surface-low);border-bottom:1px solid var(--m3-outline-variant);user-select:none;flex-wrap:wrap;row-gap:4px">
     <div style="width:16px;height:16px;flex:0 0 16px;border-radius:5px;background:var(--m3-primary)"></div>
     <div style="font-size:12.5px;font-weight:500;white-space:nowrap">Codex Studio</div>
     <div style="font-family:'Roboto Mono',monospace;font-size:10.5px;color:var(--m3-on-surface-variant);padding:2px 7px;border:1px solid var(--m3-outline-variant);border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ cliVersion }}</div>
@@ -86,15 +94,15 @@ button,input,textarea,select{font-family:inherit;color:inherit;max-width:100%}
       <span style="font-size:10.5px;color:var(--m3-on-surface-variant)">paid</span>
       <span style="font-size:12px;font-weight:500;color:{{ lifetimePaidFg }}">{{ lifetimePaid }}</span>
       <span style="font-size:10.5px;color:{{ lifetimeDeltaFg }}">{{ lifetimeDelta }}</span>
-      <button onClick="{{ openLifetimeMenu }}" title="Window length" style="height:22px;padding:0 8px;border-radius:11px;border:none;background:var(--m3-surface-high);color:var(--m3-on-surface-variant);cursor:pointer;font-size:10.5px;white-space:nowrap">{{ lifetimeLabel }} ▾</button>
+      <button data-nodrag="true" onClick="{{ openLifetimeMenu }}" title="Window length" style="height:22px;padding:0 8px;border-radius:11px;border:none;background:var(--m3-surface-high);color:var(--m3-on-surface-variant);cursor:pointer;font-size:10.5px;white-space:nowrap">{{ lifetimeLabel }} ▾</button>
     </div>
-    <button onClick="{{ toggleYolo }}" title="{{ yoloHint }}" style="height:26px;padding:0 12px;border-radius:13px;border:1px solid {{ yoloBorder }};background:{{ yoloBg }};color:{{ yoloFg }};cursor:pointer;font-size:11px;font-weight:500;white-space:nowrap">{{ yoloLabel }}</button>
-    <button onClick="{{ undoLatest }}" title="{{ undoHint }}" style="height:26px;padding:0 12px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11px;white-space:nowrap">↺ Undo</button>
-    <button onClick="{{ openLangMenu }}" title="Language mode" style="height:26px;padding:0 10px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11px;white-space:nowrap">{{ langLabel }} ▾</button>
-    <button onClick="{{ toggleTheme }}" title="Light / dark" style="height:26px;padding:0 10px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11px;white-space:nowrap">{{ themeLabel }}</button>
-    <button onClick="{{ winMin }}" title="Minimise" style="width:30px;height:26px;flex:0 0 30px;border:none;background:transparent;color:var(--m3-on-surface-variant);border-radius:7px;cursor:pointer;font-size:14px" style-hover="background:var(--m3-surface-high)">‒</button>
-    <button onClick="{{ winMax }}" title="Maximise" style="width:30px;height:26px;flex:0 0 30px;border:none;background:transparent;color:var(--m3-on-surface-variant);border-radius:7px;cursor:pointer;font-size:11px" style-hover="background:var(--m3-surface-high)">◻</button>
-    <button onClick="{{ winClose }}" title="Close" style="width:30px;height:26px;flex:0 0 30px;border:none;background:transparent;color:var(--m3-on-surface-variant);border-radius:7px;cursor:pointer;font-size:13px" style-hover="background:var(--m3-error-container)">✕</button>
+    <button data-nodrag="true" onClick="{{ toggleYolo }}" title="{{ yoloHint }}" style="height:26px;padding:0 12px;border-radius:13px;border:1px solid {{ yoloBorder }};background:{{ yoloBg }};color:{{ yoloFg }};cursor:pointer;font-size:11px;font-weight:500;white-space:nowrap">{{ yoloLabel }}</button>
+    <button data-nodrag="true" onClick="{{ undoLatest }}" title="{{ undoHint }}" style="height:26px;padding:0 12px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11px;white-space:nowrap">↺ Undo</button>
+    <button data-nodrag="true" onClick="{{ openLangMenu }}" title="Language mode" style="height:26px;padding:0 10px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11px;white-space:nowrap">{{ langLabel }} ▾</button>
+    <button data-nodrag="true" onClick="{{ toggleTheme }}" title="Light / dark" style="height:26px;padding:0 10px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11px;white-space:nowrap">{{ themeLabel }}</button>
+    <button data-nodrag="true" onClick="{{ winMin }}" title="Minimise" style="width:30px;height:26px;flex:0 0 30px;border:none;background:transparent;color:var(--m3-on-surface-variant);border-radius:7px;cursor:pointer;font-size:14px" style-hover="background:var(--m3-surface-high)">‒</button>
+    <button data-nodrag="true" onClick="{{ winMax }}" title="Maximise" style="width:30px;height:26px;flex:0 0 30px;border:none;background:transparent;color:var(--m3-on-surface-variant);border-radius:7px;cursor:pointer;font-size:11px" style-hover="background:var(--m3-surface-high)">◻</button>
+    <button data-nodrag="true" onClick="{{ winClose }}" title="Close" style="width:30px;height:26px;flex:0 0 30px;border:none;background:transparent;color:var(--m3-on-surface-variant);border-radius:7px;cursor:pointer;font-size:13px" style-hover="background:var(--m3-error-container)">✕</button>
   </div>
 
   <div data-appear="Tab strip" style="flex:0 0 auto;display:flex;align-items:stretch;gap:4px;min-height:38px;padding:4px 6px;background:var(--m3-surface-dim);border-bottom:1px solid var(--m3-outline-variant);overflow:hidden">
@@ -963,7 +971,7 @@ class Component extends DCLogic {
     yolo: CX.store.get("yolo", false),
     consoleSub: "exec",
     flagValues: {},
-    runOutput: [{ level: "dim", text: "Output appears here. Under Tauri this streams line by line from the real process." }],
+    runOutput: [{ level: "dim", text: "Compose a command above, then Run. Output streams here line by line from the real process." }],
     copied: false,
     listQuery: "", listRegex: null,
     extCat: "mcp", extQuery: "", extRegex: null,
@@ -1004,7 +1012,10 @@ class Component extends DCLogic {
 
     /* Replace the simulated catalogue with what the real CLI reports. Panels read
        CX.sim.* directly, so hydrating in place is all the wiring they need. */
-    CX.live.hydrate(this.profile().cwd).then(() => this.setState({ tick: this.state.tick + 1 }));
+    CX.live.hydrate(this.expandPath(this.profile().cwd)).then(() => this.adoptReal());
+    CX.bridge.invoke("codex_history_log", { limit: 200 })
+      .then((r) => { this._gitLog = (r.commits || []).map((c) => ({ id: c.id, at: c.at * 1000, message: c.message, kind: c.kind })); this.setState({ tick: this.state.tick + 1 }); })
+      .catch(() => {});
     CX.bridge.invoke("codex_editors").then((r) => this.setState({ editors: (r && r.editors) || [] })).catch(() => {});
     this.loadChangelog();
 
@@ -1017,6 +1028,20 @@ class Component extends DCLogic {
     if (CX.notify) {
       this._unnotify = CX.notify.subscribe(() => this.setState({ notifyTick: this.state.notifyTick + 1 }));
     }
+    /* The screenshot harness and the devtools console both need a handle on the
+       mounted logic to drive a surface into a given state. */
+    window.__cxRoot = this;
+
+    /* One subscription for every streamed run; each line is routed to whichever
+       surface started that run id. Without this the console only fills in after the
+       process exits, which for a long agent turn is the whole point missed. */
+    this._runs = {};
+    this._unstream = CX.bridge.listen("codex://stdout", (event) => {
+      const line = event && event.payload ? event.payload : event;
+      if (!line) return;
+      const run = this._runs[line.id];
+      if (run) run.onLine(line);
+    });
 
     /* One draw per launch, never on a first run, never during an error path. */
     const dish = CX.dimsum.draw();
@@ -1036,6 +1061,7 @@ class Component extends DCLogic {
     clearTimeout(this._toast);
     if (this._untabs) this._untabs();
     if (this._unnotify) this._unnotify();
+    if (this._unstream) this._unstream();
   }
   componentDidUpdate() { this.applyAppearance(); }
 
@@ -1077,6 +1103,96 @@ class Component extends DCLogic {
   }
 
   profile() { return this.state.profiles.find((p) => p.id === this.state.activeProfile) || this.state.profiles[0]; }
+
+  /** Replace the seeded profiles and sessions with what is actually on this machine:
+   *  `[profiles.*]` out of config.toml, and the real rollout files under CODEX_HOME.
+   *  A machine with no saved sessions shows an empty list — which is the truth — and
+   *  never the design's placeholder threads. */
+  adoptReal() {
+    const real = CX.sim.sessions || [];
+    const cfgProfiles = (CX.sim.config && CX.sim.config.profiles) || {};
+    const names = Object.keys(cfgProfiles);
+    const palette = ["#D0BCFF", "#9BD5A8", "#F1C27A", "#EFB8C8", "#8FC7E8"];
+
+    const toSession = (r) => ({
+      id: r.id,
+      name: r.name || String(r.id).slice(0, 8),
+      cwd: r.cwd || "",
+      updated: r.updatedAt ? new Date(r.updatedAt * 1000).toTimeString().slice(0, 5) : "",
+      updatedAt: r.updatedAt || 0,
+      turns: null,
+      archived: !!r.archived,
+      path: r.path
+    });
+
+    /* Studio's "Personal" profile is the machine's default: every saved session
+       lives there unless a config profile claims it by working directory. */
+    const claimed = {};
+    const profiles = names.map((name, i) => {
+      const cfg = cfgProfiles[name] || {};
+      const cwd = cfg.cwd || "";
+      const sessions = real.filter((r) => cwd && r.cwd && r.cwd.toLowerCase().indexOf(String(cwd).toLowerCase()) === 0);
+      sessions.forEach((r) => { claimed[r.id] = true; });
+      return {
+        id: name,
+        name: name,
+        color: palette[(i + 1) % palette.length],
+        model: cfg.model || "",
+        approval: cfg.approval_policy || "",
+        sandbox: cfg.sandbox_mode || "",
+        cwd: cwd || (CX.sim.codexHome || ""),
+        config: cfg,
+        sessions: sessions.map(toSession)
+      };
+    });
+
+    const personal = {
+      id: "personal",
+      name: "Personal",
+      color: palette[0],
+      model: (CX.sim.config && CX.sim.config.model) || "",
+      approval: (CX.sim.config && CX.sim.config.approval_policy) || "",
+      sandbox: (CX.sim.config && CX.sim.config.sandbox_mode) || "",
+      cwd: (real.find((r) => r.cwd) || {}).cwd || (CX.sim.codexHome || ""),
+      config: {},
+      sessions: real.filter((r) => !claimed[r.id]).map(toSession)
+    };
+
+    const all = [personal].concat(profiles);
+    const activeProfile = all.some((x) => x.id === this.state.activeProfile) ? this.state.activeProfile : "personal";
+    const active = all.find((x) => x.id === activeProfile) || personal;
+    const activeSession = active.sessions.length ? active.sessions[0].id : null;
+
+    CX.store.set("profiles", all);
+    CX.store.set("activeProfile", activeProfile);
+
+    /* Rebuild the tab strip from the real sessions, keeping anything the user
+       pinned or grouped that still exists. */
+    if (CX.tabs) {
+      const keep = CX.tabs.all().filter((t) => t.pinned || t.groupId);
+      const seen = {};
+      keep.forEach((t) => { seen[t.id] = true; });
+      const snapshot = CX.tabs.snapshot();
+      CX.tabs.restore({
+        tabs: keep.concat(
+          active.sessions.slice(0, 8).filter((sn) => !seen[sn.id]).map((sn, i) => ({
+            id: sn.id, title: sn.name, kind: "chat", payload: { session: sn.id },
+            pinned: false, groupId: null, order: keep.length + i + 1, dirty: false, workspace: activeProfile
+          }))
+        ),
+        groups: snapshot.groups,
+        activeId: activeSession
+      });
+    }
+
+    this.setState({
+      profiles: all,
+      activeProfile: activeProfile,
+      activeSession: activeSession,
+      messages: [],
+      tick: this.state.tick + 1
+    });
+  }
   writeProfiles(profiles, message) {
     CX.store.set("profiles", profiles);
     this.setState({ profiles, tick: this.state.tick + 1 });
@@ -1185,13 +1301,65 @@ class Component extends DCLogic {
     return (t) => !q || String(t).toLowerCase().includes(q);
   }
 
+  /** A new thread starts empty. Nothing here is a canned transcript — every message
+   *  below the composer came out of a real `codex` process. */
   seedMessages() {
-    return [
-      { role: "user", text: "Wire the GUI's Run button to the real CLI through Tauri and stream stdout.", at: "14:02" },
-      { role: "reasoning", text: "Looking for the invoke handler and the process spawn path.", at: "14:02" },
-      { role: "tool", text: "rg -n \"tauri::Builder\" src-tauri/src", out: "src-tauri/src/main.rs:150: tauri::Builder::default()", at: "14:02" },
-      { role: "assistant", text: "`codex_run` now spawns the CLI with the argv the GUI composed and emits one `codex://stdout` event per line, so the console renders output as it arrives instead of after exit.", at: "14:03" }
-    ];
+    return [];
+  }
+
+  /** The argv a run actually executes, as an array. Splitting the display string on
+   *  spaces would tear a quoted prompt into pieces the moment it contains one. */
+  buildArgv(sub) {
+    const s = sub || this.currentSub();
+    const v = this.state.flagValues;
+    const p = this.profile();
+    const argv = [];
+    if (s.name !== "(interactive)") argv.push(s.name);
+    if (this.state.yolo) argv.push("--dangerously-bypass-approvals-and-sandbox");
+    this.flagList().forEach((f) => {
+      const val = v[f.flag];
+      if (val == null || val === "" || val === false) return;
+      if (f.type === "bool") argv.push(f.flag);
+      else if (/^[A-Z]/.test(f.flag)) argv.push(String(val));   // positional
+      else argv.push(f.flag, String(val));
+    });
+    if (p.id !== "personal") argv.push("--profile", p.id);
+    return argv;
+  }
+
+  /** Flags every run shares: where it runs and which profile settings apply. Written
+   *  as `-c key=value` overrides rather than mutating config.toml, so a run never
+   *  changes the user's saved configuration as a side effect. */
+  profileArgv() {
+    const p = this.profile();
+    const argv = ["-C", this.expandPath(p.cwd), "--skip-git-repo-check"];
+    if (p.model) argv.push("-m", p.model);
+    if (this.state.yolo) {
+      argv.push("--dangerously-bypass-approvals-and-sandbox");
+    } else {
+      if (p.sandbox) argv.push("-s", p.sandbox);
+      if (p.approval) argv.push("-c", "approval_policy=" + JSON.stringify(p.approval));
+    }
+    return argv;
+  }
+
+  /** `~` is the user's shell talking, not a path the CLI understands. */
+  expandPath(dir) {
+    const home = (CX.sim.codexHome || "").replace(/[\\/]\.codex$/, "");
+    return String(dir || "").replace(/^~/, home || "");
+  }
+
+  /** One place every streamed run funnels through, so the console, the chat and any
+   *  future surface all get live output rather than a wait-then-dump. */
+  startRun(argv, opts) {
+    const id = "run-" + Math.random().toString(36).slice(2, 9);
+    const o = opts || {};
+    this._runs = this._runs || {};
+    this._runs[id] = { onLine: o.onLine || (() => {}) };
+    return CX.bridge
+      .invoke("codex_run", { id: id, args: argv, cwd: o.cwd || null, stream: "codex://stdout" })
+      .then((res) => { delete this._runs[id]; return Object.assign({ id: id }, res); })
+      .catch((e) => { delete this._runs[id]; throw e; });
   }
   toggleRow(on) {
     return { track: on ? "var(--m3-primary)" : "transparent", trackBorder: on ? "var(--m3-primary)" : "var(--m3-outline)",
@@ -1452,7 +1620,7 @@ class Component extends DCLogic {
 
     const v = {
       cliVersion: st.cliVersion,
-      bridgeLabel: CX.bridge.mode === "tauri" ? "Tauri IPC" : "Browser preview",
+      bridgeLabel: CX.bridge.mode === "electron" ? "Electron IPC" : "Browser preview",
       themeLabel: st.theme === "dark" ? "Dark" : "Light",
       lang: st.lang,
       toastOpen: !!st.toast, toastText: st.toast || "",
@@ -1783,19 +1951,73 @@ class Component extends DCLogic {
       slashInsert: () => this.setState({ chatInput: this.slashPreviewText() + " ", slashOpen: false }),
       slashRun: () => { this.setState({ chatInput: this.slashPreviewText(), slashOpen: false }, () => v.sendChat()); },
 
+      /** Runs the prompt through `codex exec` in the active profile's working
+       *  directory and streams the agent's output into the transcript as it arrives.
+       *  A slash command is forwarded as the subcommand it names. */
       sendChat: () => {
         const text = (this.state.chatInput || "").trim();
         if (!text) return;
+        if (this.state.thinking) {
+          this.toast(CX.i18n.t("chat.busy"), "info");
+          return;
+        }
         const at = new Date().toTimeString().slice(0, 5);
-        const messages = this.state.messages.concat([{ role: "user", text, at }]);
-        this.setState({ messages, chatInput: "", slashOpen: false, thinking: true });
-        CX.bridge.invoke("codex_run", { command: "codex " + (text.startsWith("/") ? text.slice(1) : JSON.stringify(text)), model: p.model }).then((res) => {
-          const reply = text.startsWith("/")
-            ? { role: "tool", text: "codex " + text.slice(1), out: (res.lines || []).map((l) => l.text).join("\n"), at }
-            : { role: "assistant", text: "Working on it. " + ((res.lines || []).map((l) => l.text).slice(-1)[0] || ""), at };
-          this.setState({ thinking: false, messages: messages.concat([reply]) });
-        }).catch(() => this.setState({ thinking: false }));
+        const cwd = this.expandPath(p.cwd);
+        const slash = text.startsWith("/");
+        const argv = slash
+          ? text.slice(1).split(/\s+/).filter(Boolean).concat(this.profileArgv())
+          : ["exec"].concat(this.profileArgv(), [text]);
+
+        const base = this.state.messages.concat([{ role: "user", text: text, at: at }]);
+        /* The reply is appended empty and then grown line by line, so a long turn
+           shows its work instead of a spinner that finishes with a wall of text. */
+        const replyIndex = base.length;
+        const reply = { role: slash ? "tool" : "assistant", text: slash ? "codex " + text.slice(1) : "", out: "", at: at };
+        this.setState({ messages: base.concat([reply]), chatInput: "", slashOpen: false, thinking: true });
+
+        let buffer = [];
+        let paint = null;
+        const flush = () => {
+          paint = null;
+          const messages = this.state.messages.slice();
+          const target = Object.assign({}, messages[replyIndex]);
+          if (slash) target.out = buffer.join("\n");
+          else target.text = buffer.join("\n");
+          messages[replyIndex] = target;
+          this.setState({ messages: messages });
+        };
+
+        this.startRun(argv, {
+          cwd: cwd,
+          onLine: (line) => {
+            buffer.push(line.text);
+            /* Repainting per line makes a chatty run janky; a short coalescing
+               window keeps it live without re-rendering hundreds of times a second. */
+            if (!paint) paint = setTimeout(flush, 90);
+          }
+        })
+          .then((res) => {
+            if (paint) clearTimeout(paint);
+            buffer = (res.lines || []).map((l) => l.text);
+            flush();
+            this.setState({ thinking: false });
+            if (res.code !== 0) {
+              CX.notify.error(
+                CX.i18n.t("chat.failed", { code: res.code }),
+                (res.lines || []).filter((l) => l.level === "error").map((l) => l.text).join("\n") || ("codex exited " + res.code)
+              );
+            }
+          })
+          .catch((e) => {
+            if (paint) clearTimeout(paint);
+            this.setState({ thinking: false });
+            this.notifyError("run", e);
+          });
       },
+      /** Stopping is honest about what it can do: the composer unblocks immediately,
+       *  and the line says the process is still finishing rather than pretending it
+       *  was killed. */
+      stopChat: () => this.setState({ thinking: false }),
 
       consoleSubDesc: sub.desc,
       consoleFlags: this.flagList().map((f, i) => {
@@ -1829,10 +2051,32 @@ class Component extends DCLogic {
       copyLabel: st.copied ? "Copied" : "Copy",
       copyCommand: () => { navigator.clipboard.writeText(cmd); this.setState({ copied: true }); setTimeout(() => this.setState({ copied: false }), 1400); },
       doRun: () => {
-        this.setState({ runOutput: [{ level: "cmd", text: "$ " + cmd }] });
-        CX.bridge.invoke("codex_run", { command: cmd, args: cmd.split(" ").slice(1), cwd: p.cwd, stream: "codex://stdout" })
-          .then((res) => this.setState({ runOutput: [{ level: "cmd", text: "$ " + cmd }].concat(res.lines || []).concat([{ level: "dim", text: "exit " + (res.code || 0) }]) }))
-          .catch((e) => this.setState({ runOutput: [{ level: "error", text: String(e) }] }));
+        const argv = this.buildArgv(sub);
+        const head = [{ level: "cmd", text: "$ codex " + argv.join(" ") }];
+        this.setState({ runOutput: head });
+        let lines = [];
+        let paint = null;
+        const flush = () => {
+          paint = null;
+          this.setState({ runOutput: head.concat(lines) });
+        };
+        this.startRun(argv, {
+          cwd: this.expandPath(p.cwd),
+          onLine: (line) => {
+            lines.push(line);
+            if (!paint) paint = setTimeout(flush, 90);
+          }
+        })
+          .then((res) => {
+            if (paint) clearTimeout(paint);
+            lines = (res.lines || []).concat([{ level: res.code === 0 ? "ok" : "error", text: "exit " + res.code }]);
+            flush();
+          })
+          .catch((e) => {
+            if (paint) clearTimeout(paint);
+            this.setState({ runOutput: head.concat([{ level: "error", text: e && e.message ? e.message : String(e) }]) });
+            this.notifyError("run", e);
+          });
       },
       runOutput: st.runOutput.map((l, i) => ({
         key: i, text: l.text,
@@ -1965,7 +2209,7 @@ class Component extends DCLogic {
       healthCards: this.healthCards(st.healthView),
 
       historyIntro: "Every profile, session and config change is committed to a local git repo in $CODEX_HOME/studio. Undo writes a revert commit instead of popping a stack, so an undo can itself be undone — as many times as you like.",
-      historyRows: CX.vcs.log.filter((c) => st.historyKind === "all" || c.kind === st.historyKind).slice(0, 60).map((c, i) => ({
+      historyRows: (this._gitLog && this._gitLog.length ? this._gitLog : CX.vcs.log).filter((c) => st.historyKind === "all" || c.kind === st.historyKind).slice(0, 60).map((c, i) => ({
         key: c.id, sha: c.id, message: c.message,
         meta: new Date(c.at).toLocaleString() + " · " + c.kind + (i === 0 && st.historyKind === "all" ? " · HEAD" : ""),
         border: i === 0 && st.historyKind === "all" ? "var(--m3-primary)" : "var(--m3-outline-variant)",
@@ -2241,7 +2485,7 @@ class Component extends DCLogic {
   /* --------------------------------------------------- changelog bindings */
   changelogVals() {
     const st = this.state;
-    const eng = g.CX_CHANGELOG;
+    const eng = window.CX_CHANGELOG;
     const empty = { isChangelog: st.nav === "changelog", clogReleases: [], clogEmpty: true };
     if (!eng) return Object.assign(empty, { clogEmptyText: CX.i18n.t("changelog.unavailable") });
     if (st.clogError) return Object.assign(empty, { clogEmptyText: st.clogError });
@@ -2286,10 +2530,13 @@ class Component extends DCLogic {
         : badTo
           ? CX.i18n.t("changelog.badDate", { value: st.clogTo })
           : CX.i18n.t("changelog.status", { versions: shown.length, matches: result.matchCount || 0 }),
-      clogPresetLabel: (eng.PRESETS.find((x) => x.id === st.clogPreset) || { label: { en: "All time" } }).label.en || "All time",
+      clogPresetLabel: (() => {
+        const preset = eng.PRESETS.find((x) => x.id === st.clogPreset);
+        return preset ? this.presetLabel(preset) : this.presetLabel(eng.PRESETS[0]);
+      })(),
       openClogPreset: (e) => this.openDropdown(e, {
         title: "Date range", value: st.clogPreset, width: 260,
-        options: eng.PRESETS.map((x) => ({ value: x.id, label: x.label.en })),
+        options: eng.PRESETS.map((x) => ({ value: x.id, label: this.presetLabel(x) })),
         onPick: (o) => {
           const preset = eng.PRESETS.find((x) => x.id === o.value);
           const r = preset && preset.range ? preset.range(new Date()) : { from: null, to: null };
@@ -2329,6 +2576,18 @@ class Component extends DCLogic {
     };
   }
 
+  /** A changelog preset labels itself per language and per funny level, exactly like
+   *  every other string — resolve it the same way rather than reading the raw array,
+   *  which renders as the five levels concatenated. */
+  presetLabel(preset) {
+    if (!preset || !preset.label) return "";
+    const lang = CX.i18n.mode === "yue" ? "yue" : "en";
+    const en = CX.i18n.pick(preset.label.en, "en");
+    const yue = CX.i18n.pick(preset.label.yue, "yue");
+    if (CX.i18n.mode === "bi") return en === yue ? en : en + "  ·  " + yue;
+    return lang === "yue" ? yue : en;
+  }
+
   /* ------------------------------------------------------ studio bindings */
   studioVals() {
     const st = this.state;
@@ -2362,7 +2621,7 @@ class Component extends DCLogic {
       : null;
     return {
       dimSumOpen: !!dish,
-      dimSumArt: dish ? "data:image/svg+xml;charset=utf-8," + encodeURIComponent(dish.art) : "",
+      dimSumArt: dish ? dish.image : "",
       dimSumName: dish ? dish.en + " · " + dish.yue : "",
       dimSumAlt: dish ? (yue ? dish.alt.yue : dish.alt.en) : "",
       dimSumGreeting: dish ? CX.i18n.t("dimsum.greeting", { dish: yue ? dish.yue : dish.en }) : "",
@@ -2639,24 +2898,19 @@ class Component extends DCLogic {
 
   loadChangelog() {
     const done = (text) => this.setState({ clogText: text, clogError: null });
+    const fail = (e) => this.setState({ clogError: e && e.message ? e.message : String(e) });
+    /* Under file:// a fetch() is refused before it reaches the disk, so the IPC path
+       comes first whenever a shell is present. The fetch is the browser-preview path. */
+    if (CX.bridge.available) {
+      CX.bridge.invoke("codex_read_text", { path: "CHANGELOG.md" }).then((r) => done(r.text)).catch(fail);
+      return;
+    }
     fetch("./CHANGELOG.md")
       .then((r) => (r.ok ? r.text() : Promise.reject(new Error("HTTP " + r.status))))
       .then(done)
-      .catch(() => CX.bridge.invoke("codex_read_text", { path: "CHANGELOG.md" })
-        .then((r) => done(r.text))
-        .catch((e) => this.setState({ clogError: e && e.message ? e.message : String(e) })));
+      .catch(fail);
   }
 
-  clogRange() {
-    const parse = (t) => {
-      if (!t) return null;
-      const eng = g_CX_CHANGELOG();
-      if (!eng) return null;
-      const r = eng.parseDate(t);
-      return r && r.ok ? r.date : null;
-    };
-    return { from: parse(this.state.clogFrom), to: parse(this.state.clogTo) };
-  }
 
   /* ----------------------------------------------------------- studio */
 
@@ -2730,7 +2984,7 @@ class Component extends DCLogic {
           toggle("Show the dim sum surprise", "One fresh draw per launch, at most 1%. Bundled artwork, no network.", "dimsum", !!se.get("dimSum", true),
             () => { se.set("dimSum", !se.get("dimSum", true)); this.setState({ tick: this.state.tick + 1 }); }),
           action("Show one now", "Preview the surface without waiting for the draw.", "dimsumtest", "Preview", "var(--m3-primary)",
-            () => { const cat = g.CX_DIMSUM; const d = cat ? cat.draw(1) : null; if (d) { clearTimeout(this._dimTimer); this.setState({ dimSum: d }); this._dimTimer = setTimeout(() => this.setState({ dimSum: null }), 9000); } })
+            () => { const cat = window.CX_DIMSUM; const d = cat ? cat.draw(1) : null; if (d) { clearTimeout(this._dimTimer); this.setState({ dimSum: d }); this._dimTimer = setTimeout(() => this.setState({ dimSum: null }), 9000); } })
         ]
       },
       {

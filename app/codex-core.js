@@ -1,6 +1,6 @@
 /* Codex Studio — runtime core.
-   Tauri-first: every backend call goes through bridge.invoke(), which routes to
-   window.__TAURI__.core.invoke when running inside the Tauri shell and to a local
+   Desktop-first: every backend call goes through bridge.invoke(), which routes to
+   the Electron preload bridge when running inside the shell and to a local
    simulation when the same build is opened in a browser. */
 (function (g) {
   "use strict";
@@ -10,27 +10,32 @@
     set(k, v) { try { localStorage.setItem("codexstudio." + k, JSON.stringify(v)); } catch (e) {} }
   };
 
-  /* ------------------------------------------------ Tauri bridge */
+  /* ------------------------------------------------ desktop bridge
+     Under Electron the preload exposes window.CODEX_BRIDGE — a fixed list of named
+     commands, not a generic escape hatch. Opened in a plain browser the same build
+     falls through to the simulation below, which is what makes this file openable as
+     a design preview without a shell around it. */
   const bridge = {
-    get available() { return !!(g.__TAURI__ && (g.__TAURI__.core || g.__TAURI__.invoke)); },
-    get mode() { return this.available ? "tauri" : "browser"; },
+    get host() { return g.CODEX_BRIDGE || null; },
+    get available() { return !!g.CODEX_BRIDGE; },
+    get mode() { return this.available ? "electron" : "browser"; },
     async invoke(cmd, args) {
-      if (this.available) {
-        const inv = g.__TAURI__.core ? g.__TAURI__.core.invoke : g.__TAURI__.invoke;
-        return await inv(cmd, args || {});
-      }
+      if (this.available) return await g.CODEX_BRIDGE.invoke(cmd, args || {});
       return await sim(cmd, args || {});
     },
-    async listen(event, handler) {
-      if (this.available && g.__TAURI__.event) return await g.__TAURI__.event.listen(event, handler);
+    /** Returns an unsubscribe function in both modes, so a caller never has to ask
+        which one it is running under. */
+    listen(event, handler) {
+      if (this.available) {
+        try { return g.CODEX_BRIDGE.listen(event, handler); }
+        catch (e) { return () => {}; }
+      }
       return () => {};
     },
     window: {
       call(method) {
         try {
-          const w = g.__TAURI__ && g.__TAURI__.window && g.__TAURI__.window.getCurrentWindow
-            ? g.__TAURI__.window.getCurrentWindow() : null;
-          if (w && typeof w[method] === "function") w[method]();
+          if (g.CODEX_BRIDGE && g.CODEX_BRIDGE.window) g.CODEX_BRIDGE.window[method]();
         } catch (e) {}
       },
       minimize() { this.call("minimize"); },
@@ -507,7 +512,10 @@
       funny level; `detail` always carries what the backend literally said. */
   function notifyBackendFailure(what, err) {
     const detail = err && err.message ? err.message : String(err);
-    if (notify) notify.error(i18n.t("err." + what) || what, detail, { detail });
+    /* The message carries {detail} at every funny level — that is the point of the
+       voice-not-facts rule — so it has to be interpolated, not merely resolved. */
+    const title = i18n.t("err." + what, { detail: detail });
+    if (notify) notify.error(title === "err." + what ? what : title, detail, { detail });
     else console.error("[codex-studio] " + what + ": " + detail);
     return null;
   }

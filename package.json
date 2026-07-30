@@ -1,0 +1,87 @@
+{
+  "name": "codex-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Material 3 desktop GUI for the Codex CLI",
+  "author": "Ding Ding Projects",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/Ding-Ding-Projects/codex-material",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/sync-changelog.mjs --check",
+    "capture": "node tools/capture.mjs",
+    "dist": "node tools/sync-changelog.mjs && node tools/fetch-codex.mjs && electron-builder --win nsis msi --publish never",
+    "prepare:cli": "node tools/fetch-codex.mjs"
+  },
+  "devDependencies": {
+    "electron": "^40.5.0",
+    "electron-builder": "^26.0.24"
+  },
+  "dependencies": {
+    "smol-toml": "^1.4.2"
+  },
+  "build": {
+    "appId": "dev.codexstudio.app",
+    "productName": "Codex Studio",
+    "copyright": "Codex Studio contributors",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "electron/**/*",
+      "app/**/*",
+      "CHANGELOG.md",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "CHANGELOG.md",
+        "to": "CHANGELOG.md"
+      },
+      {
+        "from": "vendor/codex-bin",
+        "to": "codex-bin",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "msi",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Codex Studio"
+    },
+    "msi": {
+      "oneClick": false,
+      "perMachine": false,
+      "createDesktopShortcut": true
+    }
+  },
+  "allowScripts": {
+    "electron@40.10.6": true,
+    "electron-winstaller@5.4.0": true
+  }
+}

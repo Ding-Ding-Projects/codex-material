@@ -1457,6 +1457,26 @@
       en: ["Opened {path}", "Opened {path}", "Opened {path}", "Opened {path} in your editor", "Opened {path} — go look at your editor"],
       yue: ["開咗 {path}", "開咗 {path}", "開咗 {path}", "喺你個編輯器開咗 {path}", "開咗 {path} — 望下你個編輯器啦"]
     },
+    "chat.busy": {
+      en: ["A run is already in flight.", "A run is already in flight.", "A run is already in flight.",
+        "One run at a time — this thread is still working.", "One at a time. This thread is still busy."],
+      yue: ["已經有一個 run 喺度行緊。", "已經有一個 run 喺度行緊。", "已經有嘢行緊。",
+        "一次行一個 — 呢條 thread 仲做緊嘢。", "一次行一個啦，佢仲喺度做緊嘢。"]
+    },
+    "chat.failed": {
+      en: ["codex exited {code}", "codex exited {code}", "codex exited {code}",
+        "codex exited {code} — the output above is what it said",
+        "codex exited {code}. Whatever it printed above is the whole story."],
+      yue: ["codex 收咗工，exit {code}", "codex 收咗工，exit {code}", "codex 行完，exit {code}",
+        "codex exit {code} — 上面嗰啲就係佢講嘅嘢", "codex exit {code}，佢上面打咗乜就係乜，冇再多。"]
+    },
+    "err.run": {
+      en: ["The run could not start: {detail}", "The run could not start: {detail}",
+        "The run could not start — {detail}", "The run never started. It said: {detail}",
+        "The run never even started. It said: {detail}"],
+      yue: ["個 run 起唔到步：{detail}", "個 run 起唔到步：{detail}", "行唔到 — {detail}",
+        "個 run 根本冇開始過，佢話：{detail}", "個 run 連起步都冇，佢話：{detail}"]
+    },
     "appearance.exported": {
       en: ["Appearance presets copied to the clipboard.", "Appearance presets copied to the clipboard.",
         "Appearance presets copied.", "Appearance presets copied — paste them somewhere safe.",

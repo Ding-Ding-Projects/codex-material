@@ -1,6 +1,6 @@
 name: CI
 
-# Codex Studio is a Windows-only Tauri app, so there is exactly one runner and one
+# Codex Studio is a Windows-only Electron app, so there is exactly one runner and one
 # platform here. Tests live in their own job so that "a failed test publishes no
 # release" is enforced by `needs:` rather than by everyone remembering the rule.
 
@@ -11,9 +11,6 @@ on:
 permissions:
   contents: write
 
-env:
-  CARGO_TERM_COLOR: always
-
 jobs:
   test:
     name: Test
@@ -22,46 +19,47 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # vendor/codex is the upstream Codex CLI source. The app shells out to the
-          # installed `codex` binary and never builds it, so cloning it costs minutes
-          # and buys nothing.
+          # vendor/codex is the upstream Codex CLI source. The app shells out to a
+          # `codex` binary and never builds one, so cloning it costs minutes and buys
+          # nothing.
           submodules: false
-
-      - name: Install Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
-
-      - name: Cache cargo registry and target
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri -> target
-          # Debug artifacts here, release artifacts in the other job. Separate lanes
-          # stop the two jobs from overwriting each other's cache every run.
-          key: test
 
       - name: Install Node 22
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Check formatting
-        working-directory: src-tauri
-        run: cargo fmt --all -- --check
+      - name: Install dependencies
+        # The tests only need the plain modules, so the Electron download is skipped
+        # here and paid for once, in the release job.
+        run: npm install --ignore-scripts
 
-      - name: Lint
-        working-directory: src-tauri
-        run: cargo clippy --all-targets -- -D warnings
-
-      - name: Rust tests
-        working-directory: src-tauri
-        run: cargo test
-
-      - name: Frontend tests
+      - name: Frontend module tests
         run: node tools/test-frontend.mjs
+
+      - name: Backend module tests
+        run: node tools/test-backend.mjs
 
       - name: The bundled changelog matches the root copy
         run: node tools/sync-changelog.mjs --check
+
+      - name: Every file parses
+        shell: pwsh
+        run: |
+          # A syntax error in a module the unit tests do not load never reaches them.
+          # This catches the rest.
+          $failed = @()
+          Get-ChildItem -Path app, electron, tools -Recurse -Include *.js, *.mjs, *.cjs |
+            Where-Object { $_.FullName -notmatch 'node_modules' } |
+            ForEach-Object {
+              node --check $_.FullName 2>&1 | Out-Null
+              if ($LASTEXITCODE -ne 0) { $failed += $_.FullName }
+            }
+          if ($failed.Count -gt 0) {
+            Write-Host "::error::Syntax errors in: $($failed -join ', ')"
+            exit 1
+          }
+          Write-Host "All JavaScript files parse."
 
   release:
     name: Build and release
@@ -79,33 +77,24 @@ jobs:
           # Release notes need the previous tag and the commit range behind it.
           fetch-depth: 0
 
-      - name: Install Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache cargo registry and target
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri -> target
-          key: release
-
       - name: Install Node 22
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Install the Tauri CLI
-        # The repo has no package.json on purpose: the frontend is plain files with
-        # no build step, so the CLI is a build-time tool, not a dependency.
-        run: npm install --no-save "@tauri-apps/cli@^2"
+      - name: Install dependencies
+        # electron and electron-builder both need their postinstall scripts: one
+        # downloads the Electron binary, the other selects a 7-Zip build.
+        run: npm install --foreground-scripts
 
       - name: Resolve version and tag
         id: ver
         shell: pwsh
         run: |
-          $conf = Get-Content -Raw -Path src-tauri/tauri.conf.json | ConvertFrom-Json
-          $version = $conf.version
+          $pkg = Get-Content -Raw -Path package.json | ConvertFrom-Json
+          $version = $pkg.version
           if ([string]::IsNullOrWhiteSpace($version)) {
-            Write-Host "::error file=src-tauri/tauri.conf.json::No version field found; refusing to publish a release we cannot name."
+            Write-Host "::error file=package.json::No version field found; refusing to publish a release we cannot name."
             exit 1
           }
           # run_number is monotonic per workflow and never reused. A re-run keeps the
@@ -115,8 +104,7 @@ jobs:
             $suffix = "$($env:GITHUB_RUN_NUMBER).$($env:GITHUB_RUN_ATTEMPT)"
           }
           $tag = "v$version+build.$suffix"
-          $clash = git tag --list $tag
-          if ($clash) {
+          if (git tag --list $tag) {
             Write-Host "::error::Tag $tag already exists. Tags are immutable here; nothing was overwritten and no release was published."
             exit 1
           }
@@ -132,33 +120,26 @@ jobs:
           # back to the branch — a release job that pushes to its own trigger is an
           # infinite loop. The tag reproduces the choice, so it stays auditable.
           $json = node tools/release-codename.mjs --derive $env:GITHUB_RUN_NUMBER | ConvertFrom-Json
+          $blank = @('assigned=false', 'codeName=', 'slug=', 'asset=', 'alt=')
           if (-not $json.assigned) {
             # A code name is decoration with a purpose, not a gate. Ship anyway.
             Write-Host "::notice::No dim sum code name for this build: $($json.reason)"
-            Add-Content -Path $env:GITHUB_OUTPUT -Value 'assigned=false'
-            Add-Content -Path $env:GITHUB_OUTPUT -Value 'codeName='
-            Add-Content -Path $env:GITHUB_OUTPUT -Value 'image='
-            Add-Content -Path $env:GITHUB_OUTPUT -Value 'asset='
-            Add-Content -Path $env:GITHUB_OUTPUT -Value 'alt='
+            $blank | ForEach-Object { Add-Content -Path $env:GITHUB_OUTPUT -Value $_ }
             return
           }
           $src = Join-Path 'app' $json.bundledImage
           if (-not (Test-Path $src)) {
             Write-Host "::warning::Code name $($json.codeName) resolved but $src is missing; publishing without the photo."
-            Add-Content -Path $env:GITHUB_OUTPUT -Value 'assigned=false'
-            Add-Content -Path $env:GITHUB_OUTPUT -Value 'codeName='
-            Add-Content -Path $env:GITHUB_OUTPUT -Value 'image='
-            Add-Content -Path $env:GITHUB_OUTPUT -Value 'asset='
-            Add-Content -Path $env:GITHUB_OUTPUT -Value 'alt='
+            $blank | ForEach-Object { Add-Content -Path $env:GITHUB_OUTPUT -Value $_ }
             return
           }
 
-          # Validate that the image really decodes before it is published as a release
+          # Validate that the image really decodes before publishing it as a release
           # asset. A truncated PNG that GitHub happily serves is worse than no photo.
           Add-Type -AssemblyName System.Drawing
           $img = [System.Drawing.Image]::FromFile((Resolve-Path $src))
           try {
-            Write-Host "Code name: $($json.codeName) — $($img.Width)x$($img.Height) PNG decoded OK"
+            Write-Host "Code name: $($json.codeName) - $($img.Width)x$($img.Height) PNG decoded OK"
           } finally { $img.Dispose() }
 
           New-Item -ItemType Directory -Force -Path release-assets | Out-Null
@@ -171,27 +152,43 @@ jobs:
           Add-Content -Path $env:GITHUB_OUTPUT -Value "asset=$(Split-Path -Leaf $asset)"
           Add-Content -Path $env:GITHUB_OUTPUT -Value "alt=$($json.altEn)"
 
-      - name: Build the Windows bundle
-        run: npx tauri build --bundles nsis,msi
+      - name: Mirror the changelog into the frontend
+        run: node tools/sync-changelog.mjs
+
+      - name: Stage the bundled Codex CLI
+        id: cli
+        shell: pwsh
+        run: |
+          # ~410 MB unpacked. It ships so a machine that has never installed Codex is
+          # useful the moment Studio is installed; the app still prefers the user's
+          # own `codex` whenever one is on PATH.
+          node tools/fetch-codex.mjs
+          if (Test-Path vendor/codex-bin/bin/codex.exe) {
+            Add-Content -Path $env:GITHUB_OUTPUT -Value 'bundled=true'
+          } else {
+            Write-Host "::warning::No CLI staged; the installer will require the user to already have Codex installed."
+            Add-Content -Path $env:GITHUB_OUTPUT -Value 'bundled=false'
+          }
+
+      - name: Build the Windows installers
+        run: npx electron-builder --win nsis msi --publish never
 
       - name: Verify the installers exist
         shell: pwsh
         run: |
-          $nsisDir = "src-tauri/target/release/bundle/nsis"
-          $msiDir = "src-tauri/target/release/bundle/msi"
-          $nsis = @(Get-ChildItem -Path $nsisDir -Filter *.exe -ErrorAction SilentlyContinue)
-          $msi = @(Get-ChildItem -Path $msiDir -Filter *.msi -ErrorAction SilentlyContinue)
+          $nsis = @(Get-ChildItem -Path dist -Filter *.exe -ErrorAction SilentlyContinue)
+          $msi = @(Get-ChildItem -Path dist -Filter *.msi -ErrorAction SilentlyContinue)
           if ($nsis.Count -eq 0) {
-            Write-Host "::error::No NSIS installer under $nsisDir. A release with no installer is a failed build, not a shipped one."
+            Write-Host "::error::No NSIS installer in dist/. A release with no installer is a failed build, not a shipped one."
             exit 1
           }
           if ($msi.Count -eq 0) {
-            Write-Host "::error::No MSI package under $msiDir. A release with no installer is a failed build, not a shipped one."
+            Write-Host "::error::No MSI package in dist/. A release with no installer is a failed build, not a shipped one."
             exit 1
           }
           foreach ($f in ($nsis + $msi)) {
-            $kb = [math]::Round($f.Length / 1KB)
-            Write-Host "Built $($f.Name) ($kb KB)"
+            $mb = [math]::Round($f.Length / 1MB, 1)
+            Write-Host "Built $($f.Name) ($mb MB)"
           }
 
       - name: Write release notes
@@ -209,10 +206,17 @@ jobs:
           if (-not $lines) { $lines = '- No non-merge commits in this range.' }
           $commits = ($lines -join "`n")
 
+          $bundled = '${{ steps.cli.outputs.bundled }}'
+          if ($bundled -eq 'true') {
+            $cliLine = 'The Codex CLI is **bundled** with this installer, so a machine that has never installed Codex works immediately. If you already have `codex` on your PATH, Studio uses yours — it owns your login and your `~/.codex`.'
+          } else {
+            $cliLine = 'This build does **not** bundle the Codex CLI. Install Codex separately, or Studio will report that it cannot run `codex`.'
+          }
+
           # Built as an array rather than a here-string: a here-string terminator has
           # to sit at column 0, which a YAML block scalar cannot give us.
           $md = @(
-            '## Codex Studio __VERSION__ · Windows',
+            '## Codex Studio __VERSION__ - Windows',
             '',
             '|  |  |',
             '| --- | --- |',
@@ -220,28 +224,29 @@ jobs:
             '| **Commit** | [`__SHORT__`](__REPO__/commit/__SHA__) |',
             '| **Workflow run** | [run #__RUN_NUMBER__](__RUN_URL__) |',
             '| **Runner** | `windows-latest` (GitHub-hosted) |',
-            '',
             '__CODENAME_BLOCK__',
             '',
             '### Installers',
             '',
             'Both attached files install the same build:',
             '',
-            '- `*-setup.exe` — NSIS installer, per-user install, no administrator rights needed.',
-            '- `*.msi` — Windows Installer package, for managed or scripted deployment.',
+            '- `*.exe` - NSIS installer, per-user install, no administrator rights needed.',
+            '- `*.msi` - Windows Installer package, for managed or scripted deployment.',
+            '',
+            '__CLI_LINE__',
             '',
             '### What was checked before this release was published',
             '',
             'The release job runs only when the test job passes, so every check below was green in',
             '[run #__RUN_NUMBER__](__RUN_URL__) before this release existed:',
             '',
-            '- `cargo fmt --all -- --check`',
-            '- `cargo clippy --all-targets -- -D warnings`',
-            '- `cargo test`',
             '- `node tools/test-frontend.mjs`',
+            '- `node tools/test-backend.mjs`',
+            '- `node tools/sync-changelog.mjs --check`',
+            '- every `.js`/`.mjs`/`.cjs` in `app/`, `electron/` and `tools/` parses',
             '',
             'Nothing beyond that has been verified. The installers are **not code-signed**, and this',
-            'workflow does not install or launch them on a clean machine — SmartScreen will warn on',
+            'workflow does not install or launch them on a clean machine - SmartScreen will warn on',
             'first run, and you are trusting the commit above.',
             '',
             '### Changes since __PREV__',
@@ -250,14 +255,34 @@ jobs:
             '',
             '---',
             '',
-            '呢個 build 出自 commit `__SHORT__`，run 喺上面條 link 度睇得返。上面四個 check 全部綠晒先夠膽出呢個 release，',
-            '除咗嗰四個之外冇再驗過任何嘢：安裝檔**未簽名**，SmartScreen 第一次開會嘈，而且呢條 workflow 冇喺乾淨機試裝過。',
+            '呢個 build 出自 commit `__SHORT__`，run 喺上面條 link 度睇得返。上面幾個 check 全部綠晒先夠膽出呢個 release，',
+            '除咗嗰幾個之外冇再驗過任何嘢：安裝檔**未簽名**，SmartScreen 第一次開會嘈，而且呢條 workflow 冇喺乾淨機試裝過。',
             '兩個檔案裝出嚟係同一個 build，`.exe` 唔使 admin，`.msi` 就啱公司批量部署。'
           )
 
           $sha = '${{ github.sha }}'
           $repo = '${{ github.server_url }}/${{ github.repository }}'
           $runUrl = "$repo/actions/runs/${{ github.run_id }}"
+
+          $codeName = '${{ steps.dish.outputs.codeName }}'
+          $asset = '${{ steps.dish.outputs.asset }}'
+          $alt = '${{ steps.dish.outputs.alt }}'
+          if ($codeName) {
+            $block = @(
+              "| **Code name** | $codeName |",
+              '',
+              "![$alt]($repo/releases/download/${{ steps.ver.outputs.tag }}/$asset)",
+              '',
+              "This build's dim sum code name is **$codeName**, drawn from the project's bundled catalog.",
+              "The photo above is attached to this release as ``$asset`` and is bundled with the app - it is",
+              'never fetched from a third party. The version above is still what identifies this build.',
+              '',
+              "呢個 build 嘅點心代號係 **$codeName**，張相 (``$asset``) 一齊附喺呢個 release 度，係 app 自己帶住嘅本地檔，",
+              '唔會去第三方攞。認 build 仲係睇上面個版本號，代號淨係方便大家傾偈嗌得出口。'
+            ) -join "`n"
+          } else {
+            $block = ''
+          }
 
           $body = $md -join "`n"
           $body = $body.Replace('__VERSION__', '${{ steps.ver.outputs.version }}')
@@ -269,29 +294,8 @@ jobs:
           $body = $body.Replace('__RUN_URL__', $runUrl)
           $body = $body.Replace('__PREV__', $prevLabel)
           $body = $body.Replace('__COMMITS__', $commits)
-
-          # The code name is a label beside the version, never a replacement for it.
-          $codeName = '${{ steps.dish.outputs.codeName }}'
-          $asset = '${{ steps.dish.outputs.asset }}'
-          $alt = '${{ steps.dish.outputs.alt }}'
-          if ($codeName) {
-            $block = @(
-              '',
-              "### Code name — $codeName",
-              '',
-              "![$alt](https://github.com/${{ github.repository }}/releases/download/${{ steps.ver.outputs.tag }}/$asset)",
-              '',
-              "This build's dim sum code name is **$codeName**, drawn from the project's bundled catalog.",
-              "The photo above is attached to this release as ``$asset`` and is bundled with the app — it is",
-              'never fetched from a third party. The version above is still what identifies this build.',
-              '',
-              "呢個 build 嘅點心代號係 **$codeName**，張相 (``$asset``) 一齊附喺呢個 release 度，係 app 自己帶住嘅本地檔，",
-              '唔會去第三方攞。認 build 仲係睇上面個版本號，代號淨係方便大家傾偈嗌得出口。'
-            ) -join "`n"
-          } else {
-            $block = ''
-          }
           $body = $body.Replace('__CODENAME_BLOCK__', $block)
+          $body = $body.Replace('__CLI_LINE__', $cliLine)
 
           Set-Content -Path release-notes.md -Value $body -Encoding utf8
           Write-Host "Release notes written for range: $range"
@@ -310,8 +314,8 @@ jobs:
           # The whole point of the release is the installers. No file, no release.
           fail_on_unmatched_files: true
           files: |
-            src-tauri/target/release/bundle/nsis/*.exe
-            src-tauri/target/release/bundle/msi/*.msi
+            dist/*.exe
+            dist/*.msi
 
       - name: Attach the dim sum photo
         # Separate from the installer upload on purpose: the installers are the reason
