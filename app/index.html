@@ -1443,7 +1443,12 @@ class Component extends DCLogic {
   }
   paletteItems() {
     const st = this.state, p = this.profile(), out = [];
-    NAV.forEach((n) => out.push({ group: "Go to", title: n.label, subtitle: n.hint, hint: "↵", run: () => this.setState({ nav: n.id, paletteOpen: false }) }));
+    /* Resolved through i18n like the rail itself. NAV stopped carrying `label` and
+       `hint` when those moved into the string table, and this call site was missed —
+       so all ten "Go to" entries listed a blank title and a blank subtitle. The
+       palette is not captured or audited, so nothing noticed until the smoke test
+       opened it. */
+    NAV.forEach((n) => out.push({ group: "Go to", title: this.navLabel(n.id), subtitle: this.navHint(n.id), hint: "↵", run: () => this.setState({ nav: n.id, paletteOpen: false }) }));
     st.profiles.forEach((pr) => out.push({ group: "Profile", title: pr.name, subtitle: pr.model + " · " + pr.approval + " · " + pr.sandbox, hint: "switch", run: () => { CX.store.set("activeProfile", pr.id); this.setState({ activeProfile: pr.id, paletteOpen: false }); } }));
     p.sessions.forEach((s) => out.push({ group: "Session", title: s.name, subtitle: s.cwd, hint: "open", run: () => this.setState({ nav: "chat", activeSession: s.id, messages: this.seedMessages(), paletteOpen: false }) }));
     DATA.SUBCOMMANDS.forEach((s) => out.push({ group: "Command", title: "codex " + (s.name === "(interactive)" ? "" : s.name), subtitle: s.desc, hint: "console", mono: true, run: () => this.setState({ nav: "console", consoleSub: s.name, flagValues: {}, paletteOpen: false }) }));

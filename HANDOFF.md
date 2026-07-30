@@ -27,7 +27,7 @@ node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/captur
 | `node tools/test-backend.mjs` | **28 passed, 0 failed** |
 | `node tools/capture.mjs` | **exit 0** — 19 shots written, 1 console message (the expected CSP notice) |
 | `node tools/audit-ui.mjs` | **23 findings across 240 cells, 0 severity high** |
-| `node tools/smoke.mjs` | **PASSED** — CLI answered, 40 IPC ok / 7 refused as designed / 8 skipped / 0 failed, 10 panels ok, 0 console errors |
+| `node tools/smoke.mjs` | **PASSED** — CLI answered; 40 IPC ok / 7 refused as designed / 8 skipped / 0 failed; 10 panels, 7 overlays and 3 language modes ok; 0 console errors |
 
 > [!NOTE]
 > **All 17 remaining audit findings are the harness noting a deliberately ellipsised label.**
@@ -56,6 +56,8 @@ fails the run:
 | **CLI** | The real binary is located and answers. If `codex --version` does not come back, the app is a shell around nothing and every other check is theatre. |
 | **IPC** | Every command on the preload allow-list, invoked **through the renderer's own bridge** — so the contextBridge, the named allow-list and the real `ipcRenderer` channel are all in the path. Calling the handler module directly would prove the handlers work while saying nothing about whether the page can reach them. |
 | **PANELS** | All ten navigation panels opened, each checked for unresolved bindings, a thrown render, and a minimum of real content. |
+| **OVERLAYS** | The seven dialogs the panel sweep never touches: regex builder, appearance editor, notification centre, bulk close, calendar, command palette, slash catalog. A binding that only lives inside a dialog can otherwise stay broken indefinitely — the palette listed **ten blank rows** until this phase opened it. |
+| **LANGUAGES** | English, 廣東話 and bilingual at **funny level 5**, sweeping every panel. A key that fails to resolve renders as its own name and a short table read past its end renders as nothing; neither is visible in English at the default level. |
 
 It runs against the authored `CODEX_HOME`, so the destructive commands mutate a fixture.
 

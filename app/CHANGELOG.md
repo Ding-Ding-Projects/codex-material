@@ -81,6 +81,12 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **Ten command-palette entries had no title.** The "Go to" rows read their label
+  from the `NAV` array, which stopped carrying one when the labels moved into the
+  string table — so every one of them rendered as a blank row with a blank subtitle.
+  The palette is not captured and not audited, so nothing noticed until the smoke
+  test's overlay phase opened it.
+
 - **The Runtime panel rendered an empty control on any machine without WSL.**
   `CX.sim.wslDistros[0]` is `undefined` when no distribution is installed — which is
   most machines — so the distribution button's binding never resolved and the dropdown

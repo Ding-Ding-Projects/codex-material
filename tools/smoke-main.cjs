@@ -6,17 +6,26 @@
  * whole thing work when it is wired together — the real preload, the real command
  * handlers, the real `codex` binary, the real files on disk?
  *
- * Three phases, each reported and each able to fail the run:
+ * Five phases, each reported and each able to fail the run:
  *
- *   CLI     the real binary is located and run. If `codex --version` does not answer,
- *           the app is a shell around nothing and everything else here is theatre.
- *   IPC     every command on the preload allow-list is invoked THROUGH the renderer's
- *           own bridge, exactly as the page would. That exercises the contextBridge,
- *           the named allow-list and the real ipcRenderer channel. Calling the handler
- *           module directly would prove the handlers work while saying nothing about
- *           whether the page can reach them.
- *   PANELS  every navigation panel is opened and checked for unresolved bindings, a
- *           thrown render, and a minimum amount of real content.
+ *   CLI       the real binary is located and run. If `codex --version` does not
+ *             answer, the app is a shell around nothing and the rest is theatre.
+ *   IPC       every command on the preload allow-list, invoked THROUGH the renderer's
+ *             own bridge exactly as the page would. That exercises the contextBridge,
+ *             the named allow-list and the real ipcRenderer channel. Calling the
+ *             handler module directly would prove the handlers work while saying
+ *             nothing about whether the page can reach them.
+ *   PANELS    all ten navigation panels, checked for unresolved bindings, a thrown
+ *             render, and a minimum of real content.
+ *   OVERLAYS  the seven dialogs the panel sweep never touches — regex builder,
+ *             appearance editor, notification centre, bulk close, calendar, command
+ *             palette, slash catalog. A binding that only exists inside a dialog can
+ *             otherwise stay broken indefinitely: the command palette listed ten
+ *             blank rows for exactly that reason until this phase opened it.
+ *   LANGUAGES en, 廣東話 and bilingual at funny level 5, sweeping every panel. A key
+ *             that fails to resolve renders as its own name, and a short table read
+ *             past its end renders as nothing — both are invisible in English at the
+ *             default level.
  *
  * It runs against the authored CODEX_HOME (tools/make-capture-home.mjs), so the
  * destructive commands mutate a fixture rather than the operator's own Codex install.
@@ -274,6 +283,99 @@ async function main() {
         (newErrors.length ? "  " + newErrors[0].slice(0, 55) : "") + "\n");
   }
 
+  /* -------------------------------------------------------------- OVERLAYS
+   *
+   * The panel loop never opens these, so a binding that only exists inside a dialog
+   * could be broken indefinitely without any of the checks noticing. Each is opened
+   * the way the app opens it wherever there is a real opener, so the anchoring and
+   * seeding code runs too rather than being bypassed by hand-set state. */
+  out("\nOVERLAYS\n");
+  const OVERLAYS = [
+    { id: "regex builder", nav: "ext", open: 'window.__cxRoot.openRegexFor("ext", "")' },
+    { id: "appearance", nav: "chat", open: '(function(){var h=document.querySelector("[data-appear]");return window.__cxRoot.openAppearFor(h);})()' },
+    { id: "notif centre", nav: "chat", open: 'window.CX.notify.error("smoke","probe"),window.__cxRoot.setState({centreOpen:true})' },
+    { id: "bulk close", nav: "chat", open: 'window.__cxRoot.setState({bulkOpen:true,bulkQuery:"a",bulkInvert:false,bulkPinned:false,bulkScope:{kind:"strip"}})' },
+    { id: "calendar", nav: "changelog", open: 'window.__cxRoot.openCalendar("from",{clientX:600,clientY:300})' },
+    { id: "palette", nav: "chat", open: 'window.__cxRoot.setState({paletteOpen:true,paletteQuery:"",paletteRegex:null})' },
+    { id: "slash catalog", nav: "chat", open: 'window.__cxRoot.setState({slashOpen:true,slashQuery:""})' },
+  ];
+  const RESET_OVERLAYS = '{regexOpen:false,appearOpen:false,centreOpen:false,bulkOpen:false,calOpen:null,paletteOpen:false,slashOpen:false,dd:null,menu:null}';
+  for (const o of OVERLAYS) {
+    const before = report.consoleErrors.length;
+    const threw = await win.webContents
+      .executeJavaScript(
+        "(function(){try{window.__cxRoot.setState(Object.assign(" + RESET_OVERLAYS + ",{nav:" + JSON.stringify(o.nav) + "}));}catch(e){return String(e);}" +
+        "try{" + o.open + ";return null;}catch(e){return String((e&&e.message)||e);}})()",
+      )
+      .catch((e) => String(e));
+    await wait(450);
+    const seen = await win.webContents
+      .executeJavaScript(
+        "(function(){var t=document.body.innerText||'';" +
+        "return {unresolved:(t.match(/\\{\\{\\s*[\\w.$]+\\s*\\}\\}/g)||[]).length};})()",
+      )
+      .catch((e) => ({ error: String(e) }));
+    const newErrors = report.consoleErrors.slice(before).filter((e) => !/Electron Security Warning/.test(e));
+    const bad = threw || (seen && seen.error) || newErrors.length > 0;
+    report.overlays = report.overlays || [];
+    report.overlays.push({ id: o.id, threw: threw || null, newErrors, status: bad ? "FAIL" : "ok" });
+    out("  " + (bad ? "FAIL" : "ok  ") + " " + o.id.padEnd(14) +
+        (threw ? "threw: " + String(threw).slice(0, 60) : newErrors.length ? newErrors[0].slice(0, 70) : "opened cleanly") + "\n");
+  }
+  await win.webContents.executeJavaScript("window.__cxRoot.setState(" + RESET_OVERLAYS + ")").catch(() => {});
+
+  /* ------------------------------------------------------------- LANGUAGES
+   *
+   * A missing i18n key resolves to the key name, and at funny level 5 a short table
+   * resolves past its end — both render as something a user should never see. Sweeping
+   * the panels in each language mode at the highest level is where those surface. */
+  out("\nLANGUAGES\n");
+  report.languages = [];
+  for (const mode of ["en", "yue", "bi"]) {
+    const before = report.consoleErrors.length;
+    await win.webContents
+      .executeJavaScript(
+        "(function(){window.CX.i18n.mode=" + JSON.stringify(mode) + ";window.CX.i18n.funny={en:5,yue:5};" +
+        "if(window.CX.i18n.save)window.CX.i18n.save();window.__cxRoot.setState({lang:" + JSON.stringify(mode) + "});})()",
+      )
+      .catch(() => {});
+    let unresolvedKeys = 0;
+    let emptyLabels = 0;
+    for (const nav of NAVS) {
+      await win.webContents.executeJavaScript("window.__cxRoot.setState({nav:" + JSON.stringify(nav) + "})").catch(() => {});
+      await wait(220);
+      const r = await win.webContents
+        .executeJavaScript(
+          "(function(){var root=document.getElementById('tabpanel-main');var t=root?root.innerText:'';" +
+          // a key that did not resolve renders as its own dotted name
+          /* A key that fails to resolve renders as its own dotted name, but matching
+             that shape in rendered TEXT is unreliable: the changelog panel is prose
+             that legitimately contains config.toml and wsl.js, and — because this
+             project documented its own i18n bugs — literal key names like nav.chats.
+             That produced 34 identical false positives in all three languages.
+             Ask the string table instead. A key that resolves to itself is missing,
+             and documentation cannot be mistaken for one. */
+          "var keys=[];try{var S=(window.CX_I18N&&window.CX_I18N.STRINGS)||{};" +
+          "for(var k in S){var v=window.CX.i18n.t(k);if(!v||v===k)keys.push(k);}}catch(e){}" +
+          "var btns=root?[].slice.call(root.querySelectorAll('button')).filter(function(b){return !b.textContent.trim() && !b.getAttribute('aria-label') && !b.title;}).length:0;" +
+          "return {keys:keys.length,keyList:keys.slice(0,3),empty:btns};})()",
+        )
+        .catch(() => ({ keys: 0, empty: 0, keyList: [] }));
+      unresolvedKeys += r.keys || 0;
+      emptyLabels += r.empty || 0;
+      if (r.keys && report.languages.length === 0) report.firstUnresolvedSample = r.keyList;
+    }
+    const newErrors = report.consoleErrors.slice(before).filter((e) => !/Electron Security Warning/.test(e));
+    const bad = unresolvedKeys > 0 || newErrors.length > 0;
+    report.languages.push({ mode, unresolvedKeys, emptyLabels, newErrors, status: bad ? "FAIL" : "ok" });
+    out("  " + (bad ? "FAIL" : "ok  ") + " " + mode.padEnd(4) + " funny 5 across all ten panels — " +
+        unresolvedKeys + " unresolved key(s), " + emptyLabels + " unlabelled button(s)" +
+        (newErrors.length ? "  " + newErrors[0].slice(0, 50) : "") + "\n");
+  }
+  await win.webContents
+    .executeJavaScript('(function(){window.CX.i18n.mode="en";window.CX.i18n.funny={en:3,yue:3};window.__cxRoot.setState({lang:"en",nav:"chat"});})()')
+    .catch(() => {});
+
   /* --------------------------------------------------------------- verdict */
   const fatalConsole = report.consoleErrors.filter((e) => !/Electron Security Warning/.test(e));
   const s = {
@@ -285,6 +387,10 @@ async function main() {
     panelsOk: report.panels.filter((r) => r.status === "ok").length,
     panelsFailed: report.panels.filter((r) => r.status === "FAIL").length,
     cliOk: !!report.cli.ok,
+    overlaysOk: (report.overlays || []).filter((r) => r.status === "ok").length,
+    overlaysFailed: (report.overlays || []).filter((r) => r.status === "FAIL").length,
+    languagesOk: (report.languages || []).filter((r) => r.status === "ok").length,
+    languagesFailed: (report.languages || []).filter((r) => r.status === "FAIL").length,
     consoleErrors: fatalConsole.length,
   };
   report.summary = s;
@@ -297,10 +403,12 @@ async function main() {
       (s.ipcNoCli ? ", " + s.ipcNoCli + " need a CLI this build does not bundle" : "") +
       ", " + s.ipcFailed + " failed\n");
   out("  Panels   " + s.panelsOk + " ok, " + s.panelsFailed + " failed\n");
+  out("  Overlays " + s.overlaysOk + " ok, " + s.overlaysFailed + " failed\n");
+  out("  Language " + s.languagesOk + " ok, " + s.languagesFailed + " failed (en/yue/bi at funny level 5)\n");
   out("  Console  " + s.consoleErrors + " unexpected error(s)\n");
   out("  report   " + path.relative(ROOT, OUT).replace(/\\/g, "/") + "\n");
 
-  const bad = s.ipcFailed + s.panelsFailed + s.consoleErrors + (s.cliOk || cliOptional ? 0 : 1);
+  const bad = s.ipcFailed + s.panelsFailed + s.overlaysFailed + s.languagesFailed + s.consoleErrors + (s.cliOk || cliOptional ? 0 : 1);
   out(bad === 0 ? "\nSMOKE TEST PASSED\n" : "\nSMOKE TEST FAILED — " + bad + " problem(s)\n");
   win.destroy();
   app.exit(bad === 0 ? 0 : 1);
