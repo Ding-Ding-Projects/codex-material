@@ -357,7 +357,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
                     <div style="font-size:13px;font-weight:500">{{ c.label }}</div>
                     <div style="font-size:11.5px;color:var(--m3-on-surface-variant);margin-top:2px;line-height:1.5">{{ c.desc }}</div>
                   </div>
-                  <input value="{{ c.value }}" onInput="{{ c.set }}" type="number" style="flex:1 1 170px;min-width:96px;height:38px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;font-family:'Roboto Mono',monospace" />
+                  <input value="{{ c.value }}" onInput="{{ c.set }}" type="{{ c.inputType }}" style="flex:1 1 170px;min-width:96px;height:38px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;font-family:'Roboto Mono',monospace" />
                 </div>
               </sc-for>
               <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px solid var(--m3-outline-variant);padding-top:11px">
@@ -391,9 +391,9 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
                     <div style="font-family:'Roboto Mono',monospace;font-size:12.5px;color:{{ c.nameFg }};overflow-wrap:anywhere">{{ c.model }}</div>
                     <div style="font-size:11px;color:var(--m3-on-surface-variant);margin-top:2px;line-height:1.5">{{ c.breakdown }}</div>
                   </div>
-                  <input value="{{ c.priceIn }}" onInput="{{ c.setIn }}" type="number" step="0.01" title="Input $ / 1M" style="flex:1 1 84px;min-width:84px;max-width:120px;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 8px;font-size:12px;font-family:'Roboto Mono',monospace" />
-                  <input value="{{ c.priceCached }}" onInput="{{ c.setCached }}" type="number" step="0.01" title="Cached input $ / 1M" style="flex:1 1 84px;min-width:84px;max-width:120px;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 8px;font-size:12px;font-family:'Roboto Mono',monospace" />
-                  <input value="{{ c.priceOut }}" onInput="{{ c.setOut }}" type="number" step="0.01" title="Output $ / 1M" style="flex:1 1 84px;min-width:84px;max-width:120px;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 8px;font-size:12px;font-family:'Roboto Mono',monospace" />
+                  <input value="{{ c.priceIn }}" onInput="{{ c.setIn }}" type="{{ c.inputType }}" step="0.01" title="Input $ / 1M" style="flex:1 1 84px;min-width:84px;max-width:120px;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 8px;font-size:12px;font-family:'Roboto Mono',monospace" />
+                  <input value="{{ c.priceCached }}" onInput="{{ c.setCached }}" type="{{ c.inputType }}" step="0.01" title="Cached input $ / 1M" style="flex:1 1 84px;min-width:84px;max-width:120px;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 8px;font-size:12px;font-family:'Roboto Mono',monospace" />
+                  <input value="{{ c.priceOut }}" onInput="{{ c.setOut }}" type="{{ c.inputType }}" step="0.01" title="Output $ / 1M" style="flex:1 1 84px;min-width:84px;max-width:120px;height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 8px;font-size:12px;font-family:'Roboto Mono',monospace" />
                   <div style="flex:1 1 84px;min-width:64px;text-align:right;font-size:14px;font-weight:500;color:{{ c.costFg }}">{{ c.cost }}</div>
                 </div>
               </sc-for>
@@ -1559,6 +1559,14 @@ class Component extends DCLogic {
     const v = (this.profile().config || {})[field.key];
     return v == null ? (field.def == null ? "" : field.def) : v;
   }
+  /** True when we hold a real per-million price for this model. A model the user
+   *  selected but the price table has never heard of — a new release, a private
+   *  deployment, a typo — must not be reported as costing nothing. */
+  priced(model) {
+    const pr = this.state.prices[model];
+    return !!pr && (pr.in > 0 || pr.cached > 0 || pr.out > 0);
+  }
+
   costFor(model) {
     const pr = this.state.prices[model] || { in: 0, cached: 0, out: 0 };
     const c = this.state.cost, cached = c.inTok * (this.state.cacheRate / 100);
@@ -1777,6 +1785,30 @@ class Component extends DCLogic {
         context: (e) => this.menuAt(e, g.title, [this.copyItem(g.title)].concat(this.filterItems("list", g.title)).concat([this.appearItem(e)]))
       })));
     }
+    /* Cost had no branch at all, so it fell through to the last one and showed the
+       History filter beside the pricing table — a sidebar describing a panel the
+       user is not looking at. It lists the models it actually prices. */
+    if (nav === "cost") {
+      /* Each branch resolves its own profile — listConfig has no shared `p`. */
+      const p = this.profile();
+      return mk("Models", "Search models", "Reset prices", DATA.MODELS.filter((m) => match(m.id + " " + m.note)).map((m) => {
+        const known = this.priced(m.id);
+        return {
+          key: m.id,
+          title: m.id,
+          subtitle: m.note,
+          meta: known ? this.money(this.costFor(m.id)) : "no price",
+          initial: m.id[0].toUpperCase(),
+          active: m.id === p.model,
+          go: () => this.patchProfile({ model: m.id }, "Set model " + m.id),
+          context: (e) => this.menuAt(e, m.id, [
+            { key: "use", icon: "•", label: "Use on " + p.name, click: () => { this.setState({ menu: null }); this.patchProfile({ model: m.id }, "Set model " + m.id); } },
+            this.copyItem(m.id)
+          ].concat(this.filterItems("list", m.id)).concat([this.appearItem(e)]))
+        };
+      }));
+    }
+
     /* The sidebar drives the SAME histActions state the chips do — two filters that
        disagree about what is selected is worse than one. Both are derived from the
        log's real kinds, so neither can drift from what the app records. */
@@ -1830,6 +1862,7 @@ class Component extends DCLogic {
     const hsv = CX.color.rgbToHsv(CX.color.hexToRgb(appearColor) || { r: 208, g: 188, b: 255 });
     const activeSession = p.sessions.find((s) => s.id === st.activeSession) || p.sessions[0] || { name: "New session", cwd: p.cwd, turns: 0 };
     const total = this.costFor(p.model);
+    const known = this.priced(p.model);
     const slashArgs = st.slashArgs[pick.name] || {};
 
     const v = {
@@ -1864,13 +1897,13 @@ class Component extends DCLogic {
           this.setState({ lifetime, dd: null });
         }
       }),
-      lifetimeTotal: this.exact(this.lifetimeCost()),
+      lifetimeTotal: known ? this.exact(this.lifetimeCost()) : "—",
       lifetimePaid: this.exact(this.lifetimePaid()),
       lifetimePaidFg: "var(--m3-on-surface)",
-      lifetimeDelta: st.cost.plan === 0 ? "no plan" : (this.lifetimeCost() >= this.lifetimePaid()
+      lifetimeDelta: !known ? "no price for " + p.model : st.cost.plan === 0 ? "no plan" : (this.lifetimeCost() >= this.lifetimePaid()
         ? "saved " + this.exact(this.lifetimeCost() - this.lifetimePaid())
         : "over by " + this.exact(this.lifetimePaid() - this.lifetimeCost())),
-      lifetimeDeltaFg: st.cost.plan === 0 ? "var(--m3-on-surface-variant)" : (this.lifetimeCost() >= this.lifetimePaid() ? "var(--m3-ok)" : "var(--m3-warn)"),
+      lifetimeDeltaFg: !known || st.cost.plan === 0 ? "var(--m3-on-surface-variant)" : (this.lifetimeCost() >= this.lifetimePaid() ? "var(--m3-ok)" : "var(--m3-warn)"),
       lifetimeDays: String(st.lifetime.days),
       lifetimeOptions: [
         { key: "7", value: "7", label: "7 d" }, { key: "30", value: "30", label: "30 d" },
@@ -2397,11 +2430,15 @@ class Component extends DCLogic {
       saveConfig: () => this.writeProfileConfig(),
 
       costIntro: "Codex on a ChatGPT plan does not bill per token. This prices the same workload as if it ran on the API.",
+      /* `inputType` is bound rather than written literally in the template: the
+         <x-dc> block is parsed as live DOM before the runtime compiles it, so a
+         literal type="number" makes the browser validate the uncompiled
+         "{{ c.value }}" text and log a parse error on every launch.  */
       costInputs: [
-        { key: "in", label: "Input tokens", desc: "Prompt, files and tool output sent to the model.", value: String(st.cost.inTok), set: (e) => this.setCost({ inTok: Number(e.target.value) || 0 }) },
-        { key: "out", label: "Output tokens", desc: "Reasoning plus visible answer and patches.", value: String(st.cost.outTok), set: (e) => this.setCost({ outTok: Number(e.target.value) || 0 }) },
-        { key: "turns", label: "Turns", desc: "Used for the per-turn average.", value: String(st.cost.turns), set: (e) => this.setCost({ turns: Number(e.target.value) || 1 }) },
-        { key: "plan", label: "Your plan ($/month)", desc: "Plus is 20, Pro is 200. Set 0 if you use an API key.", value: String(st.cost.plan), set: (e) => this.setCost({ plan: Number(e.target.value) || 0 }) }
+        { key: "in", inputType: "number", label: "Input tokens", desc: "Prompt, files and tool output sent to the model.", value: String(st.cost.inTok), set: (e) => this.setCost({ inTok: Number(e.target.value) || 0 }) },
+        { key: "out", inputType: "number", label: "Output tokens", desc: "Reasoning plus visible answer and patches.", value: String(st.cost.outTok), set: (e) => this.setCost({ outTok: Number(e.target.value) || 0 }) },
+        { key: "turns", inputType: "number", label: "Turns", desc: "Used for the per-turn average.", value: String(st.cost.turns), set: (e) => this.setCost({ turns: Number(e.target.value) || 1 }) },
+        { key: "plan", inputType: "number", label: "Your plan ($/month)", desc: "Plus is 20, Pro is 200. Set 0 if you use an API key.", value: String(st.cost.plan), set: (e) => this.setCost({ plan: Number(e.target.value) || 0 }) }
       ],
       cacheRate: String(st.cacheRate),
       cacheRateLabel: st.cacheRate + "%",
@@ -2412,10 +2449,17 @@ class Component extends DCLogic {
         this.setState({ cacheRate: Math.round((u.cached / u.input) * 100) });
         this.toast("Loaded " + u.input.toLocaleString() + " in / " + u.output.toLocaleString() + " out");
       },
-      costTotal: this.money(total),
-      costTotalNote: p.model + " · " + this.money(total / Math.max(1, st.cost.turns)) + " per turn · " + st.cacheRate + "% cached",
-      planVerdict: st.cost.plan === 0 ? "API key — you pay this" : total > st.cost.plan ? "Plan wins" : "API would be cheaper",
-      planNote: st.cost.plan === 0
+      /* An unknown model prices at zero arithmetically, which would let the panel
+         announce "$0.000 — API would be cheaper" about a model it has no price for.
+         Say so instead; a confident wrong number is worse than an honest gap. */
+      costTotal: known ? this.money(total) : "—",
+      costTotalNote: known
+        ? p.model + " · " + this.money(total / Math.max(1, st.cost.turns)) + " per turn · " + st.cacheRate + "% cached"
+        : "No price on file for " + p.model + ". Add one in the table below and this fills in.",
+      planVerdict: !known ? "Unknown" : st.cost.plan === 0 ? "API key — you pay this" : total > st.cost.plan ? "Plan wins" : "API would be cheaper",
+      planNote: !known
+        ? "This workload cannot be compared to your plan until " + p.model + " has a price."
+        : st.cost.plan === 0
         ? "No subscription set, so the figure on the left is your bill for this workload."
         : total > st.cost.plan
           ? "This workload prices at " + this.money(total) + " against a " + this.money(st.cost.plan) + " plan — the subscription is " + (total / st.cost.plan).toFixed(1) + "× cheaper."
@@ -2429,7 +2473,7 @@ class Component extends DCLogic {
           this.setState({ prices });
         };
         return {
-          key: m.id, model: m.id, breakdown: m.note + " · in " + pr.in + " / cached " + pr.cached + " / out " + pr.out,
+          key: m.id, inputType: "number", model: m.id, breakdown: m.note + " · in " + pr.in + " / cached " + pr.cached + " / out " + pr.out,
           nameFg: m.id === p.model ? "var(--m3-primary)" : "var(--m3-on-surface)",
           costFg: m.id === p.model ? "var(--m3-primary)" : "var(--m3-on-surface)",
           priceIn: String(pr.in), priceCached: String(pr.cached), priceOut: String(pr.out),

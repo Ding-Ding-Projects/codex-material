@@ -56,7 +56,7 @@ Every image below was captured from the real application — the same main proce
 ![The appearance editor anchored to an element, showing typography controls, a continuous colour picker and a list of colour-space translations](assets/screenshots/12-appearance.png)
 
 <details>
-<summary><b>The rest of the gallery</b> — Extend, Config, Cost, Runtime, Health, History, Changelog, Studio settings, notifications, bulk close, dim sum, light theme</summary>
+<summary><b>The rest of the gallery</b> — Extend, Config, Cost, Runtime, Health, usage, cloud tasks, History, Changelog, the calendar picker, Studio settings, notifications, bulk close, dim sum, light theme</summary>
 
 Descriptions come from [`assets/screenshots/manifest.json`](assets/screenshots/manifest.json), written by the capture harness.
 
@@ -67,8 +67,11 @@ Descriptions come from [`assets/screenshots/manifest.json`](assets/screenshots/m
 | [`05-cost.png`](assets/screenshots/05-cost.png) | Cost — API-equivalent calculator |
 | [`06-runtime.png`](assets/screenshots/06-runtime.png) | Runtime — per-tab WSL instances |
 | [`07-health.png`](assets/screenshots/07-health.png) | Health — doctor, account, usage |
+| [`07b-usage.png`](assets/screenshots/07b-usage.png) | Health ▸ Usage — real token counts read from the newest session's last token_count event |
+| [`07c-cloud.png`](assets/screenshots/07c-cloud.png) | Health ▸ Cloud tasks — what `codex cloud list` actually reported |
 | [`08-history.png`](assets/screenshots/08-history.png) | History — local git-backed, append-only |
 | [`09-changelog.png`](assets/screenshots/09-changelog.png) | Changelog viewer — date filter + regex search |
+| [`09b-calendar.png`](assets/screenshots/09b-calendar.png) | Changelog date filter — the calendar picker, with month/year jump and range highlighting |
 | [`10-studio.png`](assets/screenshots/10-studio.png) | Studio settings — language, funny sliders, narrator, dim sum, editor |
 | [`13-notifications.png`](assets/screenshots/13-notifications.png) | Corner notification stack and the reviewable centre |
 | [`14-bulk-close.png`](assets/screenshots/14-bulk-close.png) | Bulk close preview — the one place a blocking dialog is correct |

@@ -81,6 +81,27 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **An unpriced model no longer reports as free.** The Cost panel priced the active
+  model by lookup and treated a miss as zero, so a model the price table has never
+  heard of produced a confident `$0.000` headline, the verdict "API would be cheaper",
+  and a title-bar chip claiming the user had overspent by $600 — while the table
+  directly below priced the identical workload at $2.29–$3.21. It now says the price
+  is missing and names the model.
+- **The Cost panel has its own sidebar.** It had no branch in the sidebar router, so
+  it fell through to the last one and rendered the *History* filter beside the pricing
+  table. It lists the models it prices, each with its cost, and marks the ones it has
+  no price for.
+- **The capture harness fails when the app does not render.** It exited non-zero on
+  any console error including the expected CSP notice, so the signal was always red
+  and therefore worthless: a `p is not defined` that emptied every binding in the
+  window still wrote nineteen PNGs of a blank shell and exited the same as a clean
+  run. It now distinguishes a broken render from the expected notice, and a partial
+  `--only` capture merges into the manifest instead of deleting the other eighteen
+  descriptions.
+- **The number fields stopped logging parse errors on every launch.** The `<x-dc>`
+  template is parsed as live DOM before the runtime compiles it, so the browser
+  validated the literal `{{ c.value }}` against `type="number"` four times at startup.
+
 - **The History panel filters**: a date range on the same anchored calendar the
   changelog uses, multi-select filtering by action, and a text search wired to the
   regex builder — all three composing rather than overriding one another. The actions

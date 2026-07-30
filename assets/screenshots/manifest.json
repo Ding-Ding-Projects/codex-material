@@ -2,17 +2,121 @@
   "capturedFrom": "the real app (electron/main.js frontend + preload)",
   "shots": [
     {
+      "id": "chats",
+      "file": "01-chats.png",
+      "applied": true,
+      "note": "Chats — session list, transcript, composer"
+    },
+    {
+      "id": "console",
+      "file": "02-console.png",
+      "applied": true,
+      "note": "Console — every CLI subcommand and flag"
+    },
+    {
+      "id": "extend",
+      "file": "03-extend.png",
+      "applied": true,
+      "note": "Extend — MCP, plugins, skills, hooks, feature flags"
+    },
+    {
+      "id": "config",
+      "file": "04-config.png",
+      "applied": true,
+      "note": "Config — config.toml settings with live TOML preview"
+    },
+    {
+      "id": "cost",
+      "file": "05-cost.png",
+      "applied": true,
+      "note": "Cost — API-equivalent calculator"
+    },
+    {
+      "id": "runtime",
+      "file": "06-runtime.png",
+      "applied": true,
+      "note": "Runtime — per-tab WSL instances"
+    },
+    {
+      "id": "health",
+      "file": "07-health.png",
+      "applied": true,
+      "note": "Health — doctor, account, usage"
+    },
+    {
+      "id": "usage",
+      "file": "07b-usage.png",
+      "applied": true,
+      "note": "Health ▸ Usage — real token counts read from the newest session's last token_count event"
+    },
+    {
+      "id": "cloud",
+      "file": "07c-cloud.png",
+      "applied": true,
+      "note": "Health ▸ Cloud tasks — what `codex cloud list` actually reported"
+    },
+    {
       "id": "history",
       "file": "08-history.png",
       "applied": true,
       "note": "History — local git-backed, append-only"
+    },
+    {
+      "id": "changelog",
+      "file": "09-changelog.png",
+      "applied": true,
+      "note": "Changelog viewer — date filter + regex search"
+    },
+    {
+      "id": "calendar",
+      "file": "09b-calendar.png",
+      "applied": true,
+      "note": "Changelog date filter — the calendar picker, with month/year jump and range highlighting"
+    },
+    {
+      "id": "studio",
+      "file": "10-studio.png",
+      "applied": true,
+      "note": "Studio settings — language, funny sliders, narrator, dim sum, editor"
+    },
+    {
+      "id": "regex",
+      "file": "11-regex-builder.png",
+      "applied": true,
+      "note": "Regex builder anchored beside the search bar that opened it"
+    },
+    {
+      "id": "appearance",
+      "file": "12-appearance.png",
+      "applied": true,
+      "note": "Per-element appearance editor with the colour translator"
+    },
+    {
+      "id": "notifications",
+      "file": "13-notifications.png",
+      "applied": true,
+      "note": "Corner notification stack and the reviewable centre"
+    },
+    {
+      "id": "bulkclose",
+      "file": "14-bulk-close.png",
+      "applied": true,
+      "note": "Bulk close preview — the one place a blocking dialog is correct"
+    },
+    {
+      "id": "dimsum",
+      "file": "15-dim-sum.png",
+      "applied": true,
+      "note": "Dim sum surprise — bundled catalog photo, non-blocking, auto-dismissing"
+    },
+    {
+      "id": "light",
+      "file": "16-light-theme.png",
+      "applied": true,
+      "note": "Light theme — the same surface under the M3 light palette"
     }
   ],
   "consoleErrors": [
-    "The specified value \"{{ c.value }}\" cannot be parsed, or is out of range.",
-    "The specified value \"{{ c.priceIn }}\" cannot be parsed, or is out of range.",
-    "The specified value \"{{ c.priceCached }}\" cannot be parsed, or is out of range.",
-    "The specified value \"{{ c.priceOut }}\" cannot be parsed, or is out of range.",
     "%cElectron Security Warning (Insecure Content-Security-Policy) font-weight: bold; This renderer process has either no Content Security\n  Policy set or a policy with \"unsafe-eval\" enabled. This exposes users of\n  this app to unnecessary security risks.\n\nFor more information and help, consult\nhttps://electronjs.org/docs/tutorial/security.\nThis warning will not show up\nonce the app is packaged."
   ]
 }

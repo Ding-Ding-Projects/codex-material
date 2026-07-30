@@ -891,3 +891,60 @@ suite("app/cx-changelog.js", (ctx, file) => {
     assert.ok(text.includes("2026-06-01") && text.includes("2026-06-30"), "the export must state the range it covers");
   });
 }, ["app/codex-core.js"]);
+
+/* ------------------------------------------------------------ the gallery */
+/* The README's screenshot table, the manifest and the PNGs on disk are three
+   descriptions of one thing, so any two of them can disagree. They did: a
+   `--only` capture rewrote the manifest down to a single shot, and three
+   screenshots sat in the repository for a week with no row in the table while
+   the README told readers the descriptions came from the manifest. */
+
+test("assets/screenshots — README, manifest and disk agree", () => {
+  const dir = path.join(ROOT, "assets", "screenshots");
+  const b = bucket("assets/screenshots");
+  if (!fs.existsSync(dir)) {
+    b.skip += 1;
+    b.note = "no screenshots captured yet";
+    return;
+  }
+
+  const pngs = fs.readdirSync(dir).filter((f) => f.endsWith(".png")).sort();
+  const readme = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
+  const manifest = JSON.parse(fs.readFileSync(path.join(dir, "manifest.json"), "utf8"));
+  const described = new Set(manifest.shots.map((s) => s.file));
+
+  const run = (name, fn) => {
+    try {
+      fn();
+      b.pass += 1;
+    } catch (e) {
+      b.fail += 1;
+      process.stdout.write(`  ✗ ${name}\n    ${e.message}\n`);
+      throw e;
+    }
+  };
+
+  run("every screenshot on disk appears in the README", () => {
+    const orphans = pngs.filter((f) => !readme.includes(f));
+    assert.deepEqual(orphans, [], `captured but never shown to a reader: ${orphans.join(", ")}`);
+  });
+
+  run("every screenshot the README links exists on disk", () => {
+    const linked = [...readme.matchAll(/assets\/screenshots\/([\w.-]+\.png)/g)].map((m) => m[1]);
+    const broken = [...new Set(linked)].filter((f) => !pngs.includes(f));
+    assert.deepEqual(broken, [], `README links a screenshot that is not in the repository: ${broken.join(", ")}`);
+  });
+
+  run("the manifest describes every harness-captured shot", () => {
+    /* 00- is the packaged-build hero shot, taken from the installed app rather
+       than by the harness, so it has no manifest entry by design. */
+    const missing = pngs.filter((f) => !f.startsWith("00-") && !described.has(f));
+    assert.deepEqual(missing, [], `on disk with no description: ${missing.join(", ")}`);
+  });
+
+  run("the manifest holds no path that leaks a local username", () => {
+    const raw = fs.readFileSync(path.join(dir, "manifest.json"), "utf8");
+    assert.ok(!/[A-Za-z]:\\Users\\/.test(raw), "the committed manifest contains an absolute Windows user path");
+    assert.ok(!/\/home\/[a-z]/.test(raw), "the committed manifest contains an absolute home path");
+  });
+});

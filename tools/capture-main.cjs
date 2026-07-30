@@ -202,10 +202,32 @@ async function main() {
     process.stdout.write(`${applied ? "✓" : "!"} ${shot.file}  ${shot.note}\n`);
   }
 
+  // A partial run (--only) describes only what it captured, but the manifest is the
+  // gallery's description of every shot on disk and is mirrored into the published
+  // site. Overwriting it after re-taking one screenshot leaves nineteen PNGs with no
+  // description and a README that claims otherwise, so merge rather than replace.
+  const manifestPath = path.join(OUT, "manifest.json");
+  let prior = [];
+  let priorErrors = [];
+  if (ONLY && fs.existsSync(manifestPath)) {
+    try {
+      const old = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+      prior = Array.isArray(old.shots) ? old.shots : [];
+      priorErrors = Array.isArray(old.consoleErrors) ? old.consoleErrors : [];
+    } catch {
+      /* an unreadable manifest is replaced, not preserved */
+    }
+  }
+  const byFile = new Map(prior.map((s) => [s.file, s]));
+  written.forEach((s) => byFile.set(s.file, s));
+  const allShots = [...byFile.values()].sort((a, b) => a.file.localeCompare(b.file));
+  // Console errors from panels this run never opened are still true of those panels.
+  const merged = ONLY ? [...new Set([...priorErrors, ...errors])] : errors;
+
   fs.writeFileSync(
-    path.join(OUT, "manifest.json"),
+    manifestPath,
     JSON.stringify(
-      { capturedFrom: "the real app (electron/main.js frontend + preload)", shots: written, consoleErrors: errors },
+      { capturedFrom: "the real app (electron/main.js frontend + preload)", shots: allShots, consoleErrors: merged },
       null,
       2,
     ),
@@ -215,9 +237,26 @@ async function main() {
     process.stdout.write(`\nRenderer reported ${errors.length} console error(s):\n`);
     errors.slice(0, 12).forEach((e) => process.stdout.write(`  ${e}\n`));
   }
+
+  // A renderer exception or an unresolved binding means the screenshots document an
+  // app that did not render. This ran once: a `p is not defined` in one sidebar
+  // branch emptied every binding in the window, the harness printed the error and
+  // exited 0, and the suite stayed green while nineteen PNGs of a blank shell were
+  // written. Only the CSP notice is expected — the dc runtime needs unsafe-eval.
+  const fatal = errors.filter(
+    (e) => !/Electron Security Warning/.test(e) && /(Error:|never resolved|renderer gone)/.test(e),
+  );
+  if (fatal.length) {
+    process.stdout.write(
+      `\n✗ ${fatal.length} of those break the render — the captures above are not trustworthy.\n`,
+    );
+  }
   win.destroy();
-  app.quit();
-  process.exit(errors.length ? 2 : 0);
+  // Exit on `fatal`, not on `errors`. The CSP notice is expected and permanent — the
+  // dc runtime compiles templates with `new Function`, so unsafe-eval is required —
+  // and exiting non-zero on it meant every clean run failed too. A signal that is
+  // always red is the same as no signal, which is how a blank-shell capture passed.
+  app.exit(fatal.length ? 1 : 0);
 }
 
 app.disableHardwareAcceleration();
