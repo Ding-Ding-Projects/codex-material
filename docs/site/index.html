@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codex Studio — a Material 3 desktop GUI for the Codex CLI</title>
+<meta name="description" content="Documentation for Codex Studio, a Material 3 Windows desktop GUI for the OpenAI Codex CLI. Every action is a real codex invocation.">
+<meta name="color-scheme" content="light dark">
+<!-- Everything is local. No CDN, no remote font, no analytics, no outbound request of
+     any kind. This page opens by double-clicking the file. -->
+<link rel="stylesheet" href="app.css">
+<link rel="icon" href="../../assets/icon.png" type="image/png">
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="shell topbar__in">
+    <div class="brand">
+      <span class="brand__mark" aria-hidden="true">C</span>
+      <span class="brand__name" data-i18n="site.title">Codex Studio — documentation</span>
+    </div>
+    <span class="chip chip--mono" id="verChip" title="Version in package.json">v0.1.0</span>
+    <button type="button" class="chip" id="langBtn" aria-haspopup="true" aria-expanded="false">EN ▾</button>
+    <button type="button" class="chip" id="themeBtn" aria-live="polite">Theme: system</button>
+    <a class="chip" id="repoLink" href="https://github.com/Ding-Ding-Projects/codex-material" rel="noreferrer">Repository ↗</a>
+  </div>
+</header>
+
+<nav class="strip" aria-label="Site sections">
+  <div class="shell strip__in">
+    <div class="tablist" role="tablist" id="tablist" aria-label="Site sections"></div>
+    <div class="overflow">
+      <button type="button" class="chip" id="overflowBtn" hidden aria-haspopup="menu" aria-expanded="false">
+        More <span id="overflowCount"></span> ▾
+      </button>
+      <ul class="overflow__menu" id="overflowMenu" role="menu" hidden></ul>
+    </div>
+  </div>
+</nav>
+
+<div class="shell toolbar">
+  <div class="searchwrap" id="searchwrap">
+    <div class="field">
+      <span aria-hidden="true">🔍</span>
+      <label class="vh" for="q">Search articles</label>
+      <input type="search" id="q" placeholder="Search 20 articles" autocomplete="off" spellcheck="false"
+             aria-describedby="searchmeta">
+      <button type="button" class="icon-btn" id="rxToggle" aria-pressed="false"
+              title="Use this query as a regular expression">.*</button>
+      <button type="button" class="icon-btn" id="rxOpen" aria-expanded="false" aria-controls="builder"
+              title="Open the regex builder">⚙</button>
+      <button type="button" class="icon-btn" id="qClear" title="Clear the search">✕</button>
+    </div>
+    <p class="searchmeta" id="searchmeta" role="status" aria-live="polite"></p>
+
+    <!-- Anchored to the field above, not a page-level dialog. -->
+    <section class="builder" id="builder" hidden aria-label="Regular expression builder">
+      <h3>Regex builder</h3>
+      <p class="builder__sub" id="rxEngineNote">
+        Engine: the browser's own <code>RegExp</code>. Plain text is the default; regex is an explicit opt-in.
+      </p>
+
+      <div class="builder__grp" id="rxConstructs"></div>
+
+      <div class="builder__grp">
+        <h4>Flags</h4>
+        <div class="flagrow" id="rxFlags"></div>
+      </div>
+
+      <div class="builder__grp">
+        <h4><label for="rxPattern">Pattern</label></h4>
+        <input type="text" id="rxPattern" spellcheck="false" autocomplete="off" placeholder="^(regex|tabs)\b">
+      </div>
+
+      <div class="builder__grp">
+        <h4><label for="rxSample">Sample text</label></h4>
+        <textarea id="rxSample" rows="4" spellcheck="false"></textarea>
+      </div>
+
+      <p class="builder__status" id="rxStatus" role="status" aria-live="polite"></p>
+      <ul class="hits" id="rxHits"></ul>
+
+      <div class="linkrow" style="margin-top:12px">
+        <button type="button" class="linkchip" id="rxApply">Apply to search</button>
+        <button type="button" class="linkchip" id="rxCopy">Copy pattern</button>
+        <button type="button" class="linkchip" id="rxReset">Reset</button>
+        <button type="button" class="linkchip" id="rxClose">Close</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<main id="main" class="shell">
+
+  <!-- Search results replace the active panel while a query is live. -->
+  <section id="results" hidden aria-label="Search results" class="stack"></section>
+
+  <div id="panels">
+    <section role="tabpanel" id="panel-overview" aria-labelledby="tab-overview" tabindex="-1" class="stack"></section>
+    <section role="tabpanel" id="panel-features" aria-labelledby="tab-features" tabindex="-1" class="stack" hidden></section>
+    <section role="tabpanel" id="panel-docs" aria-labelledby="tab-docs" tabindex="-1" class="stack" hidden></section>
+    <section role="tabpanel" id="panel-shots" aria-labelledby="tab-shots" tabindex="-1" class="stack" hidden></section>
+    <section role="tabpanel" id="panel-changelog" aria-labelledby="tab-changelog" tabindex="-1" class="stack" hidden></section>
+    <section role="tabpanel" id="panel-settings" aria-labelledby="tab-settings" tabindex="-1" class="stack" hidden></section>
+  </div>
+
+</main>
+
+<footer>
+  <div class="shell">
+    <p id="footNote">
+      Codex Studio is Windows-only and Apache-2.0 licensed. This site is static HTML, CSS and JavaScript
+      with no build step, no framework and no network request — the screenshots and dim sum photographs are
+      the repository's own files.
+    </p>
+    <div class="linkrow">
+      <a class="linkchip" href="https://github.com/Ding-Ding-Projects/codex-material" rel="noreferrer">Repository</a>
+      <a class="linkchip" href="https://github.com/Ding-Ding-Projects/codex-material/releases" rel="noreferrer">Releases</a>
+      <a class="linkchip" href="https://github.com/Ding-Ding-Projects/codex-material/tree/main/docs" rel="noreferrer">docs/ on GitHub</a>
+      <a class="linkchip" href="https://github.com/Ding-Ding-Projects/codex-material/blob/main/CHANGELOG.md" rel="noreferrer">CHANGELOG.md</a>
+    </div>
+  </div>
+</footer>
+
+<div class="toasts" id="toasts" role="region" aria-label="Notifications"></div>
+<div id="dimsumHost"></div>
+
+<script src="articles.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

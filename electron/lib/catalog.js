@@ -6,7 +6,6 @@
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const readline = require("node:readline");
 const cli = require("./cli");
 const config = require("./config");
 
@@ -278,37 +277,41 @@ async function featureSet(key, value) {
 /* ------------------------------------------------------------- sessions */
 
 /** Read only the first line of a rollout. They routinely run to several megabytes
- *  and the session_meta record is always first. */
+ *  and the session_meta record is always first.
+ *
+ *  Done with a plain positional read rather than a stream: a readline over a
+ *  byte-capped read stream silently produced no line at all here, and a session list
+ *  that quietly falls back to "no metadata" looks identical to a machine with no
+ *  sessions. A fixed-size read either finds a newline or honestly reports that the
+ *  record is longer than the window. */
+const META_WINDOW = 512 * 1024;
+
 function readSessionMeta(file) {
-  return new Promise((resolve) => {
-    let settled = false;
-    const finish = (v) => {
-      if (!settled) {
-        settled = true;
-        resolve(v);
-      }
-    };
-    let input;
+  let fd;
+  try {
+    fd = fs.openSync(file, "r");
+  } catch {
+    return null;
+  }
+  try {
+    const buf = Buffer.alloc(META_WINDOW);
+    const read = fs.readSync(fd, buf, 0, META_WINDOW, 0);
+    const text = buf.subarray(0, read).toString("utf8");
+    const nl = text.indexOf("\n");
+    // No newline inside the window means the record is bigger than META_WINDOW, not
+    // that it is absent — parsing a truncated prefix would throw either way.
+    if (nl === -1) return null;
+    const parsed = JSON.parse(text.slice(0, nl));
+    return parsed && parsed.type === "session_meta" ? parsed.payload || null : null;
+  } catch {
+    return null;
+  } finally {
     try {
-      input = fs.createReadStream(file, { encoding: "utf8", end: 65535 });
+      fs.closeSync(fd);
     } catch {
-      finish(null);
-      return;
+      /* already closed */
     }
-    const rl = readline.createInterface({ input });
-    rl.once("line", (line) => {
-      rl.close();
-      input.destroy();
-      try {
-        const parsed = JSON.parse(line);
-        finish(parsed && parsed.type === "session_meta" ? parsed.payload || null : null);
-      } catch {
-        finish(null);
-      }
-    });
-    rl.once("close", () => finish(null));
-    input.once("error", () => finish(null));
-  });
+  }
 }
 
 function walkRollouts(dir, out) {
@@ -350,7 +353,7 @@ async function sessionList(limit = 300) {
 
   const rows = [];
   for (const item of stamped) {
-    const meta = (await readSessionMeta(item.f)) || {};
+    const meta = readSessionMeta(item.f) || {};
     const stem = path.basename(item.f, ".jsonl");
     const id = meta.id || stem.split("-").slice(-5).join("-") || stem;
     const cwd = meta.cwd || "";
