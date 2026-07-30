@@ -156,18 +156,30 @@ grep -ril "tauri" --include=*.md --include=*.js . | grep -v node_modules
 Note that two of the remaining hits are the Pages site's `.js`, not `.md`. Grepping only
 `.md` will look finished while the published site still says Tauri.
 
-### 2. The language mode reaches a minority of the interface
+### 2. The language mode still misses most secondary labels
 
-Measured at this commit: **119** `CX.i18n.t()` call sites against roughly **292** hard-coded
-user-facing strings — 29 literal text nodes in the template and 263 hard-coded
-`label`/`title`/`placeholder`/`hint` values in the logic. The navigation rail, the Extend
-category list and most panel headings are hard-coded English, so switching to 廣東話 or
-bilingual leaves the app's primary surface untranslated. This is the largest remaining
-shipping-requirement gap.
+The app's **primary** surface is done: the navigation rail, the Extend category list and
+the window chrome now resolve through `CX.i18n` at render time, so switching to 廣東話 or
+bilingual translates them without a restart. The rest is not.
+
+Measured at this commit: **127** `CX.i18n.t()` call sites plus 6 uses of the nav/ext
+helpers, against **29** literal text nodes in the template and **244** hard-coded
+`label`/`title`/`placeholder`/`hint` values in the logic. The remaining offenders are the
+context menus, the Console flag panel, the Config section list and most button labels.
+
+The string table now holds **273** keys.
 
 ```bash
 grep -c "CX.i18n.t(" app/index.html
 ```
+
+> [!NOTE]
+> **Check for unreachable keys before adding new ones.** The table already contained
+> navigation entries keyed `nav.chats`, `nav.extend` and `nav.config`, while the
+> navigation ids are `chat`, `ext` and `settings` — so nothing ever looked them up, and
+> from the outside the table looked like it had coverage it did not have. Those three are
+> reconciled; assume others like them exist. A key that resolves to itself is a key
+> nothing is using.
 
 ### 3. Levels 1 and 2 of the funny sliders are byte-identical for almost every key
 
