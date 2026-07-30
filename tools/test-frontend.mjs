@@ -942,6 +942,18 @@ test("assets/screenshots — README, manifest and disk agree", () => {
     assert.deepEqual(missing, [], `on disk with no description: ${missing.join(", ")}`);
   });
 
+  run("every M3 token the UI references is actually defined", () => {
+    /* An undefined custom property does not error — it silently resolves to nothing
+       and the element inherits whatever colour was above it. That is how the one
+       genuinely destructive button in the app came to render pale text on pale pink:
+       `var(--m3-on-error)` was referenced and never declared. */
+    const html = fs.readFileSync(path.join(ROOT, "app", "index.html"), "utf8");
+    const declared = new Set([...html.matchAll(/(--m3-[a-z0-9-]+)\s*:/g)].map((m) => m[1]));
+    const referenced = new Set([...html.matchAll(/var\((--m3-[a-z0-9-]+)\)/g)].map((m) => m[1]));
+    const undef = [...referenced].filter((t) => !declared.has(t)).sort();
+    assert.deepEqual(undef, [], `referenced but never declared: ${undef.join(", ")}`);
+  });
+
   run("the harness captures against the fixture home, not the operator's", () => {
     /* The structural guard behind the privacy rule. Checking the PNGs themselves
        would need OCR; checking that the harness points the app at an authored

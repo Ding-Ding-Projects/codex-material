@@ -39,9 +39,13 @@ A Material 3 Windows desktop app that drives the OpenAI Codex CLI. Every action 
 
 Every image below was captured from the real application — the same main process, preload and frontend the installer ships — through the project's own headless harness (`npm run capture`, [`tools/capture.mjs`](tools/capture.mjs)). None of them is a mockup.
 
-**Chats** — session list, streamed transcript, composer.
+The app is pointed at an **authored `CODEX_HOME`** ([`tools/make-capture-home.mjs`](tools/make-capture-home.mjs)) rather than the machine's own. A screenshot is a publication, and an earlier set had a real Windows username legible in seven images. The `config.toml` and rollout files in that directory are written by hand, but they are real files in the real format, read by the real parsers — so the `C:\Users\dev\Projects\…` paths throughout are a fixture, and everything the app does with them is not.
 
-![Chats: the session list on the left, a streamed transcript in the middle, and the composer at the bottom](assets/screenshots/01-chats.png)
+**Chats** — the session list read from the rollout files, the transcript pane, and the composer.
+
+![Chats screen: five sessions in the left sidebar, each with a project name and working directory; an empty-state card in the centre reading "Nothing here yet" above the exact codex command the composer will run; the message composer along the bottom](assets/screenshots/01-chats.png)
+
+*The centre pane is a freshly opened session, so it shows the empty state rather than a conversation: what the pane is, which profile and model will run, and the exact `codex` invocation the composer will execute — including the `-c approval_policy=…` override that stops a run from mutating saved config.*
 
 **Console** — every CLI subcommand and flag, composed into an argv preview before it runs.
 

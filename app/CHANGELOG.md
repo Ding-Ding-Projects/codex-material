@@ -81,6 +81,14 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **`--m3-on-error` existed only in the places that used it.** The palette declared
+  `error`, `error-container` and `on-error-container` but never `on-error`, so the
+  destructive confirm button's `var(--m3-on-error)` resolved to nothing and the label
+  inherited a pale surface colour — pale text on pale pink, on the one control in the
+  app that closes things irreversibly. An undefined custom property does not error; it
+  silently disappears. A test now checks that every `--m3-*` the UI references is
+  declared, in both themes.
+
 - **Screenshots are captured against an authored `CODEX_HOME`, not the operator's.**
   A screenshot is a publication. The previous set had a real Windows username legible
   in seven of them and a private repository name in an eighth, all committed and all
