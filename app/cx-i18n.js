@@ -1439,6 +1439,57 @@
       en: ["no date recorded", "no date recorded", "no date recorded", "no date recorded", "no date recorded"],
       yue: ["冇記低日期", "冇記低日期", "冇記低日期", "冇記低日期", "冇記低日期"]
     },
+    "changelog.calendar": {
+      en: ["Pick a date from a calendar", "Pick a date from a calendar", "Pick a date from a calendar",
+        "Pick it from a calendar instead", "Pick it from a calendar if counting days is not your idea of fun"],
+      yue: ["用月曆揀日期", "用月曆揀日期", "用月曆揀", "唔想打字就用月曆揀", "唔想自己數日就用月曆揀啦"]
+    },
+    "changelog.calFrom": {
+      en: ["Start date", "Start date", "Start date", "Which day does the range start?", "Which day does the range start?"],
+      yue: ["開始日期", "開始日期", "由邊日開始", "個範圍由邊日開始？", "個範圍由邊日開始？"]
+    },
+    "changelog.calTo": {
+      en: ["End date", "End date", "End date", "Which day does the range end?", "Which day does the range end?"],
+      yue: ["結束日期", "結束日期", "去到邊日", "個範圍去到邊日？", "個範圍去到邊日？"]
+    },
+    "changelog.calHint": {
+      en: ["Typing in the field works too; the two stay in step.",
+        "Typing in the field works too; the two stay in step.",
+        "You can type in the field instead — the two stay in step.",
+        "Typing in the field works just as well. Neither one clears the other.",
+        "Type it if you prefer. Neither one clears the other, so pick whichever you like."],
+      yue: ["直接喺格仔打都得，兩邊會同步。", "直接喺格仔打都得，兩邊會同步。",
+        "你想打字都得 —— 兩邊會同步。", "喺格仔度打都一樣得，兩邊唔會互相清走對方。",
+        "鍾意打字就打字，兩邊唔會互相清走對方，用邊個都得。"]
+    },
+    "changelog.calJump": {
+      en: ["Jump to a month", "Jump to a month", "Jump to a month", "Jump straight to a month", "Jump straight to a month"],
+      yue: ["跳去某個月", "跳去某個月", "跳去邊個月", "直接跳去某個月", "直接跳去某個月"]
+    },
+    "changelog.calPrevMonth": {
+      en: ["Previous month", "Previous month", "Previous month", "Previous month", "Previous month"],
+      yue: ["上個月", "上個月", "上個月", "上個月", "上個月"]
+    },
+    "changelog.calNextMonth": {
+      en: ["Next month", "Next month", "Next month", "Next month", "Next month"],
+      yue: ["下個月", "下個月", "下個月", "下個月", "下個月"]
+    },
+    "changelog.calPrevYear": {
+      en: ["Previous year", "Previous year", "Previous year", "Previous year", "Previous year"],
+      yue: ["上一年", "上一年", "上一年", "上一年", "上一年"]
+    },
+    "changelog.calNextYear": {
+      en: ["Next year", "Next year", "Next year", "Next year", "Next year"],
+      yue: ["下一年", "下一年", "下一年", "下一年", "下一年"]
+    },
+    "changelog.calToday": {
+      en: ["Today", "Today", "Today", "Back to today", "Back to today"],
+      yue: ["今日", "今日", "今日", "返去今日", "返去今日"]
+    },
+    "changelog.calClear": {
+      en: ["Clear this date", "Clear this date", "Clear this date", "Clear just this date", "Clear just this one"],
+      yue: ["清走呢個日期", "清走呢個日期", "清走呢個", "淨係清走呢個日期", "淨係清走呢個"]
+    },
     "changelog.export": {
       en: ["Export", "Export", "Export", "Export what I see", "Export exactly what I see"],
       yue: ["匯出", "匯出", "匯出", "匯出我睇緊嗰啲", "睇到咩就匯出咩"]
@@ -1525,6 +1576,121 @@
       yue: ["外觀設定已複製到剪貼簿。", "外觀設定已複製到剪貼簿。", "外觀設定 copy 咗。",
         "外觀設定 copy 咗 — 搵個安全位 paste 低佢。",
         "外觀設定 copy 咗。搵個安全位 paste 低，重灌都唔怕冇咗。"]
+    },
+
+    /* ---- appearance files and named presets. A clipboard blob dies with the
+       session; a file survives a reinstall, so every message below names the file
+       it wrote or read, and the partial import names both halves of the count —
+       what came in AND what did not. A theme that quietly loses half its colours
+       is worse than one that refuses outright. ---- */
+    "appearance.exportedFile": {
+      en: ["Appearance exported to {path}.",
+        "Appearance exported to {path}.",
+        "Appearance exported to {path} — keep that file somewhere safe.",
+        "Appearance exported to {path}. Keep that file and your look survives a reinstall.",
+        "Appearance exported to {path}. Guard that file with your life and your theme will outlive the next reinstall."],
+      yue: ["外觀已匯出至 {path}。",
+        "外觀已匯出至 {path}。",
+        "外觀 export 咗去 {path} — 搵個安全位擺好佢。",
+        "外觀 export 咗去 {path}。留住份檔，重灌完都仲係呢個樣。",
+        "外觀 export 咗去 {path}。份檔睇實佢，下次重灌你個 theme 都照樣返生。"]
+    },
+    "appearance.imported": {
+      en: ["Imported {count} element styles from {file}.",
+        "Imported {count} element styles from {file}.",
+        "Imported {count} element styles from {file}.",
+        "{count} element styles came in from {file} — the app is wearing them now.",
+        "{count} element styles came in from {file}, and the app has already put them on."],
+      yue: ["已由 {file} 匯入 {count} 個元素樣式。",
+        "已由 {file} 匯入 {count} 個元素樣式。",
+        "由 {file} import 咗 {count} 個元素樣式。",
+        "由 {file} import 咗 {count} 個元素樣式 — 個 app 已經著咗上身。",
+        "由 {file} import 咗 {count} 個元素樣式，個 app 即刻換咗新衫。"]
+    },
+    "appearance.importedPartial": {
+      en: ["Imported {count} element styles. {dropped} values could not be represented and were left out; each one is listed with its reason.",
+        "Imported {count} element styles. {dropped} values could not be represented and were left out; each one is listed with its reason.",
+        "Imported {count} element styles. {dropped} values could not be represented, so they were left out — each one is listed with its reason.",
+        "Imported {count} element styles and left {dropped} behind, because this build cannot represent them. Every one is listed with its reason.",
+        "Imported {count} element styles and left {dropped} at the door, because this build cannot represent them. Every one is listed with its reason, so nothing vanished quietly."],
+      yue: ["已匯入 {count} 個元素樣式。有 {dropped} 個數值表達唔到，冇匯入；每一個都列咗原因。",
+        "已匯入 {count} 個元素樣式。有 {dropped} 個數值表達唔到，冇匯入；每一個都列咗原因。",
+        "import 咗 {count} 個元素樣式。有 {dropped} 個數值表達唔到，唯有唔要 — 每個都寫低咗原因。",
+        "import 咗 {count} 個元素樣式，掉低咗 {dropped} 個，因為呢個 build 表達唔到佢哋。每個都寫低咗原因。",
+        "import 咗 {count} 個元素樣式，有 {dropped} 個喺門口停低咗，因為呢個 build 表達唔到佢哋。每個都寫低咗原因，冇一個係靜雞雞唔見咗。"]
+    },
+    "appearance.presetSaved": {
+      en: ["Saved the appearance preset {name}.",
+        "Saved the appearance preset {name}.",
+        "Saved the appearance preset {name}.",
+        "Saved {name} — pick it from the preset list whenever you want this look back.",
+        "Saved {name}. Pick it from the preset list whenever you want this look back."],
+      yue: ["已儲存外觀預設 {name}。",
+        "已儲存外觀預設 {name}。",
+        "外觀預設 {name} save 咗。",
+        "{name} save 咗 — 想要返呢個樣，喺預設清單度撳返佢就得。",
+        "{name} save 咗。想扮返今日呢個樣，喺預設清單度撳返佢就得。"]
+    },
+    "appearance.presetDeleted": {
+      en: ["Deleted the appearance preset {name}.",
+        "Deleted the appearance preset {name}.",
+        "Deleted the appearance preset {name}. History still has it, so this is undoable.",
+        "Deleted {name}. History still has it, so this is undoable.",
+        "Deleted {name}. History still has it, so you can pull it back out of the bin."],
+      yue: ["已刪除外觀預設 {name}。",
+        "已刪除外觀預設 {name}。",
+        "外觀預設 {name} 刪咗。History 度仲有，所以 undo 得返。",
+        "{name} 刪咗。History 度仲有，所以 undo 得返。",
+        "{name} 刪咗。History 度仲有，想撈返上嚟隨時得。"]
+    },
+    "appearance.presetApplied": {
+      en: ["Applied the appearance preset {name}.",
+        "Applied the appearance preset {name}.",
+        "Applied the appearance preset {name}.",
+        "{name} is on. Everything it names has changed shape.",
+        "{name} is on, and everything it names has changed shape."],
+      yue: ["已套用外觀預設 {name}。",
+        "已套用外觀預設 {name}。",
+        "外觀預設 {name} 套咗落去。",
+        "{name} 上咗身，佢寫住嘅嘢全部換晒樣。",
+        "{name} 上咗身，佢寫住嘅嘢全部換晒樣，即刻精神晒。"]
+    },
+
+    "err.appearanceParse": {
+      en: ["{file} could not be read as an appearance file: {message} Nothing was imported and your current appearance is untouched.",
+        "{file} could not be read as an appearance file: {message} Nothing was imported and your current appearance is untouched.",
+        "{file} would not read as an appearance file — {message} Nothing was imported; your current appearance is untouched.",
+        "{file} refused to read as an appearance file: {message} Nothing was imported, so your current appearance is exactly as you left it.",
+        "{file} refused to read as an appearance file: {message} Nothing was imported, so your current look is exactly as you left it."],
+      yue: ["{file} 讀唔到做外觀檔：{message} 冇匯入任何嘢，你而家嘅外觀原封不動。",
+        "{file} 讀唔到做外觀檔：{message} 冇匯入任何嘢，你而家嘅外觀原封不動。",
+        "{file} 讀唔到做外觀檔 — {message} 乜都冇 import 到；你而家嘅外觀原封不動。",
+        "{file} 死都唔肯讀做外觀檔：{message} 乜都冇 import 到，你而家個樣同之前一模一樣。",
+        "{file} 死都唔肯讀做外觀檔：{message} 乜都冇 import 到，你個樣同你走嗰陣一模一樣。"]
+    },
+    "err.appearanceImport": {
+      en: ["Nothing in {file} could be applied: {message} Your current appearance is untouched.",
+        "Nothing in {file} could be applied: {message} Your current appearance is untouched.",
+        "Nothing in {file} could be applied — {message} Your current appearance is untouched.",
+        "Not one value in {file} could be applied: {message} Your current appearance is untouched.",
+        "Not one value in {file} survived the check: {message} Your current appearance is untouched, which is the safe outcome."],
+      yue: ["{file} 入面冇一樣嘢用得：{message} 你而家嘅外觀原封不動。",
+        "{file} 入面冇一樣嘢用得：{message} 你而家嘅外觀原封不動。",
+        "{file} 入面冇一樣嘢用得 — {message} 你而家嘅外觀原封不動。",
+        "{file} 入面一個數值都用唔到：{message} 你而家嘅外觀原封不動。",
+        "{file} 入面一個數值都過唔到關：{message} 你而家嘅外觀原封不動 — 咁樣至安全。"]
+    },
+    "warn.appearanceOverwrite": {
+      en: ["A preset named {name} already exists. Saving again replaces it, and the copy you have now is gone.",
+        "A preset named {name} already exists. Saving again replaces it, and the copy you have now is gone.",
+        "A preset named {name} already exists — saving again replaces it, and the copy you have now is gone.",
+        "There is already a preset named {name}. Saving again replaces it, and the copy you have now is gone.",
+        "There is already a preset called {name}. Saving again writes right over it, and the copy you have now is gone."],
+      yue: ["已經有個叫 {name} 嘅預設。再 save 就會蓋咗佢，而家嗰份會冇咗。",
+        "已經有個叫 {name} 嘅預設。再 save 就會蓋咗佢，而家嗰份會冇咗。",
+        "已經有個叫 {name} 嘅預設 — 再 save 就會蓋咗佢，而家嗰份會冇咗。",
+        "已經有個預設叫 {name} 㗎喇。再 save 就會蓋咗佢，而家嗰份會冇咗。",
+        "已經有個預設叫 {name} 㗎喇。再 save 就直接寫過佢，而家嗰份會冇咗。"]
     }
   };
 

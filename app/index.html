@@ -479,8 +479,14 @@ button,input,textarea,select{font-family:inherit;color:inherit;max-width:100%}
                 <button onClick="{{ copyClog }}" style="flex:0 0 auto;height:38px;padding:0 14px;border-radius:19px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px;white-space:nowrap">{{ clogCopyLabel }}</button>
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                <input value="{{ clogFrom }}" onInput="{{ setClogFrom }}" placeholder="{{ clogFromPlaceholder }}" aria-label="{{ clogFromPlaceholder }}" style="flex:1 1 150px;min-width:0;height:34px;border-radius:9px;border:1px solid {{ clogFromBorder }};background:var(--m3-surface-high);padding:0 10px;font-family:'Roboto Mono',monospace;font-size:11.5px;outline:none" />
-                <input value="{{ clogTo }}" onInput="{{ setClogTo }}" placeholder="{{ clogToPlaceholder }}" aria-label="{{ clogToPlaceholder }}" style="flex:1 1 150px;min-width:0;height:34px;border-radius:9px;border:1px solid {{ clogToBorder }};background:var(--m3-surface-high);padding:0 10px;font-family:'Roboto Mono',monospace;font-size:11.5px;outline:none" />
+                <div data-anchor="calfrom" style="flex:1 1 150px;min-width:0;display:flex;align-items:center;gap:4px;height:34px;padding:0 4px 0 10px;border-radius:9px;border:1px solid {{ clogFromBorder }};background:var(--m3-surface-high)">
+                  <input value="{{ clogFrom }}" onInput="{{ setClogFrom }}" placeholder="{{ clogFromPlaceholder }}" aria-label="{{ clogFromPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;font-family:'Roboto Mono',monospace;font-size:11.5px;outline:none" />
+                  <button onClick="{{ openCalFrom }}" title="{{ calOpenHint }}" aria-label="{{ calOpenHint }}" aria-expanded="{{ calFromOpen }}" style="flex:0 0 auto;width:26px;height:26px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ calFromBg }};color:{{ calFromFg }};cursor:pointer;font-size:12px">&#128197;</button>
+                </div>
+                <div data-anchor="calto" style="flex:1 1 150px;min-width:0;display:flex;align-items:center;gap:4px;height:34px;padding:0 4px 0 10px;border-radius:9px;border:1px solid {{ clogToBorder }};background:var(--m3-surface-high)">
+                  <input value="{{ clogTo }}" onInput="{{ setClogTo }}" placeholder="{{ clogToPlaceholder }}" aria-label="{{ clogToPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;font-family:'Roboto Mono',monospace;font-size:11.5px;outline:none" />
+                  <button onClick="{{ openCalTo }}" title="{{ calOpenHint }}" aria-label="{{ calOpenHint }}" aria-expanded="{{ calToOpen }}" style="flex:0 0 auto;width:26px;height:26px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ calToBg }};color:{{ calToFg }};cursor:pointer;font-size:12px">&#128197;</button>
+                </div>
                 <div style="flex:1 1 200px;min-width:0;font-size:11px;color:{{ clogStatusFg }};line-height:1.5">{{ clogStatus }}</div>
               </div>
             </div>
@@ -858,6 +864,32 @@ button,input,textarea,select{font-family:inherit;color:inherit;max-width:100%}
     </div>
   </sc-if>
 
+  <sc-if value="{{ calOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ stop }}" data-appear="Calendar" role="dialog" aria-label="{{ calTitle }}" style="position:fixed;top:{{ calTop }};left:{{ calLeft }};width:300px;max-width:calc(100vw - 24px);z-index:93;background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:16px;box-shadow:0 14px 36px rgba(0,0,0,.45);padding:12px;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <button onClick="{{ calPrevYear }}" title="{{ calPrevYearHint }}" aria-label="{{ calPrevYearHint }}" style="width:28px;height:28px;flex:0 0 28px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:11px">&#171;</button>
+        <button onClick="{{ calPrevMonth }}" title="{{ calPrevMonthHint }}" aria-label="{{ calPrevMonthHint }}" style="width:28px;height:28px;flex:0 0 28px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:11px">&#8249;</button>
+        <button onClick="{{ openCalMonthMenu }}" style="flex:1;min-width:0;height:28px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ calLabel }} &#9662;</button>
+        <button onClick="{{ calNextMonth }}" title="{{ calNextMonthHint }}" aria-label="{{ calNextMonthHint }}" style="width:28px;height:28px;flex:0 0 28px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:11px">&#8250;</button>
+        <button onClick="{{ calNextYear }}" title="{{ calNextYearHint }}" aria-label="{{ calNextYearHint }}" style="width:28px;height:28px;flex:0 0 28px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:11px">&#187;</button>
+      </div>
+      <div role="grid" aria-label="{{ calTitle }}" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">
+        <sc-for list="{{ calWeekdays }}" as="w" hint-placeholder-count="7">
+          <div role="columnheader" style="text-align:center;font-size:10px;color:var(--m3-on-surface-variant);padding:2px 0">{{ w.label }}</div>
+        </sc-for>
+        <sc-for list="{{ calDays }}" as="d" hint-placeholder-count="35">
+          <button onClick="{{ d.pick }}" role="gridcell" aria-label="{{ d.aria }}" aria-selected="{{ d.selected }}" title="{{ d.aria }}" style="height:30px;border-radius:8px;border:1px solid {{ d.border }};background:{{ d.bg }};color:{{ d.fg }};cursor:pointer;font-size:11.5px;font-family:'Roboto Mono',monospace">{{ d.day }}</button>
+        </sc-for>
+      </div>
+      <div style="font-size:10.5px;color:var(--m3-on-surface-variant);line-height:1.5">{{ calHint }}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button onClick="{{ calToday }}" style="flex:1 1 auto;height:28px;padding:0 10px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:11px">{{ calTodayLabel }}</button>
+        <button onClick="{{ calClear }}" style="flex:1 1 auto;height:28px;padding:0 10px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:11px">{{ calClearLabel }}</button>
+        <button onClick="{{ calClose }}" style="flex:1 1 auto;height:28px;padding:0 10px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:11px">{{ closeLabel }}</button>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ dimSumOpen }}" hint-placeholder-val="{{ false }}">
     <div role="status" aria-live="polite" style="position:fixed;left:18px;bottom:18px;z-index:94;width:min(320px,calc(100vw - 36px));background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:18px;box-shadow:0 12px 34px rgba(0,0,0,.42);padding:13px 14px;display:flex;gap:12px;align-items:center;animation:cxin .22s ease-out">
       <img src="{{ dimSumArt }}" alt="{{ dimSumAlt }}" title="{{ dimSumAlt }}" style="flex:0 0 56px;width:56px;height:56px;border-radius:12px" />
@@ -995,6 +1027,8 @@ class Component extends DCLogic {
     bulkOpen: false, bulkQuery: "", bulkRegex: null, bulkInvert: false, bulkPinned: false, bulkScope: { kind: "strip" },
     /* changelog viewer */
     clogQuery: "", clogRegex: null, clogFrom: "", clogTo: "", clogPreset: "all", clogText: null, clogError: null,
+    /* calendar picker: which field it is editing, and the month it is showing */
+    calOpen: null, calMonth: null, calAt: { x: 0, y: 0 },
     /* studio settings */
     studioQuery: "", studioRegex: null, editors: [],
     /* dim sum surprise */
@@ -1050,7 +1084,7 @@ class Component extends DCLogic {
       this._dimTimer = setTimeout(() => this.setState({ dimSum: null }), 9000);
     }
     this._key = (e) => {
-      if (e.key === "Escape") this.setState({ menu: null, regexOpen: false, appearOpen: false, slashOpen: false, dd: null, paletteOpen: false });
+      if (e.key === "Escape") this.setState({ menu: null, regexOpen: false, appearOpen: false, slashOpen: false, dd: null, paletteOpen: false, calOpen: null });
       if (e.ctrlKey && e.shiftKey && (e.key === "F" || e.key === "f")) { e.preventDefault(); this.setState({ paletteOpen: true, paletteQuery: "", paletteRegex: null }); }
     };
     window.addEventListener("keydown", this._key);
@@ -1746,7 +1780,7 @@ class Component extends DCLogic {
       lang: st.lang,
       toastOpen: !!st.toast, toastText: st.toast || "",
       stop: (e) => e.stopPropagation(),
-      onRootClick: () => { if (st.menu || st.slashOpen || st.dd) this.setState({ menu: null, slashOpen: false, dd: null }); },
+      onRootClick: () => { if (st.menu || st.slashOpen || st.dd || st.calOpen) this.setState({ menu: null, slashOpen: false, dd: null, calOpen: null }); },
       toggleTheme: () => { const theme = st.theme === "dark" ? "light" : "dark"; document.documentElement.setAttribute("data-theme", theme); CX.store.set("theme", theme); this.setState({ theme }); },
       setLang: (e) => { const lang = e.target.value; CX.i18n.mode = lang; CX.i18n.save(); this.setState({ lang }); },
       winMin: () => CX.bridge.window.minimize(),
@@ -2515,7 +2549,7 @@ class Component extends DCLogic {
       resetAppear: () => { const appearance = Object.assign({}, st.appearance); delete appearance[st.appearTarget]; CX.store.set("appearance", appearance); this.setState({ appearance }); },
       resetAllAppear: () => { CX.store.set("appearance", {}); this.setState({ appearance: {} }); }
     };
-    Object.assign(v, this.tabVals(), this.notifyVals(), this.changelogVals(), this.studioVals(), this.dimSumVals());
+    Object.assign(v, this.tabVals(), this.notifyVals(), this.changelogVals(), this.studioVals(), this.dimSumVals(), this.calendarVals());
     return v;
   }
 
@@ -2641,6 +2675,15 @@ class Component extends DCLogic {
       regexBuilderHint: CX.i18n.t("search.builder"),
       clogFrom: st.clogFrom,
       clogTo: st.clogTo,
+      openCalFrom: (e) => this.openCalendar("from", e),
+      openCalTo: (e) => this.openCalendar("to", e),
+      calOpenHint: CX.i18n.t("changelog.calendar"),
+      calFromOpen: st.calOpen === "from" ? "true" : "false",
+      calToOpen: st.calOpen === "to" ? "true" : "false",
+      calFromBg: st.calOpen === "from" ? "var(--m3-primary)" : "transparent",
+      calFromFg: st.calOpen === "from" ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+      calToBg: st.calOpen === "to" ? "var(--m3-primary)" : "transparent",
+      calToFg: st.calOpen === "to" ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
       setClogFrom: (e) => this.setState({ clogFrom: e.target.value, clogPreset: "custom" }),
       setClogTo: (e) => this.setState({ clogTo: e.target.value, clogPreset: "custom" }),
       clogFromPlaceholder: CX.i18n.t("changelog.from"),
@@ -2731,6 +2774,117 @@ class Component extends DCLogic {
       studioGroups: groups,
       studioEmpty: groups.length === 0,
       studioEmptyText: CX.i18n.t("settings.noMatch", { query: st.studioQuery })
+    };
+  }
+
+  /* ------------------------------------------------------ calendar bindings */
+  calendarVals() {
+    const st = this.state;
+    if (!st.calOpen) return { calOpen: false, calDays: [], calWeekdays: [] };
+
+    const eng = window.CX_CHANGELOG;
+    const shown = new Date(st.calMonth || Date.now());
+    shown.setDate(1);
+    const year = shown.getFullYear();
+    const month = shown.getMonth();
+
+    const parse = (text) => {
+      if (!text || !eng) return null;
+      const r = eng.parseDate(text);
+      return r && r.ok && r.date ? new Date(r.date) : null;
+    };
+    const from = parse(st.clogFrom);
+    const to = parse(st.clogTo);
+    const sameDay = (a, b) => a && b && this.isoLocal(a) === this.isoLocal(b);
+    const inRange = (d) => from && to && d >= from && d <= to;
+
+    /* Six weeks starting on the Monday on or before the 1st: the grid never changes
+       height between months, so the popover does not jump as you page through it. */
+    const start = new Date(year, month, 1);
+    start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+    const days = [];
+    const today = new Date();
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      const iso = this.isoLocal(d);
+      const outside = d.getMonth() !== month;
+      const picked = sameDay(d, st.calOpen === "from" ? from : to);
+      const edge = sameDay(d, from) || sameDay(d, to);
+      const between = inRange(d);
+      days.push({
+        key: iso,
+        day: String(d.getDate()),
+        aria: d.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" }),
+        selected: picked ? "true" : "false",
+        bg: picked ? "var(--m3-primary)" : edge ? "var(--m3-primary-container)" : between ? "var(--m3-secondary-container)" : "transparent",
+        fg: picked ? "var(--m3-on-primary)" : outside ? "var(--m3-outline)" : "var(--m3-on-surface)",
+        border: sameDay(d, today) ? "var(--m3-primary)" : "transparent",
+        pick: () => {
+          /* Setting one end never clears the other, and picking a "from" after the
+             current "to" swaps them rather than producing an empty range. */
+          const patch = { calOpen: null, clogPreset: "custom" };
+          if (st.calOpen === "from") {
+            patch.clogFrom = iso;
+            if (to && d > to) { patch.clogTo = this.isoLocal(d); patch.clogFrom = this.isoLocal(to); }
+          } else {
+            patch.clogTo = iso;
+            if (from && d < from) { patch.clogFrom = this.isoLocal(d); patch.clogTo = this.isoLocal(from); }
+          }
+          this.setState(patch);
+        }
+      });
+    }
+
+    const weekdayNames = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(2024, 0, 1 + i);   // 2024-01-01 was a Monday
+      weekdayNames.push({ key: "w" + i, label: d.toLocaleDateString(undefined, { weekday: "narrow" }) });
+    }
+
+    return {
+      calOpen: true,
+      calTop: st.calAt.y + "px",
+      calLeft: st.calAt.x + "px",
+      calTitle: CX.i18n.t(st.calOpen === "from" ? "changelog.calFrom" : "changelog.calTo"),
+      calLabel: shown.toLocaleDateString(undefined, { month: "long", year: "numeric" }),
+      calWeekdays: weekdayNames,
+      calDays: days,
+      calHint: CX.i18n.t("changelog.calHint"),
+      calPrevMonth: () => this.calShift(-1, 0),
+      calNextMonth: () => this.calShift(1, 0),
+      calPrevYear: () => this.calShift(0, -1),
+      calNextYear: () => this.calShift(0, 1),
+      calPrevMonthHint: CX.i18n.t("changelog.calPrevMonth"),
+      calNextMonthHint: CX.i18n.t("changelog.calNextMonth"),
+      calPrevYearHint: CX.i18n.t("changelog.calPrevYear"),
+      calNextYearHint: CX.i18n.t("changelog.calNextYear"),
+      openCalMonthMenu: (e) => this.openDropdown(e, {
+        title: CX.i18n.t("changelog.calJump"),
+        value: String(month),
+        width: 240,
+        options: Array.from({ length: 12 }, (_, i) => ({
+          value: String(i),
+          label: new Date(year, i, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" })
+        })),
+        onPick: (o) => {
+          const next = new Date(year, Number(o.value), 1);
+          this.setState({ calMonth: next.getTime(), dd: null });
+        }
+      }),
+      calToday: () => {
+        const now = new Date();
+        now.setDate(1);
+        this.setState({ calMonth: now.getTime() });
+      },
+      calTodayLabel: CX.i18n.t("changelog.calToday"),
+      calClear: () => {
+        const patch = { calOpen: null, clogPreset: "custom" };
+        if (st.calOpen === "from") patch.clogFrom = "";
+        else patch.clogTo = "";
+        this.setState(patch);
+      },
+      calClearLabel: CX.i18n.t("changelog.calClear"),
+      calClose: () => this.setState({ calOpen: null })
     };
   }
 
@@ -3015,6 +3169,45 @@ class Component extends DCLogic {
 
   openBulk(scope, invert) {
     this.setState({ bulkOpen: true, bulkScope: scope || { kind: "strip" }, bulkInvert: !!invert, bulkQuery: "", bulkRegex: null, bulkPinned: false });
+  }
+
+  /* ---------------------------------------------------------- calendar */
+
+  /** ISO yyyy-mm-dd in LOCAL time. `toISOString` converts to UTC first, which moves
+   *  the date across midnight for anyone west of Greenwich — a picker that reports
+   *  yesterday is worse than no picker. */
+  isoLocal(date) {
+    const pad = (n) => String(n).padStart(2, "0");
+    return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate());
+  }
+
+  openCalendar(field, e) {
+    const anchor = document.querySelector('[data-anchor="cal' + field + '"]');
+    const r = anchor ? anchor.getBoundingClientRect() : null;
+    const typed = field === "from" ? this.state.clogFrom : this.state.clogTo;
+    const eng = window.CX_CHANGELOG;
+    /* Open on the month the user already typed, so the calendar and the field agree
+       rather than arguing. */
+    const parsed = typed && eng ? eng.parseDate(typed) : null;
+    const month = parsed && parsed.ok && parsed.date ? new Date(parsed.date) : new Date();
+    month.setDate(1);
+    this.setState({
+      calOpen: field,
+      calMonth: month.getTime(),
+      calAt: {
+        x: r ? Math.max(8, Math.min(r.left, window.innerWidth - 312)) : 200,
+        y: r ? Math.max(8, Math.min(r.bottom + 6, window.innerHeight - 360)) : 120
+      }
+    });
+    if (e && e.stopPropagation) e.stopPropagation();
+  }
+
+  calShift(months, years) {
+    const base = new Date(this.state.calMonth || Date.now());
+    base.setDate(1);
+    if (months) base.setMonth(base.getMonth() + months);
+    if (years) base.setFullYear(base.getFullYear() + years);
+    this.setState({ calMonth: base.getTime() });
   }
 
   /* --------------------------------------------------------- changelog */

@@ -14,7 +14,7 @@ import { mkdtempSync, rmSync, mkdirSync, writeFileSync, existsSync, readFileSync
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 
 const require = createRequire(import.meta.url);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -305,6 +305,194 @@ test("wsl.stop on an unknown session reports absent rather than throwing", () =>
   assert.equal(result.status, "absent");
 });
 
+/* ------------------------------------------------------------- run control */
+
+/** Does this pid still name a live process? Signal 0 asks the OS without touching it. */
+function alive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Poll until `check` holds. A kill is asynchronous however it is issued, so the
+ *  alternative is a fixed sleep that is either flaky or needlessly slow. */
+async function until(check, ms = 8000) {
+  const deadline = Date.now() + ms;
+  while (Date.now() < deadline) {
+    if (check()) return true;
+    await new Promise((r) => setTimeout(r, 25));
+  }
+  return check();
+}
+
+/** A process that outlives the test unless something actually kills it. */
+function sleeper() {
+  return spawn(process.execPath, ["-e", "setTimeout(() => {}, 120000);"], {
+    windowsHide: true,
+    stdio: "ignore",
+  });
+}
+
+function reap(pid) {
+  try {
+    process.kill(pid, "SIGKILL");
+  } catch {
+    /* already gone, which is what the test wanted anyway */
+  }
+}
+
+test("cli.killTree reports false for a pid nothing is using", () => {
+  // The whole point of the Stop path: a run that ended a moment before the user
+  // reached the button is answered with `false`, never an exception.
+  assert.equal(cli.killTree(2_147_483_646), false);
+  assert.equal(cli.killTree(0), false);
+  assert.equal(cli.killTree(-1), false);
+  assert.equal(cli.killTree(undefined), false);
+  assert.equal(cli.killTree("1234"), false);
+});
+
+test("cli.killTree kills the process and everything under it", async () => {
+  // `codex` is spawned through a shell and spawns children of its own, so killing the
+  // pid Node reports is not enough — this asserts the grandchild dies too.
+  const script =
+    "const { spawn } = require('node:child_process');" +
+    "const kid = spawn(process.execPath, ['-e', 'setTimeout(() => {}, 120000);'], { stdio: 'ignore' });" +
+    "console.log(kid.pid);" +
+    "setTimeout(() => {}, 120000);";
+  const parent = spawn(process.execPath, ["-e", script], {
+    windowsHide: true,
+    stdio: ["ignore", "pipe", "ignore"],
+  });
+  const grandchild = await new Promise((resolve, reject) => {
+    let buffer = "";
+    parent.stdout.setEncoding("utf8");
+    parent.stdout.on("data", (chunk) => {
+      buffer += chunk;
+      const nl = buffer.indexOf("\n");
+      if (nl !== -1) resolve(Number(buffer.slice(0, nl).trim()));
+    });
+    parent.on("error", reject);
+    setTimeout(() => reject(new Error("the child never reported its own child's pid")), 15000);
+  });
+
+  try {
+    assert.ok(alive(parent.pid), "the parent should be running before it is killed");
+    assert.ok(alive(grandchild), "the grandchild should be running before it is killed");
+
+    assert.equal(cli.killTree(parent.pid), true);
+    assert.ok(await until(() => !alive(parent.pid)), "the parent should be gone");
+    assert.ok(await until(() => !alive(grandchild)), "the grandchild should be gone too");
+  } finally {
+    reap(grandchild);
+    reap(parent.pid);
+  }
+});
+
+test("cli.stream hands the caller the child the moment it starts", async () => {
+  const child = { value: null };
+  // Quoted because stream() runs through a shell on Windows, where the node path
+  // contains a space.
+  const program = cli.WIN ? `"${process.execPath}"` : process.execPath;
+  const lines = [];
+  const out = await cli.stream(
+    program,
+    ["-e", cli.WIN ? '"console.log(1)"' : "console.log(1)"],
+    { onSpawn: (c) => { child.value = c; } },
+    (line) => lines.push(line),
+  );
+  assert.ok(child.value, "onSpawn should have been called");
+  assert.equal(typeof child.value.pid, "number");
+  assert.equal(out.code, 0);
+  assert.deepEqual(lines.map((l) => l.text), ["1"]);
+});
+
+/** commands.js is Electron main-process code, but everything it does about runs is
+ *  plain Node. Standing in a minimal `electron` lets these tests call the handlers the
+ *  app really registers — testing a hand-written copy of the logic would only ever
+ *  prove the copy right. */
+function loadCommands() {
+  const handlers = new Map();
+  const quitHooks = [];
+  const commandsPath = join(root, "electron", "commands.js");
+  const electronPath = createRequire(commandsPath).resolve("electron");
+  require.cache[electronPath] = {
+    id: electronPath,
+    filename: electronPath,
+    path: dirname(electronPath),
+    loaded: true,
+    children: [],
+    paths: [],
+    parent: null,
+    exports: {
+      ipcMain: { handle: (name, fn) => handlers.set(name, fn) },
+      app: {
+        isPackaged: false,
+        on: (event, fn) => {
+          if (event === "before-quit") quitHooks.push(fn);
+        },
+      },
+    },
+  };
+  return { commands: require(commandsPath), handlers, quitHooks };
+}
+
+const { commands: commandsModule, handlers: ipc, quitHooks } = loadCommands();
+const invoke = (name, args) => ipc.get(name)(null, args || {});
+
+test("codex_cancel answers for a run that is not running instead of throwing", async () => {
+  const unknown = await invoke("codex_cancel", { id: "run-never-existed" });
+  assert.equal(unknown.cancelled, false);
+  assert.match(unknown.reason, /already finished/);
+
+  // Stop pressed a moment after a run ended on its own is not an error, so nothing
+  // here rejects — a rejection would put a red notification on a successful run.
+  const nameless = await invoke("codex_cancel", {});
+  assert.equal(nameless.cancelled, false);
+  assert.ok(nameless.reason, "a refusal should say why");
+});
+
+test("codex_running lists the live runs and codex_cancel kills one", async () => {
+  assert.deepEqual((await invoke("codex_running")).ids, [], "nothing is running yet");
+
+  const child = sleeper();
+  commandsModule.runs.set("run-alpha", { child, pid: child.pid, startedAt: Date.now(), cancelled: false });
+  try {
+    const listed = await invoke("codex_running");
+    assert.deepEqual(listed.ids, ["run-alpha"]);
+    assert.equal(listed.runs[0].pid, child.pid);
+
+    const stopped = await invoke("codex_cancel", { id: "run-alpha" });
+    assert.equal(stopped.cancelled, true);
+    assert.equal(stopped.pid, child.pid);
+    assert.ok(await until(() => !alive(child.pid)), "the run's process should be gone");
+  } finally {
+    reap(child.pid);
+    commandsModule.runs.delete("run-alpha");
+  }
+});
+
+test("quitting kills every tracked run", async () => {
+  assert.ok(quitHooks.length > 0, "commands.js should register a before-quit hook");
+
+  const first = sleeper();
+  const second = sleeper();
+  commandsModule.runs.set("run-one", { child: first, pid: first.pid, startedAt: Date.now(), cancelled: false });
+  commandsModule.runs.set("run-two", { child: second, pid: second.pid, startedAt: Date.now(), cancelled: false });
+  try {
+    for (const hook of quitHooks) hook();
+    assert.equal(commandsModule.runs.size, 0, "a quit should leave nothing tracked");
+    assert.ok(await until(() => !alive(first.pid)), "the first run should be gone");
+    assert.ok(await until(() => !alive(second.pid)), "the second run should be gone");
+  } finally {
+    reap(first.pid);
+    reap(second.pid);
+    commandsModule.runs.clear();
+  }
+});
+
 /* ------------------------------------------------------------- preload IPC */
 
 test("every command the preload exposes is registered by the main process", () => {
@@ -313,6 +501,12 @@ test("every command the preload exposes is registered by the main process", () =
 
   const exposed = [...preload.matchAll(/^\s{2}"([a-z_]+)",$/gm)].map((m) => m[1]);
   assert.ok(exposed.length > 30, `expected the preload to list the command surface, saw ${exposed.length}`);
+
+  // The Stop button is only real if both halves of it are wired: named here, and
+  // registered over there.
+  for (const name of ["codex_cancel", "codex_running"]) {
+    assert.ok(exposed.includes(name), `${name} should be exposed to the renderer`);
+  }
 
   const registered = new Set([...commands.matchAll(/^command\("([a-z_]+)"/gm)].map((m) => m[1]));
   const missing = exposed.filter((name) => !registered.has(name));

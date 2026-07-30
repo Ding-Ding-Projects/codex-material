@@ -31,6 +31,13 @@ const SHOTS = [
   { id: "cloud", file: "07c-cloud.png", nav: "health", note: "Health ▸ Cloud tasks — what `codex cloud list` actually reported", state: { healthView: "cloud" } },
   { id: "history", file: "08-history.png", nav: "history", note: "History — local git-backed, append-only" },
   { id: "changelog", file: "09-changelog.png", nav: "changelog", note: "Changelog viewer — date filter + regex search" },
+  {
+    id: "calendar",
+    file: "09b-calendar.png",
+    nav: "changelog",
+    note: "Changelog date filter — the calendar picker, with month/year jump and range highlighting",
+    after: "__setState({ clogFrom: '2026-07-01', clogTo: '2026-07-31', calOpen: 'from', calMonth: Date.now(), calAt: { x: 700, y: 300 } })",
+  },
   { id: "studio", file: "10-studio.png", nav: "studio", note: "Studio settings — language, funny sliders, narrator, dim sum, editor" },
   {
     id: "regex",

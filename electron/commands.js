@@ -121,6 +121,59 @@ command("codex_set_config", async (a) => config.setPath(a.key, a.value));
 
 /* ------------------------------------------------------------------ run */
 
+/** Runs that are alive right now, keyed by the id the renderer generated. An entry
+ *  exists from the moment the child is spawned until the moment it exits — including
+ *  when it exits by failing — so the map answers exactly one question and answers it
+ *  honestly: what is still running. Anything less and Stop becomes a button that only
+ *  releases the composer while `codex` keeps working in the dark. */
+const Runs = new Map();
+
+/** Kill one tracked run's whole process tree.
+ *
+ *  Reports what happened instead of throwing. A run that finished on its own a moment
+ *  before the user reached Stop is not an error, and surfacing it as one would put a
+ *  red notification on a run that actually succeeded. */
+function cancelRun(id) {
+  const key = typeof id === "string" ? id : "";
+  if (!key) return { cancelled: false, id: key, reason: "no run id was given" };
+
+  const run = Runs.get(key);
+  if (!run) {
+    return { cancelled: false, id: key, reason: `run \`${key}\` is not running — it already finished` };
+  }
+  // The window between a child exiting and this map noticing is small but real.
+  if (run.child && run.child.exitCode !== null && run.child.exitCode !== undefined) {
+    return {
+      cancelled: false,
+      id: key,
+      pid: run.pid,
+      reason: `run \`${key}\` had already exited with code ${run.child.exitCode}`,
+    };
+  }
+
+  run.cancelled = true;
+  if (!cli.killTree(run.pid)) {
+    return { cancelled: false, id: key, pid: run.pid, reason: `pid ${run.pid} was already gone` };
+  }
+  // The entry is left for `codex_run`'s own cleanup to remove when the child actually
+  // closes, so a second Stop reports "already gone" rather than "never heard of it".
+  return { cancelled: true, id: key, pid: run.pid };
+}
+
+/** Nothing else stops these children: they are not in this process's job object, so a
+ *  quit that ignores them leaves a `codex` running until the machine reboots. */
+function killAllRuns() {
+  let killed = 0;
+  for (const run of Runs.values()) {
+    run.cancelled = true;
+    if (cli.killTree(run.pid)) killed++;
+  }
+  Runs.clear();
+  return killed;
+}
+
+app.on("before-quit", () => killAllRuns());
+
 /** Spawn the CLI, stream every line to the window as it arrives, and return the exit
  *  code with the full transcript. */
 command("codex_run", async (a) => {
@@ -128,13 +181,45 @@ command("codex_run", async (a) => {
   if (!args.length) throw new Error("no arguments were composed for this run");
   const id = a.id || "";
   const channel = a.stream || null;
-  const { code, lines } = await cli.stream(cli.codexBin(), args, { cwd: a.cwd }, (line) => {
-    if (channel && target && !target.isDestroyed()) {
-      target.webContents.send(channel, { id, level: line.level, text: line.text });
-    }
-  });
-  return { code, id, lines };
+  let record = null;
+  try {
+    const { code, lines } = await cli.stream(
+      cli.codexBin(),
+      args,
+      {
+        cwd: a.cwd,
+        // Recorded before the first line arrives: a run that is cancelled while it is
+        // still thinking has printed nothing yet, and is the one most worth stopping.
+        onSpawn: (child) => {
+          if (!id) return;
+          record = { child, pid: child.pid, startedAt: Date.now(), cancelled: false };
+          Runs.set(id, record);
+        },
+      },
+      (line) => {
+        if (channel && target && !target.isDestroyed()) {
+          target.webContents.send(channel, { id, level: line.level, text: line.text });
+        }
+      },
+    );
+    return { code, id, lines, cancelled: record ? record.cancelled : false };
+  } finally {
+    // Also the error path — a run that never started is not a run anyone can cancel.
+    // The identity check keeps a slow exit from evicting a newer run under the same id.
+    if (id && Runs.get(id) === record) Runs.delete(id);
+  }
 });
+
+/** Stop a run for real. */
+command("codex_cancel", async (a) => cancelRun(a && a.id != null ? String(a.id) : ""));
+
+/** What is still running. The renderer loses its own bookkeeping on reload, so it asks
+ *  rather than guessing — otherwise a reloaded window shows Stop for a finished run,
+ *  or nothing at all for one that is still going. */
+command("codex_running", async () => ({
+  ids: [...Runs.keys()],
+  runs: [...Runs.entries()].map(([id, run]) => ({ id, pid: run.pid, startedAt: run.startedAt })),
+}));
 
 /** A one-shot capture used by panels that only need the text, not a live stream. */
 command("codex_capture", async (a) => cli.run(a.args || [], { cwd: a.cwd }));
@@ -289,4 +374,4 @@ command("window_close", async () => {
 });
 
 
-module.exports = { register: () => {}, setWindow, APP_DIR };
+module.exports = { register: () => {}, setWindow, APP_DIR, runs: Runs, cancelRun, killAllRuns };

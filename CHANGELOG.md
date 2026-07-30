@@ -82,10 +82,13 @@ system is reimplemented.
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
 - **Changelog viewer** (`app/cx-changelog.js`): Keep-a-Changelog parsing that never
-  throws, a date filter with named presets and typed ISO/locale dates that reports an
-  invalid entry inline without discarding what was typed, a composed text-and-date
-  search with opt-in bounded regex, and Markdown or plain-text export of exactly the
-  filtered view.
+  throws, a date filter with named presets, typed ISO/locale dates that report an
+  invalid entry inline without discarding what was typed, and an anchored calendar
+  picker with month and year jump, range highlighting and a today marker. Typing and
+  the calendar stay in step and neither clears the other; picking a start after the
+  current end swaps them rather than producing an empty range. Search composes with
+  the date filter rather than overriding it, regex is an opt-in, and the export is
+  exactly the filtered view in Markdown or plain text.
 - **Per-tab WSL runtimes**: spawn a distro per chat tab, set its working directory,
   execute inside it, and stop or kill it independently of the other tabs. `wsl -l -q`
   output is decoded as UTF-16LE.

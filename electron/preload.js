@@ -18,6 +18,8 @@ const COMMANDS = [
   "codex_write_config",
   "codex_set_config",
   "codex_run",
+  "codex_cancel",
+  "codex_running",
   "codex_capture",
   "codex_doctor",
   "codex_mcp_list",

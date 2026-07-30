@@ -3,7 +3,7 @@
    the sandbox or the config schema is reimplemented here — this module only knows
    how to find the binary, run it, and hand the output back verbatim. */
 
-const { spawn, execFile } = require("node:child_process");
+const { spawn, execFile, execFileSync } = require("node:child_process");
 const os = require("node:os");
 const path = require("node:path");
 
@@ -145,13 +145,19 @@ async function runJson(args, opts) {
 
 /** Spawn a program and stream every stdout/stderr line to `onLine` as it arrives.
  *  Both pipes are read concurrently — draining one to completion before touching
- *  the other deadlocks the moment a chatty process fills the pipe nobody is reading. */
+ *  the other deadlocks the moment a chatty process fills the pipe nobody is reading.
+ *
+ *  `opts.onSpawn` is called with the child the instant it exists, before any output
+ *  has arrived. A caller that only wants the transcript can keep ignoring it; a caller
+ *  that has to be able to stop the run needs the handle from the first moment, because
+ *  a run the user cancels before it prints anything is exactly the one worth stopping. */
 function stream(program, args, opts, onLine) {
+  const options = opts || {};
   return new Promise((resolve, reject) => {
     let child;
     try {
       child = spawn(program, args, {
-        cwd: opts.cwd || undefined,
+        cwd: options.cwd || undefined,
         windowsHide: true,
         shell: WIN,
         stdio: ["ignore", "pipe", "pipe"],
@@ -160,6 +166,8 @@ function stream(program, args, opts, onLine) {
       reject(new Error(`could not start \`${program}\`: ${e.message}`));
       return;
     }
+
+    if (typeof options.onSpawn === "function") options.onSpawn(child);
 
     const lines = [];
     const pump = (streamHandle, level) => {
@@ -191,4 +199,54 @@ function stream(program, args, opts, onLine) {
   });
 }
 
-module.exports = { codexHome, codexBin, codexSource, run, runJson, parseLooseJson, stream, WIN };
+/** Kill a process and every descendant it spawned. Returns whether anything was
+ *  actually killed.
+ *
+ *  `child.kill()` is not enough here. Everything goes through `shell: true` on Windows
+ *  (see WIN above), so the pid Node reports is the `cmd.exe` wrapper — signalling it
+ *  leaves `codex` itself, and whatever `codex` spawned in turn, running to completion
+ *  with nobody left reading the output. `/T` is the whole point: it walks the
+ *  descendant tree. `/F` skips asking politely, which is what a Stop button means.
+ *
+ *  Synchronous on purpose. Electron's `before-quit` does not await anything, so an
+ *  async kill would lose the race against the process exiting and the run would
+ *  survive the app that started it. */
+function killTree(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+
+  if (WIN) {
+    try {
+      execFileSync("taskkill", ["/pid", String(pid), "/T", "/F"], {
+        stdio: "ignore",
+        windowsHide: true,
+        timeout: 10_000,
+      });
+      return true;
+    } catch {
+      /* Exit 128 means the pid was already gone; ENOENT means this machine has no
+         taskkill. Both fall through to the signal below, which reports the truth
+         either way rather than claiming a kill that did not happen. */
+    }
+  }
+
+  try {
+    // No tree here — a single process, which is all a non-Windows host or a machine
+    // without taskkill can promise.
+    process.kill(pid, "SIGKILL");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+module.exports = {
+  codexHome,
+  codexBin,
+  codexSource,
+  run,
+  runJson,
+  parseLooseJson,
+  stream,
+  killTree,
+  WIN,
+};

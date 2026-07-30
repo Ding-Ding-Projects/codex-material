@@ -1,0 +1,794 @@
+{
+  "generatedAt": "2026-07-30T15:02:05.610Z",
+  "harness": "tools/audit-ui.mjs + tools/audit-ui-main.cjs",
+  "auditedFrom": "the real app — app/index.html with electron/preload.js and electron/commands.js",
+  "electron": "40.10.6",
+  "chrome": "144.0.7559.236",
+  "matrix": {
+    "widths": [
+      1280
+    ],
+    "zooms": [
+      1
+    ],
+    "langs": [
+      "en"
+    ],
+    "sections": [
+      "chat"
+    ],
+    "windowContentHeight": 900,
+    "funnyLevel": 5,
+    "theme": "dark",
+    "cells": 1,
+    "deepCells": 1
+  },
+  "checks": {
+    "overflow": "document.documentElement.scrollWidth > innerWidth + 1, reported per element that escapes the viewport's right edge with no clipping ancestor. severity: high",
+    "offscreen": "element rendered past the viewport's right edge but cut off by an ancestor's overflow. severity: medium",
+    "clipped-text": "scrollWidth > clientWidth + 1 with overflow hidden and no text-overflow: ellipsis, or scrollHeight > clientHeight + 1 on a single-line control. severity: medium",
+    "target-size": "button / [role=button] / [role=tab] / [role=switch] / a / input / select rendered under 24x24 CSS px. severity: medium",
+    "accessible-name": "interactive element with no text, aria-label, aria-labelledby, title, wrapping label or descendant alt. high when nothing at all names it, medium when only a placeholder or value does",
+    "tab-semantics": "[role=tab] needs aria-selected and a resolvable aria-controls; [role=tablist] needs an accessible name and exactly one tab at tabIndex 0. severity: high",
+    "contrast": "computed colour composited over the nearest opaque background ancestor, WCAG 2.1 relative-luminance ratio, flagged under 4.5:1 (3:1 at >= 18.66px, or >= 14px bold). severity: medium",
+    "focus-visible": "each interactive element focused in turn; flagged when outline-style is none or zero-width, box-shadow is none, and no border, background or colour changed. severity: medium"
+  },
+  "summary": {
+    "uniqueFindings": 18,
+    "totalOccurrences": 18,
+    "bySeverity": {
+      "high": 6,
+      "medium": 12
+    },
+    "byCheck": {
+      "tab-semantics": 6,
+      "accessible-name": 2,
+      "focus-visible": 2,
+      "target-size": 8
+    },
+    "bySection": {
+      "chat": 18
+    },
+    "byWidth": {
+      "1280": 18
+    },
+    "byZoom": {
+      "1": 18
+    },
+    "byLang": {
+      "en": 18
+    }
+  },
+  "findings": [
+    {
+      "check": "tab-semantics",
+      "severity": "high",
+      "selector": "div#dc-root > div > div > div:nth-of-type(2) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "role": "tab",
+      "appear": "Tab",
+      "text": "💬 desktop-material ✕",
+      "message": "role=\"tab\" with no aria-controls, so it is not linked to the panel it opens.",
+      "measured": {
+        "ariaSelected": "true"
+      },
+      "worst": {
+        "ariaSelected": "true"
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "tab-semantics",
+      "severity": "high",
+      "selector": "div#dc-root > div > div > div:nth-of-type(2) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "role": "tab",
+      "appear": "Tab",
+      "text": "💬 DoorDash-Hui ✕",
+      "message": "role=\"tab\" with no aria-controls, so it is not linked to the panel it opens.",
+      "measured": {
+        "ariaSelected": "false"
+      },
+      "worst": {
+        "ariaSelected": "false"
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "tab-semantics",
+      "severity": "high",
+      "selector": "div#dc-root > div > div > div:nth-of-type(2) > div > button:nth-of-type(3)",
+      "tag": "button",
+      "role": "tab",
+      "appear": "Tab",
+      "text": "💬 chret-machine ✕",
+      "message": "role=\"tab\" with no aria-controls, so it is not linked to the panel it opens.",
+      "measured": {
+        "ariaSelected": "false"
+      },
+      "worst": {
+        "ariaSelected": "false"
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "tab-semantics",
+      "severity": "high",
+      "selector": "div#dc-root > div > div > div:nth-of-type(2) > div > button:nth-of-type(4)",
+      "tag": "button",
+      "role": "tab",
+      "appear": "Tab",
+      "text": "💬 DoorDash-Hui ✕",
+      "message": "role=\"tab\" with no aria-controls, so it is not linked to the panel it opens.",
+      "measured": {
+        "ariaSelected": "false"
+      },
+      "worst": {
+        "ariaSelected": "false"
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "tab-semantics",
+      "severity": "high",
+      "selector": "div#dc-root > div > div > div:nth-of-type(2) > div > button:nth-of-type(5)",
+      "tag": "button",
+      "role": "tab",
+      "appear": "Tab",
+      "text": "💬 desktop-material ✕",
+      "message": "role=\"tab\" with no aria-controls, so it is not linked to the panel it opens.",
+      "measured": {
+        "ariaSelected": "false"
+      },
+      "worst": {
+        "ariaSelected": "false"
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "tab-semantics",
+      "severity": "high",
+      "selector": "div#dc-root > div > div > div:nth-of-type(2) > div",
+      "tag": "div",
+      "role": "tablist",
+      "appear": "",
+      "text": "💬 desktop-material ✕ 💬 DoorDash-Hui ✕ 💬 chret-machine ✕ 💬 DoorDash…",
+      "message": "Roving focus is not in place: a tablist must expose exactly one tab stop, with the other tabs at tabIndex -1 and reached with the arrow keys.",
+      "measured": {
+        "tabs": 5,
+        "tabIndexZero": 5
+      },
+      "worst": {
+        "tabs": 5,
+        "tabIndexZero": 5
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "accessible-name",
+      "severity": "medium",
+      "selector": "div#dc-root > div > div > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > input",
+      "tag": "input",
+      "role": "",
+      "appear": "",
+      "text": "Search sessions",
+      "message": "No text, aria-label, aria-labelledby or title. Chromium falls back to the placeholder or value, which is a weak name that disappears the moment the field is filled in.",
+      "measured": {
+        "placeholder": "Search sessions",
+        "value": ""
+      },
+      "worst": {
+        "placeholder": "Search sessions",
+        "value": ""
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "accessible-name",
+      "severity": "medium",
+      "selector": "div#dc-root > div > div > div:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > textarea",
+      "tag": "textarea",
+      "role": "",
+      "appear": "",
+      "text": "Message Codex — type / for the command catalog",
+      "message": "No text, aria-label, aria-labelledby or title. Chromium falls back to the placeholder or value, which is a weak name that disappears the moment the field is filled in.",
+      "measured": {
+        "placeholder": "Message Codex — type / for the command catalog",
+        "value": ""
+      },
+      "worst": {
+        "placeholder": "Message Codex — type / for the command catalog",
+        "value": ""
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "focus-visible",
+      "severity": "medium",
+      "selector": "div#dc-root > div > div > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > input",
+      "tag": "input",
+      "role": "",
+      "appear": "",
+      "text": "Search sessions",
+      "message": "Focusing this element changes nothing a sighted keyboard user can see: outline-style is \"none\", box-shadow is \"none\", and no border, background or colour moved.",
+      "measured": {
+        "outlineStyle": "none",
+        "outlineWidth": "0px",
+        "boxShadow": "none",
+        "focusVisible": true
+      },
+      "worst": {
+        "outlineStyle": "none",
+        "outlineWidth": "0px",
+        "boxShadow": "none",
+        "focusVisible": true
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "focus-visible",
+      "severity": "medium",
+      "selector": "div#dc-root > div > div > div:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > textarea",
+      "tag": "textarea",
+      "role": "",
+      "appear": "",
+      "text": "Message Codex — type / for the command catalog",
+      "message": "Focusing this element changes nothing a sighted keyboard user can see: outline-style is \"none\", box-shadow is \"none\", and no border, background or colour moved.",
+      "measured": {
+        "outlineStyle": "none",
+        "outlineWidth": "0px",
+        "boxShadow": "none",
+        "focusVisible": true
+      },
+      "worst": {
+        "outlineStyle": "none",
+        "outlineWidth": "0px",
+        "boxShadow": "none",
+        "focusVisible": true
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "target-size",
+      "severity": "medium",
+      "selector": "div#dc-root > div > div > div:nth-of-type(1) > div:nth-of-type(6) > button",
+      "tag": "button",
+      "role": "",
+      "appear": "",
+      "text": "90 d ▾",
+      "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
+      "measured": {
+        "width": 47.6,
+        "height": 22,
+        "min": 24,
+        "shortfall": 2
+      },
+      "worst": {
+        "width": 47.6,
+        "height": 22,
+        "min": 24,
+        "shortfall": 2
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "target-size",
+      "severity": "medium",
+      "selector": "div#dc-root > div > div > div:nth-of-type(2) > div > button:nth-of-type(1) > span:nth-of-type(3)",
+      "tag": "span",
+      "role": "button",
+      "appear": "",
+      "text": "✕",
+      "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
+      "measured": {
+        "width": 16,
+        "height": 16,
+        "min": 24,
+        "shortfall": 8
+      },
+      "worst": {
+        "width": 16,
+        "height": 16,
+        "min": 24,
+        "shortfall": 8
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "target-size",
+      "severity": "medium",
+      "selector": "div#dc-root > div > div > div:nth-of-type(2) > div > button:nth-of-type(2) > span:nth-of-type(3)",
+      "tag": "span",
+      "role": "button",
+      "appear": "",
+      "text": "✕",
+      "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
+      "measured": {
+        "width": 16,
+        "height": 16,
+        "min": 24,
+        "shortfall": 8
+      },
+      "worst": {
+        "width": 16,
+        "height": 16,
+        "min": 24,
+        "shortfall": 8
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "target-size",
+      "severity": "medium",
+      "selector": "div#dc-root > div > div > div:nth-of-type(2) > div > button:nth-of-type(3) > span:nth-of-type(3)",
+      "tag": "span",
+      "role": "button",
+      "appear": "",
+      "text": "✕",
+      "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
+      "measured": {
+        "width": 16,
+        "height": 16,
+        "min": 24,
+        "shortfall": 8
+      },
+      "worst": {
+        "width": 16,
+        "height": 16,
+        "min": 24,
+        "shortfall": 8
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "target-size",
+      "severity": "medium",
+      "selector": "div#dc-root > div > div > div:nth-of-type(2) > div > button:nth-of-type(4) > span:nth-of-type(3)",
+      "tag": "span",
+      "role": "button",
+      "appear": "",
+      "text": "✕",
+      "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
+      "measured": {
+        "width": 16,
+        "height": 16,
+        "min": 24,
+        "shortfall": 8
+      },
+      "worst": {
+        "width": 16,
+        "height": 16,
+        "min": 24,
+        "shortfall": 8
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "target-size",
+      "severity": "medium",
+      "selector": "div#dc-root > div > div > div:nth-of-type(2) > div > button:nth-of-type(5) > span:nth-of-type(3)",
+      "tag": "span",
+      "role": "button",
+      "appear": "",
+      "text": "✕",
+      "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
+      "measured": {
+        "width": 16,
+        "height": 16,
+        "min": 24,
+        "shortfall": 8
+      },
+      "worst": {
+        "width": 16,
+        "height": 16,
+        "min": 24,
+        "shortfall": 8
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "target-size",
+      "severity": "medium",
+      "selector": "div#dc-root > div > div > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > input",
+      "tag": "input",
+      "role": "",
+      "appear": "",
+      "text": "Search sessions",
+      "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
+      "measured": {
+        "width": 211.5,
+        "height": 18,
+        "min": 24,
+        "shortfall": 6
+      },
+      "worst": {
+        "width": 211.5,
+        "height": 18,
+        "min": 24,
+        "shortfall": 6
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    },
+    {
+      "check": "target-size",
+      "severity": "medium",
+      "selector": "div#dc-root > div > div > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(2) > button",
+      "tag": "button",
+      "role": "",
+      "appear": "",
+      "text": "New",
+      "message": "Rendered box is smaller than the 24×24 CSS px minimum pointer target.",
+      "measured": {
+        "width": 23.9,
+        "height": 14.7,
+        "min": 24,
+        "shortfall": 9.3
+      },
+      "worst": {
+        "width": 23.9,
+        "height": 14.7,
+        "min": 24,
+        "shortfall": 9.3
+      },
+      "count": 1,
+      "sections": [
+        "chat"
+      ],
+      "widths": [
+        1280
+      ],
+      "zooms": [
+        1
+      ],
+      "langs": [
+        "en"
+      ],
+      "firstSeen": {
+        "section": "chat",
+        "width": 1280,
+        "zoom": 1,
+        "lang": "en"
+      }
+    }
+  ],
+  "cells": [
+    {
+      "width": 1280,
+      "zoom": 1,
+      "lang": "en",
+      "section": "chat",
+      "deep": true,
+      "stats": {
+        "elements": 3466,
+        "visible": 3464,
+        "interactive": 344,
+        "tablists": 1,
+        "innerWidth": 1281,
+        "innerHeight": 901,
+        "documentScrollWidth": 1281,
+        "pageOverflows": false,
+        "escapedRight": 0,
+        "cutOffRight": 0,
+        "contrastChecked": 1272,
+        "documentHasFocus": true,
+        "focusChecked": 344,
+        "focusIndicated": 342
+      },
+      "notes": [],
+      "findings": 18
+    }
+  ],
+  "consoleErrors": [
+    "The specified value \"{{ c.value }}\" cannot be parsed, or is out of range.",
+    "The specified value \"{{ c.priceIn }}\" cannot be parsed, or is out of range.",
+    "The specified value \"{{ c.priceCached }}\" cannot be parsed, or is out of range.",
+    "The specified value \"{{ c.priceOut }}\" cannot be parsed, or is out of range.",
+    "%cElectron Security Warning (Insecure Content-Security-Policy) font-weight: bold; This renderer process has either no Content Security\n  Policy set or a policy with \"unsafe-eval\" enabled. This exposes users of\n  this app to unnecessary security risks.\n\nFor more information and help, consult\nhttps://electronjs.org/docs/tutorial/security.\nThis warning will not show up\nonce the app is packaged."
+  ]
+}
