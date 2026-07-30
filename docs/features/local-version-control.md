@@ -48,11 +48,25 @@ everything Studio owns travels in one snapshot. `vcs.snapshot()` collects:
 | `lang`, `funny` | Language mode and both funny levels |
 | `settings` | The Studio settings object — narrator, dim sum, editor, history retention, density |
 | `yolo` | The bypass toggle |
+| `theme`, `cacheRate`, `lifetime` | Preferences that used to sit outside the snapshot, so a restore reverted some and left others |
+| `configToml` | **The real `config.toml`, parsed** — MCP servers, hooks and the profile sections, so a connected service deleted by mistake can be undone |
 
 Alongside it, `commit()` writes `codex-config.toml` — the live `config.toml` as text — so a
 revision records what the CLI itself was configured with at that moment, not only what Studio
 thought. If that file cannot be read, the failure is swallowed and the snapshot is still
 committed: an unreadable config is not a reason to lose the revision.
+
+`configToml` is the same file *parsed*, and it is what a restore writes back. It is kept in a
+module-level cache because `snapshot()` is synchronous, and that cache is refreshed inside
+`bridge.invoke()` — the one funnel every backend call passes through — after any command
+matching `WRITES_CONFIG`. Refreshing at each call site instead works exactly until someone adds
+the next call site and forgets, and the symptom would be a snapshot quietly holding the state
+from *before* the change: the hardest possible way for a version history to be wrong, because
+nothing looks broken until the day you need it.
+
+> Snapshots taken before `configToml` existed do not have it. `restore()` falls back to the
+> `config` mirror for those rather than refusing — a partial restore of an old revision beats no
+> restore at all.
 
 ### What is *not* snapshotted
 
@@ -90,6 +104,26 @@ purpose: the hash and the epoch never contain a space, so splitting is unambiguo
 subject does. The `[kind]` prefix is stripped back into a `kind` field, defaulting to `change`.
 
 `at` comes back in **seconds**; the History panel multiplies by 1000.
+
+## A restore reaches the real file, and refreshes the whole interface
+
+Two failures were possible here and both were live until this was fixed.
+
+`restore()` wrote only to `localStorage`. So a restored config returned the *interface* to a past
+state while `config.toml` — the file the CLI actually reads — kept the present one, and the two
+disagreed silently. It now pushes the snapshot's config back through `codex_config_restore`,
+which applies it as a **dotted diff**: keys that differ are set, keys the snapshot no longer has
+are removed, and keys under sections the snapshot never mentioned are left alone. A whole-file
+write would have deleted everything in `config.toml` that Studio does not manage.
+
+`reloadFromStore()` refreshed six fields. After an undo, the restored language mode, funny
+levels, feature flags, theme and window length sat correctly in storage — the restore had
+genuinely worked — while the interface carried on rendering the previous ones until a relaunch
+made them appear from nowhere. It now refreshes everything a restore can change, and re-applies
+the theme attribute and the i18n mode explicitly because those live outside React state.
+
+**Restoring half a state is worse than not restoring**, because the user cannot see which half
+took.
 
 ## Append-only restore
 
@@ -151,6 +185,34 @@ Inside `history.js` the same principle holds at a smaller scale: `git()` never t
 The only place that does throw is a failed `git commit` on staged changes, and a failed
 `git show` of a missing snapshot — both of which name the real git stderr.
 
+## Filtering the history
+
+A history that records everything and lets you filter by nothing is an archive, not a feature.
+The panel composes three filters — none of them overrides another:
+
+| Filter | Behaviour |
+| --- | --- |
+| **Date range** | The same anchored calendar the changelog viewer uses, rather than a second implementation of the same control. Typed dates parse in the locale format and plain ISO; an invalid entry is reported inline without discarding what was typed. **An end date covers the whole of that day** — a `to 2026-07-30` that hid everything which happened *on* the 30th is a filter nobody trusts twice. |
+| **Action** | Multi-select, **derived from the log itself** with a count beside each. The previous hard-coded list offered four choices — all, profile, config, revert — over a log that records eight kinds, so half were unreachable and the list drifted every time a new kind was committed. |
+| **Text** | Wired to the full regex builder like every other search surface. Plain text is the default; regex is an explicit opt-in. |
+
+The sidebar and the action chips drive the same selection state. Two filters disagreeing about
+what is selected is worse than one.
+
+### Undo and Restore resolve either kind of id
+
+The rows come from the **git** log as soon as the backend repository has any commits — which is
+every launch after the first — and those rows carry git short hashes. `revert()` and `checkout()`
+looked the id up in the `localStorage` log, failed to find it, and returned `null`. No error, no
+toast, nothing: both buttons silently did nothing for the entire life of the feature, on the one
+feature whose whole purpose is getting your data back.
+
+They now resolve a git-sourced row to its local revision by timestamp and message, and when a
+revision genuinely has no snapshot this install can restore — one written by a previous install,
+say — the panel says so through `history.noSnapshot` instead of failing silently. The git log is
+also re-read after every write; it used to be fetched once at mount, so a revision committed
+during the session never appeared and an undo left the list showing the state it had just undone.
+
 ## Pruning
 
 ```js
@@ -179,6 +241,8 @@ Cantonese copy for `history.pruned` at level 5 says so out loud: 「呢單係 un
 | `codex_history_show` | `history.show(id)` | Registered and tested; no frontend caller yet |
 | `codex_history_diff` | `history.diff(id)` | Same |
 | `codex_history_prune` | `history.prune(keep)` | Handler default 100; the UI sends 200 |
+| `codex_config_restore` | inline in `electron/commands.js` | Writes a snapshot's config back as a **dotted diff** — sets what differs, removes what the snapshot dropped, leaves sections it never mentioned alone. A whole-file write would delete everything in `config.toml` that Studio does not manage |
+| `codex_read_config` | `config.readToml()` | Feeds the cached `configToml` the snapshot carries |
 
 ## Configuration
 
