@@ -942,6 +942,18 @@ test("assets/screenshots — README, manifest and disk agree", () => {
     assert.deepEqual(missing, [], `on disk with no description: ${missing.join(", ")}`);
   });
 
+  run("the harness captures against the fixture home, not the operator's", () => {
+    /* The structural guard behind the privacy rule. Checking the PNGs themselves
+       would need OCR; checking that the harness points the app at an authored
+       CODEX_HOME is cheap and catches the only way the leak comes back. */
+    const launcher = fs.readFileSync(path.join(ROOT, "tools", "capture.mjs"), "utf8");
+    assert.match(launcher, /CODEX_HOME:\s*captureHome/, "capture.mjs must set CODEX_HOME to the fixture");
+    assert.match(launcher, /make-capture-home\.mjs/, "capture.mjs must build the fixture before launching");
+    const fixture = fs.readFileSync(path.join(ROOT, "tools", "make-capture-home.mjs"), "utf8");
+    assert.ok(!/os\.homedir|USERPROFILE|process\.env\.HOME/.test(fixture),
+      "the fixture must be authored, never derived from the machine running it");
+  });
+
   run("the manifest holds no path that leaks a local username", () => {
     const raw = fs.readFileSync(path.join(dir, "manifest.json"), "utf8");
     assert.ok(!/[A-Za-z]:\\Users\\/.test(raw), "the committed manifest contains an absolute Windows user path");

@@ -81,6 +81,14 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **Screenshots are captured against an authored `CODEX_HOME`, not the operator's.**
+  A screenshot is a publication. The previous set had a real Windows username legible
+  in seven of them and a private repository name in an eighth, all committed and all
+  mirrored to the published site. `tools/make-capture-home.mjs` writes a real
+  `config.toml` and real rollout files that the real parsers read, so the app, the IPC
+  layer and the CLI are all still genuine — only the directory they read is authored.
+  The screenshots still prove the app works; they no longer prove who ran it.
+
 - **The transcript has an empty state.** A freshly opened session left roughly sixty
   percent of the app's flagship screen as an unexplained black rectangle. It now says
   what the pane is, which profile and model will run, and shows the exact command the
