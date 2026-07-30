@@ -165,11 +165,30 @@ grep -c "CX.i18n.t(" app/index.html
 > like it had coverage it did not have. Those three are reconciled; assume others like them
 > exist. A key that resolves to itself is a key nothing is using.
 
-### 2. Levels 1 and 2 of the funny sliders are byte-identical for almost every key
+### 2. Level 2 of the funny sliders is inert for most sentence-length copy
 
-233 of the 237 existing keys have the same text at level 1 and level 2 in both languages, so
-moving either slider from 1 to 2 changes nothing the user can see. A slider step that does
-nothing is a broken control. Newly added keys in this session do differentiate the two.
+Measured at this commit, across **320** keys in `app/cx-i18n.js`:
+
+| | Count |
+| --- | ---: |
+| Levels 1 and 2 differ | 74 |
+| Levels 1 and 2 identical | 246 |
+| …of which the English is **≤ 18 characters** | 106 |
+| …of which the English is **longer** | **140** |
+
+**The real gap is 140 keys, not 246.** The other 106 are one- or two-word labels — "Chats",
+"Console", "Config", "Hue", "Open", "Codex Studio" — where a distinct level 2 would have to be
+invented rather than written, and inventing one makes the interface worse. A product name must
+never vary at all. Forcing variation on a label with no room for it is not compliance, it is
+padding.
+
+For the 140 sentence-length entries, moving either slider from 1 to 2 changes nothing the user
+can see, and a slider step that does nothing is a broken control. Every key added during this
+session's work differentiates the two.
+
+```bash
+node -e "…"   # the measurement above; see the git history of this file for the script
+```
 
 ### 3. The appearance editor's typography is eight properties deep
 
