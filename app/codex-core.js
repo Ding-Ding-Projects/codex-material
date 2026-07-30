@@ -600,7 +600,17 @@
        voice; the facts (which file, which count, what is irreversible) are identical
        at every level, which is why each entry carries the same placeholders. */
     funny: store.get("funny", { en: 3, yue: 4 }),
-    pick(v, lang) { return Array.isArray(v) ? v[Math.min(4, Math.max(0, (this.funny[lang] || 3) - 1))] : v; },
+    /* Clamp to the table's OWN length, not to 4. Several tables ship three levels
+       rather than five — the changelog's date presets, for one — and indexing past
+       the end returned undefined, so at funny level 4 or 5 those labels rendered as
+       nothing at all. A short table means the highest level it does define; it never
+       means an empty string. */
+    pick(v, lang) {
+      if (!Array.isArray(v)) return v;
+      if (!v.length) return "";
+      const level = Math.max(0, (this.funny[lang] || 3) - 1);
+      return v[Math.min(v.length - 1, level)];
+    },
     t(key, vars) {
       /* cx-i18n.js holds the full table; this local one is the fallback that keeps
          the app legible if that file is ever missing from a build. */
@@ -683,8 +693,20 @@
         yolo: store.get("yolo", false)
       };
     },
+    /** Put a snapshot back.
+     *
+     *  The localStorage half is synchronous so the UI is correct immediately. The
+     *  config half has to travel to the real config.toml as well: without it a
+     *  "restore" returned the interface to a past state while the file the CLI
+     *  actually reads kept the present one, and the two silently disagreed. A history
+     *  write that fails must never fail the operation the user asked for, so the
+     *  backend call reports and carries on. */
     restore(snap) {
       Object.keys(snap).forEach((k) => { if (snap[k] !== null && snap[k] !== undefined) store.set(k, snap[k]); });
+      if (snap && snap.config && bridge && bridge.invoke) {
+        bridge.invoke("codex_config_restore", { config: snap.config })
+          .catch((e) => notifyBackendFailure("history", e));
+      }
     },
     commit(message, kind) {
       const c = { id: this.id(), at: Date.now(), message, kind: kind || "change", parent: this.head, snapshot: this.snapshot() };
@@ -694,9 +716,30 @@
       bridge.invoke("codex_history_commit", { message, kind: c.kind, snapshot: c.snapshot }).catch((e) => notifyBackendFailure("history", e));
       return c;
     },
+    /** Find a revision by its own id, or by the git id it was recorded under.
+     *
+     *  The History panel lists the git log once the backend repository has commits —
+     *  which is every launch after the first — and those rows carry git short hashes.
+     *  Both revert() and checkout() looked the id up in the localStorage log, found
+     *  nothing, and returned null, so Undo and Restore silently did nothing for the
+     *  entire life of the feature. Matching on timestamp and message recovers the
+     *  local revision, which is the one holding the snapshot. */
+    localIndexFor(id, at, message) {
+      let idx = this.log.findIndex((c) => c.id === id);
+      if (idx !== -1) return idx;
+      if (at) {
+        idx = this.log.findIndex((c) => Math.abs(c.at - at) < 2000 && (!message || c.message === message));
+        if (idx !== -1) return idx;
+      }
+      if (message) {
+        idx = this.log.findIndex((c) => c.message === message);
+        if (idx !== -1) return idx;
+      }
+      return -1;
+    },
     /** Revert to the state *before* commit `id`, as a new commit. */
-    revert(id) {
-      const idx = this.log.findIndex((c) => c.id === id);
+    revert(id, at, message) {
+      const idx = this.localIndexFor(id, at, message);
       if (idx === -1) return null;
       const target = this.log[idx];
       const before = this.log[idx + 1];
@@ -710,9 +753,10 @@
       return c;
     },
     undo() { return this.log.length ? this.revert(this.log[0].id) : null; },
-    checkout(id) {
-      const c = this.log.find((x) => x.id === id);
-      if (!c) return null;
+    checkout(id, at, message) {
+      const idx = this.localIndexFor(id, at, message);
+      if (idx === -1) return null;
+      const c = this.log[idx];
       this.restore(c.snapshot);
       const nc = { id: this.id(), at: Date.now(), message: "Restore — " + c.message, kind: "restore", parent: this.head, snapshot: c.snapshot };
       this.log.unshift(nc);

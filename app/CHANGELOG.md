@@ -81,6 +81,35 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **The window reflows at 200% zoom.** The navigation rail and the session pane were
+  non-shrinking flex items, so at a 480 CSS px viewport they claimed 373 of it and the
+  content column collapsed to about 106 px — everything inside spilled sideways into a
+  scroller. That single cause produced 96 of the audit's 121 offscreen findings and is
+  a WCAG 1.4.10 reflow failure well short of the 320 px the guideline asks for.
+- **Pointer targets meet the minimum.** Fifty-five findings turned out to be four
+  shared control styles, not fifty-five mistakes: a bare `padding:0` text button, the
+  borderless inputs that take only their 17 px line box inside a 38 px pill, range
+  inputs at their 16 px default, and `max-width:100%` crushing fixed-size controls once
+  the panes stopped shrinking.
+- **Nineteen unnamed controls got accessible names**, and every remaining
+  focus-visible and clipped-text finding is fixed. The audit went from **228 unique
+  findings (1646 occurrences) to 17 (124)** — and all 17 are the harness correctly
+  noting a deliberately ellipsised label, which is evidence the text no longer fits
+  rather than a defect.
+- **Funny levels 4 and 5 stopped blanking the changelog.** `i18n.pick` clamped the
+  level to the 0–4 range but not to the table's own length, and 73 of the 92 string
+  tables in `cx-changelog.js` ship three levels rather than five — so at the top two
+  levels those labels resolved to `undefined` and rendered as nothing.
+- **Undo and Restore in the History panel actually work now.** The rows are built from
+  the git log once the backend repository has commits, which is every launch after the
+  first, and those rows carry git short hashes — while `revert()` and `checkout()`
+  looked the id up in the localStorage log, found nothing and returned `null`. Both
+  buttons had been silently doing nothing for the life of the feature.
+- **A restored snapshot reaches `config.toml`.** `restore()` wrote only localStorage,
+  so a restore returned the interface to a past state while the file the CLI actually
+  reads kept the present one. It is applied as a dotted diff rather than a whole-file
+  write, because the file also holds keys this app does not manage.
+
 - **The regex builder no longer hangs the window on `(a?a?)+`.** The guard caught
   `(a+)+` and `(a|a)*` but not a repeated group that can match nothing, which measured
   **195 seconds** on 26 characters — inside one match attempt, where the 300 ms budget

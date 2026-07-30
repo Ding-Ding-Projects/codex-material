@@ -92,7 +92,25 @@ button,input,textarea,select{font-family:inherit;color:inherit;max-width:100%}
 :focus-visible{outline:2px solid var(--m3-primary);outline-offset:2px;border-radius:4px}
 [data-composer="wrap"]{padding:0 24px 16px}
 @media (max-width:640px){[data-composer="wrap"]{padding:0 6px 10px}}
-input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);outline-offset:1px}
+/* Every text field this audit flagged writes outline:none into its own inline style
+   attribute, and an inline declaration outranks an ordinary sheet rule — so the ring
+   above never reached one input, and all 27 focus-visible findings in the audit were
+   text fields with :focus-visible matching and outline-style still "none". An author
+   !important is the only weight in the cascade that beats an inline declaration, so it
+   stays here until those inline outline:none declarations are gone. The corner radius
+   comes from the general :focus-visible rule above, or from the field's own inline
+   border-radius where it sets one. */
+input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary) !important;outline-offset:1px}
+/* These three toolbar buttons are white-space:nowrap on flex:0 0 auto, so in bilingual
+   mode at funny level 5 the label ran straight out through a button this sheet had
+   already clamped to max-width:100% — the row wrapped, the label did not. Let the
+   buttons shrink and the copy wrap onto a second line, which keeps the whole label
+   readable instead of pushing half of it past the right edge of the window. */
+[data-appear="Changelog toolbar"]>div:first-child>button{
+  flex-shrink:1 !important;min-width:0;max-width:100%;
+  height:auto !important;min-height:38px;padding:7px 14px !important;
+  white-space:normal !important;line-height:1.35;text-align:left
+}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
 </style>
 </helmet>
@@ -162,7 +180,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
       </sc-for>
     </div>
 
-    <div style="flex:0 0 296px;display:flex;flex-direction:column;min-height:0;min-width:0;background:var(--m3-surface-low);border-right:1px solid var(--m3-outline-variant)">
+    <div style="flex:0 0 min(296px, 32vw);display:flex;flex-direction:column;min-height:0;min-width:0;background:var(--m3-surface-low);border-right:1px solid var(--m3-outline-variant)">
 
       <div data-appear="Profile tabs" style="flex:0 0 auto;display:flex;align-items:center;gap:4px;padding:8px 8px 0;overflow-x:auto">
         <sc-for list="{{ profileTabs }}" as="p" hint-placeholder-count="3">
@@ -175,12 +193,12 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
 
       <div style="padding:10px 12px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--m3-outline-variant)">
         <div data-appear="Sidebar search" data-anchor="list" style="display:flex;align-items:center;gap:6px;height:40px;padding:0 6px 0 14px;border-radius:20px;background:var(--m3-surface-container);border:1px solid {{ listBorder }}">
-          <input value="{{ listQuery }}" onInput="{{ setListQuery }}" onContextMenu="{{ listSearchMenu }}" placeholder="{{ listPlaceholder }}" aria-label="{{ listPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;font-size:13px" />
+          <input value="{{ listQuery }}" onInput="{{ setListQuery }}" onContextMenu="{{ listSearchMenu }}" placeholder="{{ listPlaceholder }}" aria-label="{{ listPlaceholder }}" style="flex:1;min-width:0;min-height:26px;border:none;background:transparent;font-size:13px" />
           <button onClick="{{ openListRegex }}" title="Open the anchored regex builder for this search" style="flex:0 0 auto;height:26px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ listRegexBg }};color:{{ listRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
         </div>
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
           <div style="font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--m3-on-surface-variant);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ listTitle }}</div>
-          <button onClick="{{ listAction }}" style="flex:0 0 auto;border:none;background:transparent;color:var(--m3-primary);cursor:pointer;font-size:12px;font-weight:500;padding:0">{{ listActionLabel }}</button>
+          <button onClick="{{ listAction }}" style="flex:0 0 auto;min-height:26px;min-width:24px;border:none;background:transparent;color:var(--m3-primary);cursor:pointer;font-size:12px;font-weight:500;padding:0 10px;margin-right:-10px;border-radius:13px">{{ listActionLabel }}</button>
         </div>
       </div>
 
@@ -263,7 +281,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
                     <button onClick="{{ f.openMenu }}" style="flex:1 1 180px;max-width:230px;height:36px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.valueLabel }}</span><span style="flex:0 0 auto;opacity:.7">▾</span></button>
                   </sc-if>
                   <sc-if value="{{ f.isText }}" hint-placeholder-val="{{ false }}">
-                    <input value="{{ f.value }}" onInput="{{ f.set }}" placeholder="{{ f.placeholder }}" style="flex:1 1 180px;max-width:250px;height:36px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;outline:none" />
+                    <input value="{{ f.value }}" onInput="{{ f.set }}" placeholder="{{ f.placeholder }}" aria-label="{{ f.flag }}" style="flex:1 1 180px;max-width:250px;height:36px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;outline:none" />
                   </sc-if>
                 </div>
               </sc-for>
@@ -286,8 +304,8 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
 
         <sc-if value="{{ isExtensions }}" hint-placeholder-val="{{ false }}">
           <div style="padding:20px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:12px;min-width:0">
-            <div data-appear="Filter bar" data-anchor="ext" style="display:flex;align-items:center;gap:8px;height:42px;padding:0 6px 0 16px;border-radius:21px;background:var(--m3-surface-container);border:1px solid {{ extBorder }}">
-              <input value="{{ extQuery }}" onInput="{{ setExtQuery }}" onContextMenu="{{ extSearchMenu }}" placeholder="{{ extPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:13px" />
+            <div data-appear="Filter bar" data-anchor="ext" style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;row-gap:6px;min-height:42px;padding:0 6px 0 16px;border-radius:21px;background:var(--m3-surface-container);border:1px solid {{ extBorder }}">
+              <input value="{{ extQuery }}" onInput="{{ setExtQuery }}" onContextMenu="{{ extSearchMenu }}" placeholder="{{ extPlaceholder }}" aria-label="{{ extPlaceholder }}" style="flex:1 1 160px;min-width:24px;min-height:26px;border:none;background:transparent;outline:none;font-size:13px" />
               <span style="flex:0 0 auto;font-size:11px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ extCount }}</span>
               <button onClick="{{ openExtRegex }}" title="Open the anchored regex builder for this filter" style="flex:0 0 auto;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ extRegexBg }};color:{{ extRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
             </div>
@@ -311,8 +329,8 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
 
         <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
           <div style="padding:20px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:12px;min-width:0">
-            <div data-appear="Filter bar" data-anchor="set" style="display:flex;align-items:center;gap:8px;height:42px;padding:0 6px 0 16px;border-radius:21px;background:var(--m3-surface-container);border:1px solid {{ setBorder }}">
-              <input value="{{ setQuery }}" onInput="{{ setSetQuery }}" onContextMenu="{{ setSearchMenu }}" placeholder="{{ setPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:13px" />
+            <div data-appear="Filter bar" data-anchor="set" style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;row-gap:6px;min-height:42px;padding:0 6px 0 16px;border-radius:21px;background:var(--m3-surface-container);border:1px solid {{ setBorder }}">
+              <input value="{{ setQuery }}" onInput="{{ setSetQuery }}" onContextMenu="{{ setSearchMenu }}" placeholder="{{ setPlaceholder }}" aria-label="{{ setPlaceholder }}" style="flex:1 1 160px;min-width:24px;min-height:26px;border:none;background:transparent;outline:none;font-size:13px" />
               <span style="flex:0 0 auto;font-size:11px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ setCount }}</span>
               <button onClick="{{ openSetRegex }}" title="Open the anchored regex builder for this filter" style="flex:0 0 auto;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ setRegexBg }};color:{{ setRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
             </div>
@@ -344,10 +362,10 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
                     <button onClick="{{ s.openMenu }}" style="flex:1 1 190px;max-width:250px;height:38px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.valueLabel }}</span><span style="flex:0 0 auto;opacity:.7">▾</span></button>
                   </sc-if>
                   <sc-if value="{{ s.isInput }}" hint-placeholder-val="{{ false }}">
-                    <input value="{{ s.value }}" onInput="{{ s.set }}" placeholder="{{ s.placeholder }}" style="flex:1 1 200px;max-width:270px;height:38px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;outline:none;font-family:{{ s.font }}" />
+                    <input value="{{ s.value }}" onInput="{{ s.set }}" placeholder="{{ s.placeholder }}" aria-label="{{ s.label }}" style="flex:1 1 200px;max-width:270px;height:38px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;outline:none;font-family:{{ s.font }}" />
                   </sc-if>
                   <sc-if value="{{ s.isArea }}" hint-placeholder-val="{{ false }}">
-                    <textarea value="{{ s.value }}" onInput="{{ s.set }}" rows="3" placeholder="{{ s.placeholder }}" style="flex:1 1 260px;max-width:320px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:8px 12px;font-size:12px;outline:none;resize:vertical"></textarea>
+                    <textarea value="{{ s.value }}" onInput="{{ s.set }}" rows="3" placeholder="{{ s.placeholder }}" aria-label="{{ s.label }}" style="flex:1 1 260px;max-width:320px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:8px 12px;font-size:12px;outline:none;resize:vertical"></textarea>
                   </sc-if>
                 </div>
               </sc-for>
@@ -376,7 +394,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
                     <div style="font-size:13px;font-weight:500">{{ c.label }}</div>
                     <div style="font-size:11.5px;color:var(--m3-on-surface-variant);margin-top:2px;line-height:1.5">{{ c.desc }}</div>
                   </div>
-                  <input value="{{ c.value }}" onInput="{{ c.set }}" type="{{ c.inputType }}" style="flex:1 1 170px;min-width:96px;height:38px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;font-family:'Roboto Mono',monospace" />
+                  <input value="{{ c.value }}" onInput="{{ c.set }}" type="{{ c.inputType }}" aria-label="{{ c.label }}" style="flex:1 1 170px;min-width:96px;height:38px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-high);padding:0 12px;font-size:12.5px;font-family:'Roboto Mono',monospace" />
                 </div>
               </sc-for>
               <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:1px solid var(--m3-outline-variant);padding-top:11px">
@@ -384,7 +402,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
                   <div style="font-size:13px;font-weight:500">Cache hit rate</div>
                   <div style="font-size:11.5px;color:var(--m3-on-surface-variant);margin-top:2px;line-height:1.5">Share of input tokens billed at the cached-read price.</div>
                 </div>
-                <input value="{{ cacheRate }}" onInput="{{ setCacheRate }}" type="range" min="0" max="95" step="5" style="flex:1 1 160px;max-width:200px;accent-color:var(--m3-primary)" />
+                <input value="{{ cacheRate }}" onInput="{{ setCacheRate }}" type="range" aria-label="Cache hit rate" min="0" max="95" step="5" style="flex:1 1 160px;min-width:24px;min-height:24px;max-width:200px;accent-color:var(--m3-primary)" />
                 <div style="flex:0 0 46px;text-align:right;font-family:'Roboto Mono',monospace;font-size:13px">{{ cacheRateLabel }}</div>
               </div>
             </div>
@@ -481,16 +499,16 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
             </div>
             <div data-appear="History filters" style="background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                <div data-anchor="hist" style="flex:1 1 220px;min-width:0;display:flex;align-items:center;gap:6px;height:38px;padding:0 6px 0 14px;border-radius:19px;background:var(--m3-surface-high);border:1px solid {{ histBorder }}">
-                  <input value="{{ histQuery }}" onInput="{{ setHistQuery }}" onContextMenu="{{ histSearchMenu }}" placeholder="{{ histPlaceholder }}" aria-label="{{ histPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;font-size:13px" />
-                  <button onClick="{{ openHistRegex }}" title="{{ regexBuilderHint }}" style="flex:0 0 auto;height:26px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ histRegexBg }};color:{{ histRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+                <div data-anchor="hist" style="flex:1 1 220px;min-width:0;display:flex;align-items:center;flex-wrap:wrap;gap:6px;row-gap:4px;min-height:38px;padding:0 6px 0 14px;border-radius:19px;background:var(--m3-surface-high);border:1px solid {{ histBorder }}">
+                  <input value="{{ histQuery }}" onInput="{{ setHistQuery }}" onContextMenu="{{ histSearchMenu }}" placeholder="{{ histPlaceholder }}" aria-label="{{ histPlaceholder }}" style="flex:1;min-width:24px;min-height:26px;border:none;background:transparent;font-size:13px" />
+                  <button onClick="{{ openHistRegex }}" title="{{ regexBuilderHint }}" style="flex:0 0 auto;height:26px;min-width:24px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ histRegexBg }};color:{{ histRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
                 </div>
-                <div data-anchor="calhistfrom" style="flex:1 1 150px;min-width:0;display:flex;align-items:center;gap:4px;height:38px;padding:0 4px 0 10px;border-radius:19px;border:1px solid {{ histFromBorder }};background:var(--m3-surface-high)">
-                  <input value="{{ histFrom }}" onInput="{{ setHistFrom }}" placeholder="{{ clogFromPlaceholder }}" aria-label="{{ clogFromPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;font-family:'Roboto Mono',monospace;font-size:11.5px" />
-                  <button onClick="{{ openHistCalFrom }}" title="{{ calOpenHint }}" aria-label="{{ calOpenHint }}" style="flex:0 0 auto;width:26px;height:26px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:12px">&#128197;</button>
+                <div data-anchor="calhistfrom" style="flex:1 1 150px;min-width:0;display:flex;align-items:center;flex-wrap:wrap;gap:4px;row-gap:4px;min-height:38px;padding:0 4px 0 10px;border-radius:19px;border:1px solid {{ histFromBorder }};background:var(--m3-surface-high)">
+                  <input value="{{ histFrom }}" onInput="{{ setHistFrom }}" placeholder="{{ clogFromPlaceholder }}" aria-label="{{ clogFromPlaceholder }}" style="flex:1;min-width:24px;min-height:26px;border:none;background:transparent;font-family:'Roboto Mono',monospace;font-size:11.5px" />
+                  <button onClick="{{ openHistCalFrom }}" title="{{ calOpenHint }}" aria-label="{{ calOpenHint }}" style="flex:0 0 auto;width:26px;min-width:26px;height:26px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:12px">&#128197;</button>
                 </div>
                 <div data-anchor="calhistto" style="flex:1 1 150px;min-width:0;display:flex;align-items:center;gap:4px;height:38px;padding:0 4px 0 10px;border-radius:19px;border:1px solid {{ histToBorder }};background:var(--m3-surface-high)">
-                  <input value="{{ histTo }}" onInput="{{ setHistTo }}" placeholder="{{ clogToPlaceholder }}" aria-label="{{ clogToPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;font-family:'Roboto Mono',monospace;font-size:11.5px" />
+                  <input value="{{ histTo }}" onInput="{{ setHistTo }}" placeholder="{{ clogToPlaceholder }}" aria-label="{{ clogToPlaceholder }}" style="flex:1;min-width:24px;min-height:26px;border:none;background:transparent;font-family:'Roboto Mono',monospace;font-size:11.5px" />
                   <button onClick="{{ openHistCalTo }}" title="{{ calOpenHint }}" aria-label="{{ calOpenHint }}" style="flex:0 0 auto;width:26px;height:26px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface-variant);cursor:pointer;font-size:12px">&#128197;</button>
                 </div>
               </div>
@@ -523,9 +541,9 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
           <div style="padding:20px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:12px;min-width:0">
             <div data-appear="Changelog toolbar" style="background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                <div data-anchor="clog" style="flex:1 1 240px;min-width:0;display:flex;align-items:center;gap:6px;height:38px;padding:0 6px 0 14px;border-radius:19px;background:var(--m3-surface-high);border:1px solid {{ clogBorder }}">
-                  <input value="{{ clogQuery }}" onInput="{{ setClogQuery }}" onContextMenu="{{ clogSearchMenu }}" placeholder="{{ clogPlaceholder }}" aria-label="{{ clogPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:13px" />
-                  <button onClick="{{ openClogRegex }}" title="{{ regexBuilderHint }}" style="flex:0 0 auto;height:26px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ clogRegexBg }};color:{{ clogRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+                <div data-anchor="clog" style="flex:1 1 240px;min-width:0;display:flex;align-items:center;flex-wrap:wrap;gap:6px;row-gap:4px;min-height:38px;padding:0 6px 0 14px;border-radius:19px;background:var(--m3-surface-high);border:1px solid {{ clogBorder }}">
+                  <input value="{{ clogQuery }}" onInput="{{ setClogQuery }}" onContextMenu="{{ clogSearchMenu }}" placeholder="{{ clogPlaceholder }}" aria-label="{{ clogPlaceholder }}" style="flex:1;min-width:24px;min-height:26px;border:none;background:transparent;outline:none;font-size:13px" />
+                  <button onClick="{{ openClogRegex }}" title="{{ regexBuilderHint }}" style="flex:0 0 auto;height:26px;min-width:24px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ clogRegexBg }};color:{{ clogRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
                 </div>
                 <button onClick="{{ openClogPreset }}" style="flex:0 0 auto;height:38px;padding:0 14px;border-radius:19px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px;white-space:nowrap">{{ clogPresetLabel }} &#9662;</button>
                 <button onClick="{{ exportClog }}" style="flex:0 0 auto;height:38px;padding:0 14px;border-radius:19px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px;white-space:nowrap">{{ clogExportLabel }}</button>
@@ -533,11 +551,11 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
                 <div data-anchor="calfrom" style="flex:1 1 150px;min-width:0;display:flex;align-items:center;gap:4px;height:34px;padding:0 4px 0 10px;border-radius:9px;border:1px solid {{ clogFromBorder }};background:var(--m3-surface-high)">
-                  <input value="{{ clogFrom }}" onInput="{{ setClogFrom }}" placeholder="{{ clogFromPlaceholder }}" aria-label="{{ clogFromPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;font-family:'Roboto Mono',monospace;font-size:11.5px;outline:none" />
+                  <input value="{{ clogFrom }}" onInput="{{ setClogFrom }}" placeholder="{{ clogFromPlaceholder }}" aria-label="{{ clogFromPlaceholder }}" style="flex:1;min-width:24px;min-height:26px;border:none;background:transparent;font-family:'Roboto Mono',monospace;font-size:11.5px;outline:none" />
                   <button onClick="{{ openCalFrom }}" title="{{ calOpenHint }}" aria-label="{{ calOpenHint }}" aria-expanded="{{ calFromOpen }}" style="flex:0 0 auto;width:26px;height:26px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ calFromBg }};color:{{ calFromFg }};cursor:pointer;font-size:12px">&#128197;</button>
                 </div>
                 <div data-anchor="calto" style="flex:1 1 150px;min-width:0;display:flex;align-items:center;gap:4px;height:34px;padding:0 4px 0 10px;border-radius:9px;border:1px solid {{ clogToBorder }};background:var(--m3-surface-high)">
-                  <input value="{{ clogTo }}" onInput="{{ setClogTo }}" placeholder="{{ clogToPlaceholder }}" aria-label="{{ clogToPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;font-family:'Roboto Mono',monospace;font-size:11.5px;outline:none" />
+                  <input value="{{ clogTo }}" onInput="{{ setClogTo }}" placeholder="{{ clogToPlaceholder }}" aria-label="{{ clogToPlaceholder }}" style="flex:1;min-width:24px;min-height:26px;border:none;background:transparent;font-family:'Roboto Mono',monospace;font-size:11.5px;outline:none" />
                   <button onClick="{{ openCalTo }}" title="{{ calOpenHint }}" aria-label="{{ calOpenHint }}" aria-expanded="{{ calToOpen }}" style="flex:0 0 auto;width:26px;height:26px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ calToBg }};color:{{ calToFg }};cursor:pointer;font-size:12px">&#128197;</button>
                 </div>
                 <div style="flex:1 1 200px;min-width:0;font-size:11px;color:{{ clogStatusFg }};line-height:1.5">{{ clogStatus }}</div>
@@ -570,7 +588,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
         <sc-if value="{{ isStudio }}" hint-placeholder-val="{{ false }}">
           <div style="padding:20px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:12px;min-width:0">
             <div data-appear="Studio search" data-anchor="studio" style="display:flex;align-items:center;gap:6px;height:40px;padding:0 6px 0 14px;border-radius:20px;background:var(--m3-surface-container);border:1px solid {{ studioBorder }}">
-              <input value="{{ studioQuery }}" onInput="{{ setStudioQuery }}" onContextMenu="{{ studioSearchMenu }}" placeholder="{{ studioPlaceholder }}" aria-label="{{ studioPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:13px" />
+              <input value="{{ studioQuery }}" onInput="{{ setStudioQuery }}" onContextMenu="{{ studioSearchMenu }}" placeholder="{{ studioPlaceholder }}" aria-label="{{ studioPlaceholder }}" style="flex:1;min-width:24px;min-height:26px;border:none;background:transparent;outline:none;font-size:13px" />
               <button onClick="{{ openStudioRegex }}" title="{{ regexBuilderHint }}" style="flex:0 0 auto;height:26px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ studioRegexBg }};color:{{ studioRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
             </div>
             <sc-for list="{{ studioGroups }}" as="sg" hint-placeholder-count="4">
@@ -585,7 +603,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
                     </div>
                     <sc-if value="{{ row.isSlider }}" hint-placeholder-val="{{ true }}">
                       <div style="flex:1 1 220px;min-width:0;display:flex;align-items:center;gap:10px">
-                        <input value="{{ row.value }}" onInput="{{ row.set }}" type="range" min="1" max="5" step="1" aria-label="{{ row.label }}" aria-valuetext="{{ row.valueLabel }}" style="flex:1;min-width:0;accent-color:var(--m3-primary)" />
+                        <input value="{{ row.value }}" onInput="{{ row.set }}" type="range" min="1" max="5" step="1" aria-label="{{ row.label }}" aria-valuetext="{{ row.valueLabel }}" style="flex:1;min-width:24px;min-height:24px;accent-color:var(--m3-primary)" />
                         <div style="flex:0 0 auto;font-size:11.5px;color:var(--m3-primary);white-space:nowrap">{{ row.valueLabel }}</div>
                       </div>
                     </sc-if>
@@ -618,7 +636,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
             <div onClick="{{ stop }}" data-appear="Command catalog" style="position:absolute;bottom:calc(100% + 6px);left:24px;right:24px;max-width:880px;margin:0 auto;background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:18px;box-shadow:0 14px 36px rgba(0,0,0,.45);z-index:30;display:flex;flex-direction:column;overflow:hidden">
               <div data-anchor="slash" style="flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 10px 10px 16px;border-bottom:1px solid var(--m3-outline-variant)">
                 <span style="flex:0 0 auto;font-family:'Roboto Mono',monospace;font-size:13px;color:var(--m3-primary)">/</span>
-                <input value="{{ slashQuery }}" onInput="{{ setSlashQuery }}" onContextMenu="{{ slashSearchMenu }}" placeholder="{{ slashPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:13px" />
+                <input value="{{ slashQuery }}" onInput="{{ setSlashQuery }}" onContextMenu="{{ slashSearchMenu }}" placeholder="{{ slashPlaceholder }}" aria-label="{{ slashPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:13px" />
                 <span style="flex:0 0 auto;font-size:11px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ slashCount }}</span>
                 <button onClick="{{ openSlashRegex }}" title="Open the anchored regex builder for the command catalog" style="flex:0 0 auto;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ slashRegexBg }};color:{{ slashRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
               </div>
@@ -655,7 +673,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary);o
                           <button onClick="{{ w.openMenu }}" style="width:100%;height:42px;border-radius:12px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:0 14px;font-size:13.5px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ w.valueLabel }}</span><span style="flex:0 0 auto;opacity:.7">▾</span></button>
                         </sc-if>
                         <sc-if value="{{ w.isText }}" hint-placeholder-val="{{ false }}">
-                          <input value="{{ w.value }}" onInput="{{ w.set }}" placeholder="{{ w.placeholder }}" style="width:100%;height:42px;border-radius:12px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:0 14px;font-size:13.5px;outline:none" />
+                          <input value="{{ w.value }}" onInput="{{ w.set }}" placeholder="{{ w.placeholder }}" aria-label="{{ w.label }}" style="width:100%;height:42px;border-radius:12px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:0 14px;font-size:13.5px;outline:none" />
                         </sc-if>
                         <div style="font-size:11.5px;color:var(--m3-on-surface-variant);line-height:1.55">{{ w.hint }}</div>
                       </div>

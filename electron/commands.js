@@ -118,6 +118,45 @@ command("codex_read_config_text", async () => ({
 }));
 command("codex_write_config", async (a) => config.writeText(a.tomlText ?? a.toml ?? ""));
 command("codex_set_config", async (a) => config.setPath(a.key, a.value));
+/* Push a restored snapshot's config back into the real config.toml.
+ *
+ * Applied as a dotted diff rather than a whole-file write: the file also holds keys
+ * this app never manages, and replacing it wholesale would delete them. Keys the
+ * snapshot no longer has are removed, so a restore genuinely returns the file to the
+ * earlier state instead of merging the past into the present. */
+command("codex_config_restore", async (a) => {
+  const want = (a && a.config) || {};
+  const have = config.readToml() || {};
+  const flat = (obj, prefix, out) => {
+    Object.keys(obj || {}).forEach((k) => {
+      const v = obj[k];
+      const key = prefix ? prefix + "." + k : k;
+      if (v && typeof v === "object" && !Array.isArray(v)) flat(v, key, out);
+      else out[key] = v;
+    });
+    return out;
+  };
+  const wantFlat = flat(want, "", {});
+  const haveFlat = flat(have, "", {});
+  const changed = [];
+  const removed = [];
+  Object.keys(wantFlat).forEach((k) => {
+    if (JSON.stringify(haveFlat[k]) !== JSON.stringify(wantFlat[k])) {
+      config.setPath(k, wantFlat[k]);
+      changed.push(k);
+    }
+  });
+  /* Only keys the snapshot's own top-level sections owned. A key under a section the
+     snapshot never mentions belongs to something else and is left alone. */
+  const owned = new Set(Object.keys(want));
+  Object.keys(haveFlat).forEach((k) => {
+    if (k in wantFlat) return;
+    if (!owned.has(k.split(".")[0])) return;
+    config.removePath(k);
+    removed.push(k);
+  });
+  return { ok: true, changed, removed, path: config.configPath() };
+});
 
 /* ------------------------------------------------------------------ run */
 

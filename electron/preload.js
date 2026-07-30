@@ -17,6 +17,7 @@ const COMMANDS = [
   "codex_read_config_text",
   "codex_write_config",
   "codex_set_config",
+  "codex_config_restore",
   "codex_run",
   "codex_cancel",
   "codex_running",
