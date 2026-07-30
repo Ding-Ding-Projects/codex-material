@@ -187,6 +187,13 @@ function skillList(projectCwd) {
 /** Enabling/disabling a skill renames its directory — the state lives on disk, so
  *  it survives regardless of which client wrote it. */
 function skillToggle(dir) {
+  /* Validate before touching the filesystem. A malformed call used to reach
+     path.join(undefined, …) and surface as `The "path" argument must be of type
+     string`, which tells the user nothing about what they did or what to do — and
+     this function RENAMES a directory, so it is the last place to be vague. */
+  if (typeof dir !== "string" || !dir.trim()) {
+    throw new Error("skillToggle needs the skill's directory; received " + (dir === undefined ? "nothing" : JSON.stringify(dir)));
+  }
   if (!fs.existsSync(path.join(dir, "SKILL.md"))) {
     throw new Error(`${dir} is not a skill directory`);
   }

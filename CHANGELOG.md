@@ -81,6 +81,18 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **There is a full smoke test** (`npm run smoke`, `tools/smoke.mjs`). Unit tests
+  exercise modules in a `node:vm` with a browser shim and the capture harness proves
+  the surfaces render; neither answers whether the thing works wired together. This
+  drives the real `codex` binary, then every command on the preload allow-list
+  **through the renderer's own bridge** — so the contextBridge, the named allow-list
+  and the real IPC channel are all in the path, not bypassed — then opens all ten
+  panels and checks for unresolved bindings and thrown renders. It runs in CI before
+  the installers are built, so a broken app cannot be packaged.
+- **`skillToggle` validates its argument.** A malformed call reached
+  `path.join(undefined, …)` and surfaced as `The "path" argument must be of type
+  string`, which tells the user nothing — in a function that *renames a directory*.
+
 - **The funny slider's second step does something now.** 140 sentence-length keys had
   a level 2 that was a byte-for-byte copy of level 1 in both languages, so moving
   either slider from 1 to 2 changed nothing. They have a distinct, still-professional

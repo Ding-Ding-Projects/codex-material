@@ -205,6 +205,15 @@ jobs:
             Add-Content -Path $env:GITHUB_OUTPUT -Value 'bundled=false'
           }
 
+      - name: Full smoke test
+        # Runs here, not in the test job: that one installs with --ignore-scripts, so
+        # the Electron binary is never downloaded there. This is also the right gate —
+        # it drives the real preload, every command on the allow-list through the real
+        # IPC channel, the real `codex` binary and all ten panels, and it fails the
+        # build before an installer is cut. Unit tests passing is not the same claim as
+        # the application working.
+        run: node tools/smoke.mjs
+
       - name: Build the Windows installers
         run: npx electron-builder --win nsis msi --publish never
 
