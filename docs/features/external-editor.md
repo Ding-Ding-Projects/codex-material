@@ -3,7 +3,7 @@
 > Detect what is actually installed, let the user choose one, open the project folder or a single
 > file in it — and say so plainly when nothing is installed.
 
-**Implementation:** `src-tauri/src/editors.rs`, exposed as `codex_editors`, `codex_open_external`
+**Implementation:** `electron/lib/editors.js`, exposed as `codex_editors`, `codex_open_external`
 and `codex_reveal`.
 
 ## Detection
@@ -88,7 +88,7 @@ defaulting to `""` and persisted with the rest of the Studio settings.
 | --- | --- | --- |
 | Preferred editor id | `CX.settings.editor` | `""` (auto — first detected) |
 | Custom executable | `CX.settings.editorExe` | `""` |
-| Candidate table | `CANDIDATES` in `src-tauri/src/editors.rs` | The nine above |
+| Candidate table | `CANDIDATES` in `electron/lib/editors.js` | The nine above |
 
 Adding a candidate is four lines: id, label, executable names, hint paths. Prefer adding to the
 table over telling users to fill in a custom path.

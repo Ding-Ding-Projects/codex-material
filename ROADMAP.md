@@ -38,11 +38,11 @@ worse than missing documentation — it sends the next person hunting for Rust t
 and it silently discredits the pages that *are* accurate. The feature docs are good; they are
 being dragged down by an architecture section describing a backend that is gone.
 
-**Done looks like:** no `docs/` page references `src-tauri`, Tauri or a Rust backend except in
-an explicit historical note. `docs/architecture/tauri-bridge.md` is renamed and rewritten
-against `electron/commands.js`, listing the real `codex_*` command surface. The repository map
-in `docs/README.md` matches `ls`. `docs/build/*` describes `npm run dist` and electron-builder
-rather than `cargo tauri build`. A grep for the stale terms returns only the historical note.
+**Done looks like:** `grep -rl "src-tauri\|Tauri 2" docs/` returns nothing but an explicit
+historical note. `docs/architecture/ipc-bridge.md` lists the real `codex_*` command surface from
+`electron/commands.js`. The repository map in `docs/README.md` matches `ls`. `docs/build/*`
+describes `npm run dist` and electron-builder rather than `cargo tauri build`. The published
+Pages site is re-checked afterwards, since it serves this tree.
 
 ### 2. Close the last regex-guard gap: `(a?a?)+`
 
@@ -257,9 +257,11 @@ the arm64 installer is confirmed to run natively rather than under emulation.
   errors captured in `assets/screenshots/manifest.json`. The rendered value is correct, so this
   is noise — but noise is where real errors hide. Done: the capture harness records zero
   console errors from the app's own markup.
-- **Publish GitHub Pages.** `docs/site/articles.js` exists, `has_pages` is `false`, and
-  `.github/workflows/` contains only `ci.yml`. Nothing builds or deploys the site. Worth doing
-  **after** item 1 — publishing the current docs would broadcast the stale Tauri description.
+- **Re-check the Pages site after item 1.** Publishing shipped during this session (`713b498`
+  added `docs/site/index.html` and `tools/sync-site-assets.mjs`; `has_pages` is now `true` and
+  two deployments succeeded). It went live *before* the doc migration finished, so the site is
+  currently serving the stale Tauri description. Not a new build task — just verify the
+  published pages once item 1 lands.
 
 ## Considered and deliberately not scheduled
 
@@ -274,11 +276,12 @@ the arm64 installer is confirmed to run natively rather than under emulation.
 
 ## 中文摘要
 
-呢份 roadmap 每一項都對住 commit `ae0e562` 嘅真實 code 查過先寫，做咗嘅嘢直接剷走，唔會當
-目標再吹一次。
+呢份 roadmap 每一項都對住 commit `713b498` 嘅真實 code 查過先寫，做咗嘅嘢直接剷走，唔會當
+目標再吹一次。**第一項而家有人做緊**，開工前記得睇返最新狀態。
 
-**第一級（信唔信得過呢個 project）：** 一，**15 個檔仲喺度講 Tauri**，但 `src-tauri/` 喺
-`561da4b` 已經冇咗——寫錯過冇寫，因為佢會累埋啲寫得啱嘅文件一齊冇人信。二，`(a?a?)+` 呢個
+**第一級（信唔信得過呢個 project）：** 一，**仲有 11 個檔喺度講 Tauri**（session 開頭係 15 個，
+改緊），但 `src-tauri/` 喺 `561da4b` 已經冇咗——寫錯過冇寫，因為佢會累埋啲寫得啱嘅文件一齊
+冇人信；而家 GitHub Pages 又啱啱上咗線，即係連個網站都一齊講錯嘢。二，`(a?a?)+` 呢個
 pattern 仲穿得過兩個引擎，實測 **154 秒**，喺 regex builder 度打得出就凍死成個 app。三，
 History 記錄唔齊：同一個「reset 晒外觀」，Studio 面板嗰粒有得 undo（佢自己個說明仲寫住
 「可以 undo」），外觀編輯器嗰粒冇——有窿嘅 undo 系統仲衰過冇。

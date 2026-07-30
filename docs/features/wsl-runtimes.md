@@ -3,7 +3,7 @@
 > One long-lived Linux shell per tab, so `cd`, environment variables and background jobs persist
 > between commands instead of every run starting from scratch.
 
-**Implementation:** `src-tauri/src/wsl.rs`, exposed as `codex_wsl_list`, `codex_wsl_spawn`,
+**Implementation:** `electron/lib/wsl.js`, exposed as `codex_wsl_list`, `codex_wsl_spawn`,
 `codex_wsl_stop`, `codex_wsl_kill`, `codex_wsl_set` and `codex_wsl_exec`; the Runtime panel in
 `app/index.html`.
 

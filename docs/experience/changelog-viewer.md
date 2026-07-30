@@ -7,7 +7,7 @@ Its engine is `app/cx-changelog.js`, exporting `window.CX_CHANGELOG`. The engine
 logic — no DOM, no `fetch`, no `localStorage` — so the surface that renders it owns all
 presentation and the engine can be tested on its own. The changelog content itself lives
 in `CHANGELOG.md` at the repository root, in [Keep a Changelog](https://keepachangelog.com/)
-format, and is read through the existing `codex_read_text` Tauri command like any other
+format, and is read through the existing `codex_read_text` IPC command like any other
 bundled text file. Nothing is fetched over the network.
 
 > **Status.** The engine, its parser, its filters and its exporter are implemented and
@@ -291,7 +291,7 @@ assigned one, and an empty result says it is empty.
 
 ## Security considerations
 
-- **No network.** The changelog is a bundled local file read through the existing Tauri
+- **No network.** The changelog is a bundled local file read through the existing IPC
   command surface. The engine performs no `fetch` and holds no remote reference.
 - **No persistence.** The engine writes nothing — no `localStorage`, no cookies, no
   telemetry. Patterns and typed dates are never transmitted or stored; they live only in

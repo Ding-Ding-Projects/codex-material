@@ -143,9 +143,13 @@ compute it in `renderVals()` and expose the result. An unresolved hole renders a
 </sc-for>
 ```
 
-Iterates an array, exposing each element as `as` and the position as `$index`.
-`hint-placeholder-count` only affects streaming placeholders during design-time rendering; it has
-no effect in the shipped app.
+Iterates an array, exposing each element under the `as` name (default `item`) and the position as
+`$index`. `hint-placeholder-count` only affects streaming placeholders during design-time
+rendering; it has no effect in the shipped app. A non-array value renders nothing and warns
+`sc-for list="…" is not an array (<type>)`.
+
+The runtime keys each iteration by its **array index**, not by any `key` field on the row, so an
+element's React identity follows its position in the list.
 
 ### `sc-if`
 

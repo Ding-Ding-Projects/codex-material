@@ -1,12 +1,10 @@
-# Rust / Tauri
-src-tauri/target/
-src-tauri/gen/
+# Electron build output
+dist/
 
-# Node tooling (the Tauri CLI is installed with --no-save, never vendored)
+# Node
 node_modules/
 package-lock.json
 
-# Local build scratch
-dist/
+# Local scratch
 *.log
 vendor/codex-bin/
