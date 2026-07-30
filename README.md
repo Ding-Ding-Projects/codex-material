@@ -246,6 +246,7 @@ Every script below is exactly what `package.json` defines.
 | `npm start` | `electron .` — runs the app from the checkout. |
 | `npm test` | `tools/test-frontend.mjs`, then `tools/test-backend.mjs`, then `tools/sync-changelog.mjs --check`. |
 | `npm run capture` | Rebuilds every screenshot in `assets/screenshots/` from the real app, headlessly. |
+| `npm run smoke` | The check that answers *does the application work*, as opposed to *do the modules pass*. Runs the real `codex` binary; invokes all 55 commands on the preload allow-list **through the renderer's own bridge**; opens all ten panels, the seven dialogs and all three language modes at funny level 5. Writes [`assets/smoke.json`](assets/smoke.json) and exits non-zero on any failure. CI runs it before `electron-builder`, so a broken app cannot be packaged. |
 | `npm run prepare:cli` | `tools/fetch-codex.mjs` — stages the Codex CLI into `vendor/codex-bin/` for bundling. |
 | `npm run dist` | Syncs the changelog mirror, stages the CLI, then `electron-builder --win nsis msi --publish never`. Output lands in `dist/`. |
 
