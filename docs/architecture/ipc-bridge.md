@@ -114,8 +114,11 @@ order is `CODEX_BIN`, then `codex` on `PATH`, then the bundled copy — the user
 because it owns their login and their `~/.codex` (`resolveCodex()` in `electron/lib/cli.js`).
 
 ### `codex_state({ cwd? })`
-One round trip that fills the whole shell on launch. Each section is wrapped in its own `soft()`
-so a missing marketplace does not blank the MCP list beside it.
+One round trip that fills the whole shell on launch. The seven CLI-backed sections each run inside
+`soft()`, which records a failure under `errors.<section>` and returns an empty fallback, so a
+missing marketplace does not blank the MCP list beside it. `hooks` and `config` share one
+`try/catch` reported as `errors.config` (both read the same file), and `skills` is a filesystem
+scan that already swallows an unreadable directory.
 
 ```jsonc
 {

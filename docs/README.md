@@ -34,7 +34,7 @@ app/                    frontend — no build step, plain browser JS
                         feature modules attached to window.CX_*
   vendor/               React 18.3.1 UMD, vendored so nothing is fetched at runtime
   fonts/                Roboto and Roboto Mono woff2 (10 faces), bundled for the same reason
-  dimsum/               20 dish photographs plus manifest.json
+  dimsum/               the bundled dish photographs plus manifest.json
   CHANGELOG.md          mirror of the root file, kept in step by tools/sync-changelog.mjs
 electron/               the main process
   main.js               window creation, lifecycle, navigation guards

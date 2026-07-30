@@ -21,17 +21,19 @@ These three are the difference between a project a newcomer can trust and one th
 ### 1. Realign the documentation with the Electron shell — *in progress*
 
 **State:** `561da4b` replaced the Tauri 2 / Rust backend with Electron and deleted `src-tauri/`.
-The docs did not follow. `grep -rl "src-tauri\|Tauri 2" docs/` matched **15 files** at the start
-of the session and **11** at this commit — the migration is underway as you read this.
-`docs/architecture/tauri-bridge.md` has already become `docs/architecture/ipc-bridge.md`, and
-`overview.md`, `packaging.md` and `features/tabs.md` were corrected. Still stale:
-`docs/README.md` (opens *"built on Tauri 2"*, maps a `src-tauri/` directory that does not
-exist), `docs/api/README.md`, `docs/architecture/README.md`,
-`docs/architecture/frontend-runtime.md`, both `docs/build/` pages, three `docs/features/`
-pages and `docs/site/articles.js`.
+The docs did not follow. This is being fixed faster than it can be written down — the count
+went **15 → 11 → 4** during a single session. At `85e55d9` the remainder was
+`docs/build/building-locally.md`, `docs/build/packaging.md`, `docs/site/app.js` and
+`docs/site/articles.js`.
 
-**Extra urgency since `713b498`:** GitHub Pages is now live and deploys from this same `docs/`
-tree, so the stale Tauri description is published, not merely committed.
+**Run the check before starting, and mind the file types:** two of the last four are Pages site
+**scripts**, not Markdown, so a grep restricted to `*.md` reports success while the published
+site still says Tauri. GitHub Pages went live at `713b498` and deploys from this same tree, so
+whatever is left is published, not merely committed.
+
+```
+grep -rl "src-tauri\|Tauri 2" docs/
+```
 
 **Why it matters:** this is the single most damaging gap in the tree. Wrong documentation is
 worse than missing documentation — it sends the next person hunting for Rust that was deleted,
@@ -279,9 +281,11 @@ the arm64 installer is confirmed to run natively rather than under emulation.
 呢份 roadmap 每一項都對住 commit `713b498` 嘅真實 code 查過先寫，做咗嘅嘢直接剷走，唔會當
 目標再吹一次。**第一項而家有人做緊**，開工前記得睇返最新狀態。
 
-**第一級（信唔信得過呢個 project）：** 一，**仲有 11 個檔喺度講 Tauri**（session 開頭係 15 個，
-改緊），但 `src-tauri/` 喺 `561da4b` 已經冇咗——寫錯過冇寫，因為佢會累埋啲寫得啱嘅文件一齊
-冇人信；而家 GitHub Pages 又啱啱上咗線，即係連個網站都一齊講錯嘢。二，`(a?a?)+` 呢個
+**第一級（信唔信得過呢個 project）：** 一，文件仲有得執——`src-tauri/` 喺 `561da4b` 已經冇咗，
+但仲有檔喺度講 Tauri。呢樣有人執緊，執得好快（一個 session 由 15 個跌到 11 個再跌到 4 個），
+所以唔好信呢度個數字，自己行 `grep -rl "src-tauri\|Tauri 2" docs/` 睇下仲剩幾多。**要留意**
+剩低嗰啲有兩個係 Pages 個網站嘅 `.js`，唔係 `.md`，淨係 grep `*.md` 會以為做完咗，但個網站
+仲喺度講 Tauri——而家 Pages 上咗線，即係錯嘢直接見人。二，`(a?a?)+` 呢個
 pattern 仲穿得過兩個引擎，實測 **154 秒**，喺 regex builder 度打得出就凍死成個 app。三，
 History 記錄唔齊：同一個「reset 晒外觀」，Studio 面板嗰粒有得 undo（佢自己個說明仲寫住
 「可以 undo」），外觀編輯器嗰粒冇——有窿嘅 undo 系統仲衰過冇。

@@ -32,10 +32,11 @@
   <div class="shell strip__in">
     <div class="tablist" role="tablist" id="tablist" aria-label="Site sections"></div>
     <div class="overflow">
+      <!-- The overflow list is built on demand by app.js, so there is no empty menu
+           sitting in the accessibility tree when every tab fits. -->
       <button type="button" class="chip" id="overflowBtn" hidden aria-haspopup="menu" aria-expanded="false">
         More <span id="overflowCount"></span> ▾
       </button>
-      <ul class="overflow__menu" id="overflowMenu" role="menu" hidden></ul>
     </div>
   </div>
 </nav>

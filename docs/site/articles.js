@@ -130,28 +130,30 @@
       yue: ["設定", "設定", "設定", "設定", "設定房"]
     },
     "search.placeholder": {
-      en: ["Search {articles} articles", "Search {articles} articles", "Search all {articles} articles",
-        "Search all {articles} articles", "Search all {articles} articles — go on, be specific"],
-      yue: ["搜尋 {articles} 篇文章", "搜尋 {articles} 篇文章", "搜尋全部 {articles} 篇文章",
-        "搜尋全部 {articles} 篇文章", "搜尋全部 {articles} 篇文章 — 打得幾細緻得幾細緻"]
+      en: ["Search {articles} articles and every doc page", "Search {articles} articles and every doc page",
+        "Search all {articles} articles and every doc page", "Search all {articles} articles and every doc page",
+        "Search all {articles} articles and every doc page — go on, be specific"],
+      yue: ["搜尋 {articles} 篇文章同所有文件頁", "搜尋 {articles} 篇文章同所有文件頁",
+        "搜尋全部 {articles} 篇文章同所有文件頁", "搜尋全部 {articles} 篇文章同所有文件頁",
+        "搜尋全部 {articles} 篇文章同所有文件頁 — 打得幾細緻得幾細緻"]
     },
     "search.hits": {
-      en: ["{n} of {total} articles match.", "{n} of {total} articles match.", "{n} of {total} articles match.",
-        "{n} of {total} articles matched that.", "{n} of {total} articles put their hand up."],
-      yue: ["{total} 篇入面有 {n} 篇啱。", "{total} 篇入面有 {n} 篇啱。", "{total} 篇入面 {n} 篇夾到。",
-        "{total} 篇入面有 {n} 篇夾到你打嗰個。", "{total} 篇入面有 {n} 篇舉手話啱。"]
+      en: ["{n} of {total} entries match.", "{n} of {total} entries match.", "{n} of {total} entries match.",
+        "{n} of {total} entries matched that.", "{n} of {total} entries put their hand up."],
+      yue: ["{total} 項入面有 {n} 項啱。", "{total} 項入面有 {n} 項啱。", "{total} 項入面 {n} 項夾到。",
+        "{total} 項入面有 {n} 項夾到你打嗰個。", "{total} 項入面有 {n} 項舉手話啱。"]
     },
     "search.none": {
-      en: ["No article matches `{q}`. Nothing was hidden — there is simply no match.",
-        "No article matches `{q}`. Nothing is hidden; there is simply no match.",
-        "No article matches `{q}` — nothing is hidden, there is just no match.",
+      en: ["Nothing matches `{q}`. Nothing was hidden — there is simply no match.",
+        "Nothing matches `{q}`. Nothing is hidden; there is simply no match.",
+        "Nothing matches `{q}` — nothing is hidden, there is just no match.",
         "Nothing matches `{q}`. Nothing is being hidden from you; there is genuinely no match.",
-        "Not one article matches `{q}`. Nothing is hidden up a sleeve — there is honestly nothing there."],
-      yue: ["無文章夾到 `{q}`。唔係收埋咗，係真係無。",
-        "無文章夾到 `{q}`。唔係收埋咗，純粹係無。",
-        "無文章夾到 `{q}` — 唔係匿埋，係真係無。",
-        "無嘢夾到 `{q}`。唔係收埋唔俾你睇，係真係一篇都無。",
-        "一篇都夾唔到 `{q}`。冇收埋喺袖入面，係真係一篇都冇。"]
+        "Not one entry matches `{q}`. Nothing is hidden up a sleeve — there is honestly nothing there."],
+      yue: ["無嘢夾到 `{q}`。唔係收埋咗，係真係無。",
+        "無嘢夾到 `{q}`。唔係收埋咗，純粹係無。",
+        "無嘢夾到 `{q}` — 唔係匿埋，係真係無。",
+        "無嘢夾到 `{q}`。唔係收埋唔俾你睇，係真係一項都無。",
+        "一項都夾唔到 `{q}`。冇收埋喺袖入面，係真係一項都冇。"]
     },
     "regex.open": {
       en: ["Regex builder", "Regex builder", "Regex builder", "Regex builder", "Regex builder"],

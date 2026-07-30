@@ -19,7 +19,7 @@ the order `app/index.html` lists them and each attaches exactly one global.
 | `app/cx-i18n.js`, `cx-dimsum.js`, `cx-changelog.js`, `cx-notify.js`, `cx-tabs.js` | `window.CX_I18N`, `CX_DIMSUM`, `CX_CHANGELOG`, `CX_NOTIFY`, `CX_TABS` | Feature modules, each independently unit-tested by `tools/test-frontend.mjs`. |
 | `app/codex-core.js` | `window.CX` | The runtime core: `bridge`, `store`, `toToml`, `evaluate` (regex), `CONSTRUCTS`, `FLAGS`, `LIMITS`, `color`, `i18n`, `narrator`, `vcs`, `notify`, `tabs`, `settings`, `dimsum`, `live`, `notifyBackendFailure`, and `sim` (the simulated state object). Loaded last, because it wires the `CX_*` modules into `CX` when they are present. |
 | `app/index.html` | — | The `<x-dc>` template plus `class Component extends DCLogic`. |
-| `app/fonts/`, `app/dimsum/`, `app/CHANGELOG.md` | — | Roboto and Roboto Mono (10 woff2 faces), 20 dim sum photographs with their `manifest.json`, and the changelog copy kept in step with the root file by `tools/sync-changelog.mjs`. |
+| `app/fonts/`, `app/dimsum/`, `app/CHANGELOG.md` | — | Roboto and Roboto Mono (10 woff2 faces), the dim sum photographs with their `manifest.json`, and the changelog copy kept in step with the root file by `tools/sync-changelog.mjs`. |
 
 Everything is loaded from disk. The CSP lives in a `<meta http-equiv="Content-Security-Policy">`
 tag in `app/index.html` and starts `default-src 'self'`, so a CDN reference would simply fail. See

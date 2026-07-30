@@ -110,7 +110,7 @@ process.
 | CI green at `713b498` | **Not verified** — run still in progress |
 | Installers work on a clean machine | **Not verified** — nothing installs or launches them |
 | Installers are trustworthy to Windows | **False** — they are unsigned; SmartScreen warns |
-| The docs describe the current backend | **Partly false** — 11 pages still stale, see gap 1 |
+| The docs describe the current backend | **Being fixed live** — 15 → 4 stale files during the session, see gap 1 |
 
 ---
 
@@ -122,26 +122,28 @@ process.
 documentation was not migrated with it. `docs/README.md` still opens with *"built on Tauri 2"*
 and still maps `src-tauri/    Rust backend, Tauri 2 configuration…` in its repository tree.
 
-**Verified:** `ls src-tauri` → no such directory. `grep -rl "src-tauri\|Tauri 2" docs/` matched
-**15 files** at the start of this session and **11 files** at this commit:
+**Verified:** `ls src-tauri` → no such directory.
 
-```
-docs/README.md                        docs/architecture/README.md
-docs/api/README.md                    docs/architecture/frontend-runtime.md
-docs/build/building-locally.md        docs/build/continuous-integration.md
-docs/build/packaging.md               docs/features/external-editor.md
-docs/features/local-version-control.md  docs/features/wsl-runtimes.md
-docs/site/articles.js
-```
+**Do not trust a count here — run the check.** This was being fixed faster than it could be
+written down. The measured trajectory across this single session:
 
-**A migration is actively underway.** `docs/architecture/tauri-bridge.md` has already been
-replaced by `docs/architecture/ipc-bridge.md`, and `overview.md`, `packaging.md` and
-`features/tabs.md` were corrected. Re-run the grep before starting: someone may be finishing
-this as you read.
+| Observed at | `grep -rl "src-tauri\|Tauri 2" docs/ \| wc -l` |
+| --- | --- |
+| session start (`561da4b`) | **15** |
+| `713b498` | **11** |
+| `85e55d9` | **4** |
 
-This is still the highest-impact gap in the tree. The docs are confidently wrong rather than
-merely incomplete, which sends a newcomer hunting for Rust that was deleted — and it
-discredits the many pages that are accurate.
+The last four at `85e55d9` were `docs/build/building-locally.md`, `docs/build/packaging.md`,
+`docs/site/app.js` and `docs/site/articles.js` — note that two of them are the **Pages site
+scripts**, not Markdown, so a grep restricted to `*.md` will report done while the published
+site still says Tauri.
+
+Already migrated: `docs/architecture/tauri-bridge.md` → `docs/architecture/ipc-bridge.md`, plus
+`overview.md`, `packaging.md`, `features/tabs.md` and the three remaining feature pages.
+
+The gap is listed first because of what it costs, not what is left of it: documentation that is
+confidently wrong sends a newcomer hunting for Rust that was deleted, and discredits the many
+pages that are accurate. Verify the current count before starting — it may already be zero.
 
 ### 2. `(a?a?)+` still gets past both regex guards and freezes the window
 

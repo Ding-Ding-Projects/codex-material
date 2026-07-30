@@ -233,8 +233,10 @@ A panel is a nav destination with its own body. Five edits, all in `app/index.ht
      };
    }
    ```
-   Every row needs a stable `key`. Every context menu should end with `this.appearItem(e)` so the
-   element is reachable from **Edit appearance…**.
+   Give every row a `key` — the runtime does not read it (it keys `sc-for` children by index), but
+   every list in this file carries one and the app's own bookkeeping relies on it. Every context
+   menu should end with `this.appearItem(e)` so the element is reachable from
+   **Edit appearance…**.
 
 5. **Wire the sidebar list and its search.** `listConfig()` returns `{ title, placeholder,
    actionLabel, rows }` for the sidebar in the current nav mode; add a branch for the new id. If
@@ -293,7 +295,7 @@ data; `adoptReal()` then rebuilds the profile and session lists from it.
 | The whole app is blank with no CSP error | The logic script did not define `class Component extends DCLogic`, or it threw while evaluating |
 | `sc-for … is not an array` warning | The bound value is `undefined` or an object; guard it in `renderVals()` |
 | A `style-hover` colour never changes | `{{ }}` does not bind in `style-*`; use a literal or add a class |
-| An input loses focus on every keystroke | The element's key changed between renders — check that list rows carry stable `key` values |
+| Re-ordering a list leaves focus or input state on the wrong row | `sc-for` keys its children by array index, so identity follows position; sort the data before it reaches the template rather than swapping rows under a live element |
 | The title bar cannot be dragged, or a button in it does nothing | `-webkit-app-region` — the strip is `drag`, interactive children must be `no-drag` |
 
 ## Security considerations
