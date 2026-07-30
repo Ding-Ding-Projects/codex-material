@@ -317,10 +317,40 @@ suite("app/codex-core.js", (ctx, file) => {
       const res = CX.evaluate(pattern, "gi", evil);
       const elapsed = Date.now() - started;
       assert.equal(res.ok, false, `${pattern} should be refused`);
-      assert.match(res.error, /repeats a group that already repeats/);
+      assert.match(res.error, /^Refused: /, `${pattern} must say plainly that it was refused`);
       assert.ok(elapsed < 250, `${pattern} took ${elapsed}ms — it should be refused, not run`);
       assert.ok(res.refused && res.refused.length > 2, `${pattern} should name its offending fragment`);
     }
+    // Calibrated against the real engine rather than folklore. Each of these was
+    // measured with a raw RegExp on 26 hostile characters; the guard has to agree
+    // with the stopwatch in both directions. Over-refusing is a real cost: the
+    // previous rule rejected every repeated group containing an unbounded quantifier
+    // anywhere, which killed "(\.\w+)+$" and "[A-Z][a-z]+(\s[A-Z][a-z]+)*" —
+    // both measuring 0.0 ms — while missing "(a?a?)+$" at 195 seconds.
+    const MEASURED_CATASTROPHIC = ["(a+)+$", "(a?a?)+$", "([a-z]*)+$", "(a|a)*$", "(a+|b)+$", "([a-z]?[a-z]?)+$", "((a+))+$"];
+    const MEASURED_FINE = ["(a+a)+$", "(ab)+$", "(a+b)+$", "([A-Z][a-z]+)+$", "(\.\w+)+$",
+      "(\s[A-Z][a-z]+)*$", "(\s*,\s*)+$", "(?:abc)+$", "(foo|bar)+$", "(https?://)+"];
+    for (const pattern of MEASURED_CATASTROPHIC) {
+      const r = CX.evaluate(pattern, "g", evil);
+      assert.equal(r.ok, false, `${pattern} was measured as catastrophic and must be refused`);
+    }
+    for (const pattern of MEASURED_FINE) {
+      const r = CX.evaluate(pattern, "g", "abc.tar.gz Hello World foo, bar https://x");
+      assert.notEqual(r.ok, false, `${pattern} was measured at ~0 ms and must not be refused: ${r.error}`);
+    }
+
+    // The refusal must state the reason that actually applies. "(a?)+" returns in a
+    // fraction of a millisecond — telling the user it would hang the window is false,
+    // and a message that cries catastrophe every time teaches people to ignore it.
+    const nullableMsg = CX.evaluate("(a?)+", "g", "aaa").error;
+    const unanchoredMsg = CX.evaluate("(a+)+$", "g", "aaa").error;
+    const branchesMsg = CX.evaluate("(a|a)*", "g", "aaa").error;
+    assert.match(nullableMsg, /match nothing/, "a nullable body must be described as nullable");
+    assert.match(unanchoredMsg, /fixed number of times|anchor/, "an unanchored body must be described as unanchored");
+    assert.match(branchesMsg, /branches/, "overlapping branches must be described as such");
+    assert.ok(new Set([nullableMsg, unanchoredMsg, branchesMsg]).size === 3,
+      "the three refusal shapes must not share one message");
+
     // Bounding the outer repeat is not a fix, so the message must not suggest it.
     const advice = CX.evaluate("(a+)+$", "g", "aaa").error;
     assert.ok(!/for example \{1,20\}/.test(advice), "the remedy must not recommend the worse rewrite");

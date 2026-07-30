@@ -308,6 +308,113 @@
     return false;
   }
 
+  /** Can this fragment match the empty string?
+   *
+   *  A group whose body is nullable, repeated with an unbounded quantifier, is the
+   *  third classic blow-up and the one the other two checks miss: `(a?a?)+` has no
+   *  inner `+` for the nested-quantifier scan to find and no repeated branch for the
+   *  alternation scan, yet `(a?a?)+$` against 26 a's and a b was measured at 176
+   *  SECONDS here. The `?`s make each iteration ambiguous — one `a` can be matched by
+   *  either optional — and the outer `+` multiplies that ambiguity across iterations.
+   *  The time budget cannot help: it is checked between matches, and this is all one
+   *  match attempt.
+   *
+   *  Approximate but sound in the direction that matters: an alternative is nullable
+   *  when every top-level atom in it is optional, and a body is nullable when any of
+   *  its alternatives is. `(\s*,\s*)+` keeps its literal comma and stays allowed;
+   *  `(a?a?)+`, `([a-z]*)+` and `(a|)+` do not. */
+  function nullable(body) {
+    const alts = branches(body);
+    for (let a = 0; a < alts.length; a++) {
+      const alt = alts[a].replace(/^\^+/, "").replace(/\$+$/, "");
+      if (!alt) return true;                       // an empty branch matches empty
+      let allOptional = true;
+      let j = 0;
+      while (j < alt.length) {
+        let atomEnd;
+        let innerNullable = false;
+        if (alt[j] === "\\") atomEnd = j + 2;
+        else if (alt[j] === "[") atomEnd = skipClass(alt, j);
+        else if (alt[j] === "(") {
+          const g = groupEnd(alt, j);
+          if (g < 0) { allOptional = false; break; }
+          if (/^\?(=|!|<=|<!)/.test(alt.slice(j + 1))) innerNullable = true;   // a lookaround consumes nothing
+          else innerNullable = nullable(alt.slice(j + 1, g).replace(/^\?(:|<[A-Za-z_$][\w$]*>)/, ""));
+          atomEnd = g + 1;
+        } else atomEnd = j + 1;
+
+        const q = /^(\?|\*|\{0(,\d*)?\})/.exec(alt.slice(atomEnd));
+        const optional = !!q || innerNullable;
+        if (!optional) { allOptional = false; break; }
+        j = atomEnd + (q ? q[0].length : 0);
+        // a lazy or possessive marker after the quantifier
+        if (alt[j] === "?" || alt[j] === "+") j++;
+      }
+      if (allOptional) return true;
+    }
+    return false;
+  }
+
+  /** Does this alternative contain at least one atom that must appear exactly a
+   *  bounded number of times?
+   *
+   *  That atom is what stops the outer repeat from re-splitting the same text: each
+   *  iteration has to consume it, so there is only one way to divide the input into
+   *  iterations. Measured against the real engine, 26 hostile characters:
+   *
+   *      (a+)+$              7 886 ms      no anchor
+   *      (a?a?)+$          197 238 ms      no anchor
+   *      ([a-z]*)+$         34 291 ms      no anchor
+   *      (a+|b)+$            8 226 ms      no anchor in the `a+` branch
+   *      (a+a)+$                37 ms      trailing `a` anchors it
+   *      (\.\w+)+$                0 ms      leading `\.` anchors it
+   *      (\s[A-Z][a-z]+)*$         0 ms      leading `\s` anchors it
+   *      ([A-Z][a-z]+)+$           0 ms      leading `[A-Z]` anchors it
+   *
+   *  The previous rule refused any repeated group containing an unbounded quantifier
+   *  anywhere after the first position, which caught the top four and also the bottom
+   *  four — so "match a run of Title Case Words" and "match a chain of .extensions"
+   *  were both rejected as catastrophic while measuring zero milliseconds. */
+  function everyBranchAnchored(body) {
+    const alts = branches(body);
+    for (let a = 0; a < alts.length; a++) {
+      const alt = alts[a].replace(/^\^+/, "").replace(/\$+$/, "");
+      if (!alt) return false;
+      let anchored = false;
+      let j = 0;
+      while (j < alt.length && !anchored) {
+        let atomEnd, groupBody = null;
+        if (alt[j] === "\\") atomEnd = j + 2;
+        else if (alt[j] === "[") atomEnd = skipClass(alt, j);
+        else if (alt[j] === "(") {
+          const g = groupEnd(alt, j);
+          if (g < 0) return false;
+          if (/^\?(=|!|<=|<!)/.test(alt.slice(j + 1))) { j = g + 1; continue; }  // consumes nothing
+          groupBody = alt.slice(j + 1, g).replace(/^\?(:|<[A-Za-z_$][\w$]*>)/, "");
+          atomEnd = g + 1;
+        } else if (alt[j] === "^" || alt[j] === "$") { j++; continue; }
+        else atomEnd = j + 1;
+
+        const q = /^(\?|\*|\+|\{(\d*)(,(\d*))?\})/.exec(alt.slice(atomEnd));
+        let mandatoryBounded;
+        if (!q) mandatoryBounded = true;                       // exactly once
+        else if (q[1] === "?" || q[1] === "*" || q[1] === "+") mandatoryBounded = false;
+        else {
+          const min = Number(q[2] || 0);
+          const openEnded = q[3] !== undefined && (q[4] === undefined || q[4] === "");
+          mandatoryBounded = min >= 1 && !openEnded;
+        }
+        // A group only anchors if it is itself anchored all the way down.
+        if (mandatoryBounded && groupBody !== null) mandatoryBounded = everyBranchAnchored(groupBody);
+        if (mandatoryBounded) anchored = true;
+        j = atomEnd + (q ? q[0].length : 0);
+        if (alt[j] === "?" || alt[j] === "+") j++;             // lazy / possessive marker
+      }
+      if (!anchored) return false;
+    }
+    return true;
+  }
+
   /** The offending fragment, or null. Reported to the user verbatim so the refusal
    *  names the exact part of their pattern that is the problem. */
   function nestedQuantifier(pattern) {
@@ -324,14 +431,9 @@
       const fragment = s.slice(i, end + 1 + (tail ? tail[0].length : 0));
       if (/^\?(=|!|<=|<!)/.test(s.slice(i + 1))) continue;   // a lookaround is a different shape
       const body = s.slice(i + 1, end).replace(/^\?(:|<[A-Za-z_$][\w$]*>)/, "");
-      if (overlappingBranches(body)) return fragment;
-      let j = 0;
-      while (j < body.length) {
-        if (body[j] === "\\") { j += 2; continue; }
-        if (body[j] === "[") { j = skipClass(body, j); continue; }
-        if (repeatsMoreThanOnce(body.slice(j)) && j > 0) return fragment;
-        j++;
-      }
+      if (overlappingBranches(body)) return { fragment: fragment, why: "branches" };
+      if (nullable(body)) return { fragment: fragment, why: "nullable" };
+      if (!everyBranchAnchored(body)) return { fragment: fragment, why: "unanchored" };
     }
     return null;
   }
@@ -342,9 +444,19 @@
     if (pattern.length > LIMITS.pattern) { res.ok = false; res.error = `Pattern exceeds ${LIMITS.pattern} characters.`; return res; }
     const nested = nestedQuantifier(pattern);
     if (nested) {
+      const frag = nested.fragment;
       res.ok = false;
-      res.refused = nested;
-      res.error = `Refused: \`${nested}\` repeats a group that already repeats. That takes exponential time inside a single match attempt, where the ${LIMITS.ms} ms budget below cannot reach it — the window would simply stop responding. Bounding the outer repeat does not help. Remove the inner repeat, or rewrite the group so it cannot match the same text two ways.`;
+      res.refused = frag;
+      /* Each shape gets its own true reason. Telling the user that `(a?)+` will hang
+         the window would be false — it returns in a fraction of a millisecond; it is
+         refused because a group that can match nothing, repeated, is a mistake. Saying
+         "catastrophic" for everything trains people to ignore the message. */
+      res.error =
+        nested.why === "nullable"
+          ? `Refused: \`${frag}\` repeats a group that can match nothing at all. Where the group is also ambiguous this is catastrophic — \`(a?a?)+$\` against 26 characters was measured here at over three minutes, inside a single match attempt the ${LIMITS.ms} ms budget cannot interrupt. Where it is not, the repeat still does nothing, because a group matching the empty string cannot advance. Either way, give the group something it must consume.`
+          : nested.why === "branches"
+            ? `Refused: \`${frag}\` repeats a group whose branches can match the same text. The engine then has an exponential number of equivalent ways to divide the input between them, inside a single match attempt the ${LIMITS.ms} ms budget cannot interrupt — the window would stop responding. Make the branches distinguishable, or drop the outer repeat.`
+            : `Refused: \`${frag}\` repeats a group with nothing in it that must appear a fixed number of times. Without such an anchor the outer repeat can re-split the same text an exponential number of ways — \`(a+)+$\` against 26 characters was measured here at about eight seconds, and it grows by roughly a factor of two per character. Add a part the group must consume once, or drop the outer repeat.`;
       return res;
     }
     if (sample.length > LIMITS.sample) { res.ok = false; res.error = `Sample exceeds ${LIMITS.sample} characters.`; return res; }

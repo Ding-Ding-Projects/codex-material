@@ -81,6 +81,17 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **The regex builder no longer hangs the window on `(a?a?)+`.** The guard caught
+  `(a+)+` and `(a|a)*` but not a repeated group that can match nothing, which measured
+  **195 seconds** on 26 characters — inside one match attempt, where the 300 ms budget
+  cannot reach. It also refused far too much: the old rule rejected any repeated group
+  containing an unbounded quantifier anywhere, so `(\.\w+)+$` and
+  `[A-Z][a-z]+(\s[A-Z][a-z]+)*` were both rejected as catastrophic while measuring
+  0.0 ms. The rule is now calibrated against the stopwatch — a repeated group is
+  refused when it can match nothing, when its branches overlap, or when it has no part
+  that must appear a fixed number of times — and each shape gets its own honest reason
+  rather than all three claiming the window is about to freeze.
+
 - **`--m3-on-error` existed only in the places that used it.** The palette declared
   `error`, `error-container` and `on-error-container` but never `on-error`, so the
   destructive confirm button's `var(--m3-on-error)` resolved to nothing and the label
