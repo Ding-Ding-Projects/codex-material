@@ -81,6 +81,13 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **Restyling something can be undone.** Every appearance write — each font, size,
+  weight, toggle and colour change, and both reset buttons — went straight to the store
+  without touching the history, so the one thing you could not undo in an app built
+  around undoing things was the appearance editor. They commit now, debounced by 900 ms
+  so dragging a colour records one revision rather than one per frame, and the two
+  resets commit immediately because they are discrete and destructive.
+
 - **The language mode reaches the app's primary surface.** The navigation rail, the
   Extend category list and several chrome labels were hard-coded English, so switching
   to 廣東話 or bilingual translated the messages and left the furniture. Worse, the

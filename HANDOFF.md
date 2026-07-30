@@ -144,19 +144,7 @@ process.
 Every entry below was re-verified against this commit. Four gaps recorded in the previous
 handoff are now closed and appear under *Recently closed* instead — do not re-report them.
 
-### 1. Documentation still describes a backend that no longer exists
-
-The Rust shell was replaced by Electron in `561da4b`; `src-tauri/` does not exist. Some files
-still discuss Tauri. Re-run the grep before acting — this has been shrinking steadily:
-
-```bash
-grep -ril "tauri" --include=*.md --include=*.js . | grep -v node_modules
-```
-
-Note that two of the remaining hits are the Pages site's `.js`, not `.md`. Grepping only
-`.md` will look finished while the published site still says Tauri.
-
-### 2. The language mode still misses most secondary labels
+### 1. The language mode still misses most secondary labels
 
 The app's **primary** surface is done: the navigation rail, the Extend category list and
 the window chrome now resolve through `CX.i18n` at render time, so switching to 廣東話 or
@@ -181,32 +169,26 @@ grep -c "CX.i18n.t(" app/index.html
 > reconciled; assume others like them exist. A key that resolves to itself is a key
 > nothing is using.
 
-### 3. Levels 1 and 2 of the funny sliders are byte-identical for almost every key
+### 2. Levels 1 and 2 of the funny sliders are byte-identical for almost every key
 
 233 of the 237 existing keys have the same text at level 1 and level 2 in both languages, so
 moving either slider from 1 to 2 changes nothing the user can see. A slider step that does
 nothing is a broken control. Newly added keys in this session do differentiate the two.
 
-### 4. The colour translator is one-way
+### 3. The colour translator is one-way
 
 The twelve rows are read-only output and the single text input accepts hex only, so
 `oklch(...)` or `rgb(...)` typed into it is rejected. The rules ask for bidirectional
 conversion among the listed spaces.
 
-### 5. The appearance editor's typography is eight properties deep
+### 4. The appearance editor's typography is eight properties deep
 
 Family, size, weight, italic, underline, strike, a letter-spacing toggle and colour. The rules
 describe a word-processor standard — variable axes, small caps, super/subscript, highlight,
 outline, shadow, baseline offset, direction and the rest — with unsupported properties staying
 visible and explained rather than absent.
 
-### 6. Appearance writes do not record a revision
-
-`patchAppear` (every font, size, weight, toggle and colour change) and both in-editor reset
-buttons write straight to the store without committing to the history, so those changes cannot
-be undone from the History panel even though sibling controls elsewhere can.
-
-### 7. MCP servers and hooks are outside the snapshot
+### 5. MCP servers and hooks are outside the snapshot
 
 The snapshot covers what the app keeps in `localStorage`. Records that live in `config.toml`
 and are managed through the CLI — MCP servers, hooks — are not captured, so deleting one
@@ -214,12 +196,12 @@ cannot be undone. `restore()` does now push the snapshot's `config` back into `c
 as a dotted diff, so the mechanism to fix this exists; the snapshot simply does not collect
 those sections yet.
 
-### 8. The installers are unsigned
+### 6. The installers are unsigned
 
 `electron-builder` signs with whatever certificate the host offers; there is no code-signing
 identity configured, so Windows SmartScreen will warn on first run.
 
-### 9. Content-Security-Policy is set but permissive
+### 7. Content-Security-Policy is set but permissive
 
 `unsafe-eval` is required: the design-compiler runtime compiles the template with
 `new Function`. Removing it stops the app from starting. This is the source of the one console
@@ -235,6 +217,8 @@ message every capture reports, and it is expected.
 | Appearance presets were a stub | Export and import are implemented and file-backed |
 | History's Undo and Restore silently did nothing after the first launch | Both resolve a git-sourced row to its local revision, and say so when a revision has no snapshot |
 | A restored snapshot never reached `config.toml` | `restore()` applies it as a dotted diff via `codex_config_restore` |
+| Appearance changes could not be undone from the History panel | `patchAppear` and both resets commit a revision now — debounced by 900 ms so a colour drag records one entry, not one per frame |
+| Documentation described a backend that no longer exists | Closed. `grep -rn "src-tauri\|Tauri 2" docs/` matches four files and every match is deliberate history or an explicit negative — nothing describes Tauri as the current backend |
 | 228 unique UI-audit findings across 1646 occurrences | 17 / 124, all of them the deliberate-ellipsis note |
 
 ## Skipped by decision

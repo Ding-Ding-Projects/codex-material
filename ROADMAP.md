@@ -18,33 +18,35 @@ check rather than a feeling. Current state and evidence live in [`HANDOFF.md`](H
 
 These three are the difference between a project a newcomer can trust and one they cannot.
 
-### 1. Realign the documentation with the Electron shell — *in progress*
+### 1. Realign the documentation with the Electron shell — *done*
 
-**State:** `561da4b` replaced the Tauri 2 / Rust backend with Electron and deleted `src-tauri/`.
-The docs did not follow. This is being fixed faster than it can be written down — the count
-went **15 → 11 → 4** during a single session. At `85e55d9` the remainder was
-`docs/build/building-locally.md`, `docs/build/packaging.md`, `docs/site/app.js` and
-`docs/site/articles.js`.
+**State:** complete. `561da4b` replaced the Tauri 2 / Rust backend with Electron and deleted
+`src-tauri/`; the documentation has caught up.
 
-**Run the check before starting, and mind the file types:** two of the last four are Pages site
-**scripts**, not Markdown, so a grep restricted to `*.md` reports success while the published
-site still says Tauri. GitHub Pages went live at `713b498` and deploys from this same tree, so
-whatever is left is published, not merely committed.
+**Verified with this item's own completion test:**
 
 ```
-grep -rl "src-tauri\|Tauri 2" docs/
+grep -rn "src-tauri\|Tauri 2" docs/
 ```
 
-**Why it matters:** this is the single most damaging gap in the tree. Wrong documentation is
-worse than missing documentation — it sends the next person hunting for Rust that was deleted,
-and it silently discredits the pages that *are* accurate. The feature docs are good; they are
-being dragged down by an architecture section describing a backend that is gone.
+Four files still match, and every match is deliberate history or an explicit negative:
 
-**Done looks like:** `grep -rl "src-tauri\|Tauri 2" docs/` returns nothing but an explicit
-historical note. `docs/architecture/ipc-bridge.md` lists the real `codex_*` command surface from
-`electron/commands.js`. The repository map in `docs/README.md` matches `ls`. `docs/build/*`
-describes `npm run dist` and electron-builder rather than `cargo tauri build`. The published
-Pages site is re-checked afterwards, since it serves this tree.
+| File | What it says |
+| --- | --- |
+| `docs/build/building-locally.md` | "`src-tauri/` **was deleted** with the Tauri shell" — explaining why `.gitignore` still lists paths that match nothing |
+| `docs/build/packaging.md` | "Any Rust or Tauri artifact. `src-tauri/` **no longer exists**" — a list of things the build must *not* produce |
+| `docs/site/app.js` | "Electron, **replacing** the Tauri 2 shell at commit `561da4b`" |
+| `docs/site/articles.js` | "The desktop shell is Electron. It **was** Tauri 2 **until** commit `561da4b`" |
+
+`docs/features/README.md` states the negative directly: "There is no Rust, no `window.__TAURI__`
+and no generic invoke." The README and the wiki home carry the release warning that builds 2–9
+are the Tauri shell and render a blank window, which is a fact about published artifacts and
+must stay.
+
+**Do not "finish" this by deleting those sentences.** A reader who finds `src-tauri/` in an old
+release, an old issue or the git history needs the tree to explain what happened to it. The
+requirement was never zero occurrences of the word; it was that nothing describes Tauri as the
+*current* backend, and nothing does.
 
 ### 2. Close the last regex-guard gap: `(a?a?)+`
 

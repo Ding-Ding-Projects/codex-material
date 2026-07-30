@@ -2893,8 +2893,10 @@ class Component extends DCLogic {
         const ratio = CX.color.contrast(fg, bg);
         return "Contrast vs surface " + ratio.toFixed(2) + ":1 — " + (ratio >= 4.5 ? "passes AA body text" : ratio >= 3 ? "large text only" : "fails AA");
       })(),
-      resetAppear: () => { const appearance = Object.assign({}, st.appearance); delete appearance[st.appearTarget]; CX.store.set("appearance", appearance); this.setState({ appearance }); },
-      resetAllAppear: () => { CX.store.set("appearance", {}); this.setState({ appearance: {} }); }
+      /* The two resets are discrete, deliberate and destructive, so they commit at once
+         rather than waiting out the debounce. An unchanged state records nothing. */
+      resetAppear: () => { const appearance = Object.assign({}, st.appearance); if (!(st.appearTarget in appearance)) return; delete appearance[st.appearTarget]; CX.store.set("appearance", appearance); clearTimeout(this._appearCommit); CX.vcs.commit("Reset the appearance of " + this.appearTargetName(st.appearTarget), "appearance"); this.refreshGitLog(); this.setState({ appearance }); },
+      resetAllAppear: () => { if (!Object.keys(st.appearance || {}).length) return; CX.store.set("appearance", {}); clearTimeout(this._appearCommit); CX.vcs.commit("Reset every element's appearance", "appearance"); this.refreshGitLog(); this.setState({ appearance: {} }); }
     };
     Object.assign(v, this.tabVals(), this.notifyVals(), this.changelogVals(), this.studioVals(), this.dimSumVals(), this.calendarVals());
     return v;
@@ -4135,6 +4137,26 @@ class Component extends DCLogic {
     appearance[this.state.appearTarget] = Object.assign({}, appearance[this.state.appearTarget] || {}, patch);
     CX.store.set("appearance", appearance);
     this.setState({ appearance });
+    /* Appearance changes were the one write path that never reached the history, so
+       restyling something could not be undone while every sibling control could.
+       Debounced: this fires on each frame of a colour drag, and one revision per
+       frame would bury the log in a few hundred entries nobody can read through. */
+    this.commitAppear("Restyled " + this.appearTargetName(this.state.appearTarget));
+  }
+
+  /** Record an appearance change as a revision, once the user has stopped making it.
+   *
+   *  The stored message stays English on purpose. It is a durable record written into
+   *  a git commit, and localising it at write time would freeze each entry in whatever
+   *  language happened to be active when it was made — a history in four languages,
+   *  depending on the user's mood that week. */
+  commitAppear(message) {
+    clearTimeout(this._appearCommit);
+    this._appearCommit = setTimeout(() => {
+      if (!CX.vcs || !CX.vcs.commit) return;
+      CX.vcs.commit(message, "appearance");
+      this.refreshGitLog();
+    }, 900);
   }
 }
 </script>
