@@ -1561,6 +1561,17 @@
         "講啦，唔使驚。佢係真係會行㗎 —— {profile} 配 {model}，冇綵排，角落頭都冇個 undo 掣等你。"
       ]
     },
+    /* Shown when a revision has no snapshot this install can restore — a row from a
+       git repository written by a previous install, for instance. The old code
+       returned null and did nothing, which on a data-recovery feature is the worst
+       possible response. */
+    "history.noSnapshot": {
+      en: ["No snapshot stored for this revision", "No snapshot stored for this revision",
+        "This revision has no snapshot to restore", "This revision has no snapshot, so there is nothing to put back",
+        "This revision kept no snapshot, so there is nothing to put back — it is a signpost, not a save point"],
+      yue: ["呢個版本冇存低快照", "呢個版本冇存低快照", "呢個版本冇快照可以還原",
+        "呢個版本冇快照，即係冇嘢可以放返去", "呢個版本冇留低快照，冇嘢還原得返 —— 佢係個路標，唔係個存檔點"]
+    },
     "history.search": {
       en: ["Search revisions", "Search revisions", "Search revisions",
         "Search every revision", "Search every revision — message, action or hash"],

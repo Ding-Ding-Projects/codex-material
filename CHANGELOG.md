@@ -81,6 +81,18 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **The regex builder is reachable from the surfaces that open it.** It rendered at
+  `z-index: 85`, below the command palette's scrim at 96 and the bulk-close dialog's at
+  98 — so the builder those two offer opened *behind* them and could not be used at all.
+- **The tab strip exposes exactly one tab stop again.** Each tab's close affordance
+  carried the same `tabindex` as the tab itself, so a selected tab contributed two
+  stops and a `role="button"` sat inside a `role="tab"`. It keeps its label and its
+  <kbd>Delete</kbd> / <kbd>Ctrl</kbd>+<kbd>W</kbd> path and leaves the tab order.
+- **The History panel refreshes.** The git log was read once at mount and never again,
+  so a revision committed during the session never appeared and an undo left the list
+  showing the state it had just undone. And when a revision genuinely has no snapshot
+  this install can restore, it now says so instead of silently doing nothing.
+
 - **The window reflows at 200% zoom.** The navigation rail and the session pane were
   non-shrinking flex items, so at a 480 CSS px viewport they claimed 373 of it and the
   content column collapsed to about 106 px — everything inside spilled sideways into a
