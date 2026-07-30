@@ -1565,6 +1565,16 @@
        git repository written by a previous install, for instance. The old code
        returned null and did nothing, which on a data-recovery feature is the worst
        possible response. */
+    "appear.tabNamed": {
+      en: ["Tab · {title}", "Tab · {title}", "Tab · {title}", "the {title} tab", "the {title} tab"],
+      yue: ["分頁 · {title}", "分頁 · {title}", "分頁 · {title}", "{title} 嗰個分頁", "{title} 嗰個分頁"]
+    },
+    "appear.tabGone": {
+      en: ["a closed tab", "a closed tab", "a tab that is no longer open",
+        "a tab that is no longer open", "a tab that has since wandered off"],
+      yue: ["一個已經閂咗嘅分頁", "一個已經閂咗嘅分頁", "一個唔再開住嘅分頁",
+        "一個唔再開住嘅分頁", "一個已經走咗人嘅分頁"]
+    },
     "appear.picker": {
       en: ["Saturation and brightness field", "Saturation and brightness field", "Saturation and brightness field",
         "Pick saturation and brightness — drag anywhere in the field",

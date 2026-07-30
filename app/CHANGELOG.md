@@ -81,6 +81,16 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **Tabs can be reordered.** `CX.tabs.move()` had existed since the tab strip was
+  written and nothing had ever called it, so the strip could not be rearranged by any
+  means at all. <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>←</kbd>/<kbd>→</kbd> moves the
+  focused tab within its own region — pinned tabs stay among pinned — and the context
+  menu carries the same two commands through the same mover, so the routes cannot drift.
+- **Appearance is per tab.** Every loose tab rendered with the same literal
+  `data-appear="Tab"`, so restyling one restyled all of them, and a tab inside a group
+  had no `data-appear` at all and could not be restyled. Each is keyed by its own id
+  now, which survives a rename where the visible title does not.
+
 - **The colour picker is continuous.** It was a swatch and three anonymous range
   inputs — neither a spectrum nor a two-dimensional field, and with no way to tell
   which slider was which. There is a draggable saturation/brightness field now, a hue
