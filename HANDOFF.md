@@ -175,20 +175,14 @@ grep -c "CX.i18n.t(" app/index.html
 moving either slider from 1 to 2 changes nothing the user can see. A slider step that does
 nothing is a broken control. Newly added keys in this session do differentiate the two.
 
-### 3. The colour translator is one-way
-
-The twelve rows are read-only output and the single text input accepts hex only, so
-`oklch(...)` or `rgb(...)` typed into it is rejected. The rules ask for bidirectional
-conversion among the listed spaces.
-
-### 4. The appearance editor's typography is eight properties deep
+### 3. The appearance editor's typography is eight properties deep
 
 Family, size, weight, italic, underline, strike, a letter-spacing toggle and colour. The rules
 describe a word-processor standard — variable axes, small caps, super/subscript, highlight,
 outline, shadow, baseline offset, direction and the rest — with unsupported properties staying
 visible and explained rather than absent.
 
-### 5. MCP servers and hooks are outside the snapshot
+### 4. MCP servers and hooks are outside the snapshot
 
 The snapshot covers what the app keeps in `localStorage`. Records that live in `config.toml`
 and are managed through the CLI — MCP servers, hooks — are not captured, so deleting one
@@ -196,12 +190,12 @@ cannot be undone. `restore()` does now push the snapshot's `config` back into `c
 as a dotted diff, so the mechanism to fix this exists; the snapshot simply does not collect
 those sections yet.
 
-### 6. The installers are unsigned
+### 5. The installers are unsigned
 
 `electron-builder` signs with whatever certificate the host offers; there is no code-signing
 identity configured, so Windows SmartScreen will warn on first run.
 
-### 7. Content-Security-Policy is set but permissive
+### 6. Content-Security-Policy is set but permissive
 
 `unsafe-eval` is required: the design-compiler runtime compiles the template with
 `new Function`. Removing it stops the app from starting. This is the source of the one console
@@ -217,6 +211,7 @@ message every capture reports, and it is expected.
 | Appearance presets were a stub | Export and import are implemented and file-backed |
 | History's Undo and Restore silently did nothing after the first launch | Both resolve a git-sourced row to its local revision, and say so when a revision has no snapshot |
 | A restored snapshot never reached `config.toml` | `restore()` applies it as a dotted diff via `codex_config_restore` |
+| The colour translator was one-way — it printed twelve representations and read back only hex | `CX.color.parse` reads all twelve plus named colours, preserving alpha. Proven by a round trip: every space emitted, parsed back, worst channel drift 1 |
 | Appearance changes could not be undone from the History panel | `patchAppear` and both resets commit a revision now — debounced by 900 ms so a colour drag records one entry, not one per frame |
 | Documentation described a backend that no longer exists | Closed. `grep -rn "src-tauri\|Tauri 2" docs/` matches four files and every match is deliberate history or an explicit negative — nothing describes Tauri as the current backend |
 | 228 unique UI-audit findings across 1646 occurrences | 17 / 124, all of them the deliberate-ellipsis note |

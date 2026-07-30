@@ -307,6 +307,41 @@ suite("app/codex-core.js", (ctx, file) => {
     assert.equal(CX.bridge.mode, "browser", "with no CODEX_BRIDGE present the bridge must fall back, not throw");
   });
 
+  unit(file, "the colour translator is bidirectional", () => {
+    /* The panel prints twelve representations of the current colour. It used to read
+       exactly one of them back, so it would show you `oklch(0.85 0.06 300)` and then
+       reject that string if you typed it into the field underneath. The proof is a
+       round trip: emit every space, parse each one, and confirm the colour survives —
+       taking the arithmetic on trust is how an inverse transform ends up subtly wrong
+       in one space and nobody notices for a year. */
+    const C = CX.color;
+    requireFn(C.parse, "CX.color.parse", ["parse"]);
+    const COLOURS = ["#D0BCFF", "#FF6347", "#008080", "#000000", "#FFFFFF", "#F2B8B5", "#4B0082"];
+    let worst = 0;
+    for (const hex of COLOURS) {
+      const rows = C.translate(hex);
+      assert.ok(rows.length >= 12, `translate() should emit every space, got ${rows.length}`);
+      for (const [space, text] of rows) {
+        const back = C.parse(text);
+        assert.ok(back, `${space} emitted "${text}" and parse() could not read it back`);
+        const a = C.hexToRgb(hex), b = C.hexToRgb(back);
+        const d = Math.max(Math.abs(a.r - b.r), Math.abs(a.g - b.g), Math.abs(a.b - b.b));
+        worst = Math.max(worst, d);
+        assert.ok(d <= 3, `${space}: ${hex} -> "${text}" -> ${back} drifted ${d} per channel`);
+      }
+    }
+    assert.ok(worst <= 3, `worst round-trip drift was ${worst}`);
+
+    // Named colours, alpha, and an honest null for anything that is not a colour.
+    assert.equal(C.parse("tomato"), "#ff6347");
+    assert.equal(C.parse("TOMATO"), "#ff6347", "names are case-insensitive");
+    assert.equal(C.parse("rgb(255 99 71 / 0.5)"), "#ff634780", "alpha must survive, not be dropped");
+    assert.equal(C.parse("rgb(255,99,71)"), "#ff6347", "the legacy comma form must parse");
+    for (const junk of ["not a colour", "rgb(a b c)", "", null, "wat(1 2 3)"]) {
+      assert.equal(C.parse(junk), null, `parse(${JSON.stringify(junk)}) must return null, never a guess`);
+    }
+  });
+
   unit(file, "evaluate refuses catastrophic backtracking instead of freezing", () => {
     // A single RegExp.exec cannot be interrupted from JavaScript, so the ms budget
     // only helps BETWEEN matches. These shapes spend their whole time inside one

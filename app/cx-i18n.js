@@ -1676,6 +1676,18 @@
       yue: ["一個已經閂咗嘅分頁", "一個已經閂咗嘅分頁", "一個唔再開住嘅分頁",
         "一個唔再開住嘅分頁", "一個已經走咗人嘅分頁"]
     },
+    "appear.colorInput": {
+      en: ["Colour value — hex, rgb, hsl, lab, oklch, cmyk or a name",
+        "Colour value — hex, rgb, hsl, lab, oklch, cmyk or a name",
+        "Type a colour — hex, rgb, hsl, lab, oklch, cmyk or a name",
+        "Type a colour in any of these — hex, rgb, hsl, lab, oklch, cmyk, or just say tomato",
+        "Type a colour however you like — hex, rgb, hsl, lab, oklch, cmyk, or just say tomato"],
+      yue: ["顏色值 —— hex、rgb、hsl、lab、oklch、cmyk 或者名",
+        "顏色值 —— hex、rgb、hsl、lab、oklch、cmyk 或者名",
+        "打隻色入嚟 —— hex、rgb、hsl、lab、oklch、cmyk 或者個名都得",
+        "隨你用邊種寫法 —— hex、rgb、hsl、lab、oklch、cmyk，或者直接打 tomato",
+        "鍾意點寫都得 —— hex、rgb、hsl、lab、oklch、cmyk，唔想諗就打 tomato"]
+    },
     "appear.picker": {
       en: ["Saturation and brightness field", "Saturation and brightness field", "Saturation and brightness field",
         "Pick saturation and brightness — drag anywhere in the field",

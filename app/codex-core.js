@@ -538,6 +538,145 @@
     },
     luminance(rgb) { return 0.2126 * this.lin(rgb.r) + 0.7152 * this.lin(rgb.g) + 0.0722 * this.lin(rgb.b); },
     contrast(a, b) { const x = this.luminance(a), y = this.luminance(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); },
+    /* ------------------------------------------------------------ parsing
+     *
+     *  The translator emitted twelve representations and could read exactly one of
+     *  them back, so the conversion was one-way: the panel would show you
+     *  `oklch(0.85 0.06 300)` and then reject it if you typed it into the field
+     *  underneath. Every space it writes, it now reads.
+     *
+     *  Each function below is the inverse of the forward one above it, and
+     *  tools/test-frontend.mjs round-trips a set of colours through all twelve to
+     *  prove it rather than taking the arithmetic on trust. */
+    NAMED: {
+      black: "#000000", white: "#ffffff", red: "#ff0000", lime: "#00ff00", blue: "#0000ff",
+      yellow: "#ffff00", cyan: "#00ffff", aqua: "#00ffff", magenta: "#ff00ff", fuchsia: "#ff00ff",
+      silver: "#c0c0c0", gray: "#808080", grey: "#808080", maroon: "#800000", olive: "#808000",
+      green: "#008000", purple: "#800080", teal: "#008080", navy: "#000080", orange: "#ffa500",
+      pink: "#ffc0cb", brown: "#a52a2a", gold: "#ffd700", indigo: "#4b0082", violet: "#ee82ee",
+      salmon: "#fa8072", coral: "#ff7f50", crimson: "#dc143c", khaki: "#f0e68c", plum: "#dda0dd",
+      orchid: "#da70d6", tomato: "#ff6347", turquoise: "#40e0d0", lavender: "#e6e6fa",
+      beige: "#f5f5dc", ivory: "#fffff0"
+    },
+
+    hslToRgb({ h, s, l }) {
+      const S = s / 100, L = l / 100;
+      const c = (1 - Math.abs(2 * L - 1)) * S, hp = (((h % 360) + 360) % 360) / 60;
+      const x = c * (1 - Math.abs((hp % 2) - 1));
+      const t = hp < 1 ? [c, x, 0] : hp < 2 ? [x, c, 0] : hp < 3 ? [0, c, x]
+        : hp < 4 ? [0, x, c] : hp < 5 ? [x, 0, c] : [c, 0, x];
+      const m = L - c / 2;
+      return { r: Math.round((t[0] + m) * 255), g: Math.round((t[1] + m) * 255), b: Math.round((t[2] + m) * 255) };
+    },
+    hwbToRgb({ h, w, b }) {
+      const W = w / 100, B = b / 100;
+      if (W + B >= 1) { const g = Math.round((W / (W + B)) * 255); return { r: g, g: g, b: g }; }
+      const base = this.hslToRgb({ h: h, s: 100, l: 50 });
+      const mix = (v) => Math.round((v / 255) * (1 - W - B) * 255 + W * 255);
+      return { r: mix(base.r), g: mix(base.g), b: mix(base.b) };
+    },
+    /* sRGB companding, shared by every space that travels through linear light. */
+    _unlin(u) { return 255 * (u <= 0.0031308 ? 12.92 * u : 1.055 * Math.pow(u, 1 / 2.4) - 0.055); },
+    _xyzToRgb(x, y, z) {
+      const cl = (v) => Math.round(Math.min(255, Math.max(0, this._unlin(Math.min(1, Math.max(0, v))))));
+      return {
+        r: cl(x * 3.2406 + y * -1.5372 + z * -0.4986),
+        g: cl(x * -0.9689 + y * 1.8758 + z * 0.0415),
+        b: cl(x * 0.0557 + y * -0.2040 + z * 1.0570)
+      };
+    },
+    labToRgb({ l, a, b }) {
+      const fy = (l + 16) / 116, fx = fy + a / 500, fz = fy - b / 200;
+      const inv = (t) => (t * t * t > 0.008856 ? t * t * t : (t - 16 / 116) / 7.787);
+      return this._xyzToRgb(inv(fx) * 0.95047, inv(fy), inv(fz) * 1.08883);
+    },
+    lchToRgb({ l, c, h }) {
+      const rad = (h * Math.PI) / 180;
+      return this.labToRgb({ l: l, a: Math.cos(rad) * c, b: Math.sin(rad) * c });
+    },
+    oklabToRgb({ l, a, b }) {
+      const L = Math.pow(l + 0.3963377774 * a + 0.2158037573 * b, 3);
+      const M = Math.pow(l - 0.1055613458 * a - 0.0638541728 * b, 3);
+      const S2 = Math.pow(l - 0.0894841775 * a - 1.2914855480 * b, 3);
+      const cl = (v) => Math.round(Math.min(255, Math.max(0, this._unlin(Math.min(1, Math.max(0, v))))));
+      return {
+        r: cl(4.0767416621 * L - 3.3077115913 * M + 0.2309699292 * S2),
+        g: cl(-1.2684380046 * L + 2.6097574011 * M - 0.3413193965 * S2),
+        b: cl(-0.0041960863 * L - 0.7034186147 * M + 1.7076147010 * S2)
+      };
+    },
+    oklchToRgb({ l, c, h }) {
+      const rad = (h * Math.PI) / 180;
+      return this.oklabToRgb({ l: l, a: Math.cos(rad) * c, b: Math.sin(rad) * c });
+    },
+    cmykToRgb({ c, m, y, k }) {
+      const f = (ch) => Math.round(255 * (1 - Math.min(1, ch / 100)) * (1 - Math.min(1, k / 100)));
+      return { r: f(c), g: f(m), b: f(y) };
+    },
+
+    /** Read any representation the translator can write, plus the named colours.
+     *  Returns a hex string, or null when the text is not a colour — never a guess. */
+    parse(text) {
+      if (text == null) return null;
+      const raw = String(text).trim().toLowerCase();
+      if (!raw) return null;
+      if (this.NAMED[raw]) return this.NAMED[raw];
+      if (raw[0] === "#" || /^[0-9a-f]{3}$|^[0-9a-f]{6}$|^[0-9a-f]{8}$/.test(raw)) {
+        const rgb = this.hexToRgb(raw);
+        return rgb ? this.rgbToHex(rgb) : null;
+      }
+      const m = /^([a-z-]+)\s*\(([^)]*)\)$/.exec(raw);
+      if (!m) return null;
+      const fn = m[1];
+      /* Both the legacy comma form and the modern space form, with an optional
+         alpha tail: rgb(1,2,3), rgb(1 2 3) and rgb(1 2 3 / 0.5) all parse. */
+      const parts = m[2].replace(/\//g, " ").split(/[\s,]+/).filter(Boolean);
+      const num = (i) => { const v = parseFloat(parts[i]); return isNaN(v) ? null : v; };
+      const need = (n) => { for (let i = 0; i < n; i++) if (num(i) === null) return false; return true; };
+      const alpha = (i) => {
+        const v = num(i);
+        if (v === null) return 1;
+        return /%/.test(parts[i] || "") ? v / 100 : v;
+      };
+      let rgb = null, a = 1;
+      if (fn === "rgb" || fn === "rgba") {
+        if (!need(3)) return null;
+        const ch = (i) => (/%/.test(parts[i]) ? (num(i) / 100) * 255 : num(i));
+        rgb = { r: ch(0), g: ch(1), b: ch(2) };
+        if (parts.length > 3) a = alpha(3);
+      } else if (fn === "hsl" || fn === "hsla") {
+        if (!need(3)) return null;
+        rgb = this.hslToRgb({ h: num(0), s: num(1), l: num(2) });
+        if (parts.length > 3) a = alpha(3);
+      } else if (fn === "hsv" || fn === "hsb") {
+        if (!need(3)) return null;
+        rgb = this.hsvToRgb({ h: num(0), s: num(1), v: num(2) });
+      } else if (fn === "hwb") {
+        if (!need(3)) return null;
+        rgb = this.hwbToRgb({ h: num(0), w: num(1), b: num(2) });
+        if (parts.length > 3) a = alpha(3);
+      } else if (fn === "lab") {
+        if (!need(3)) return null;
+        rgb = this.labToRgb({ l: num(0), a: num(1), b: num(2) });
+      } else if (fn === "lch") {
+        if (!need(3)) return null;
+        rgb = this.lchToRgb({ l: num(0), c: num(1), h: num(2) });
+      } else if (fn === "oklab") {
+        if (!need(3)) return null;
+        rgb = this.oklabToRgb({ l: num(0), a: num(1), b: num(2) });
+      } else if (fn === "oklch") {
+        if (!need(3)) return null;
+        rgb = this.oklchToRgb({ l: num(0), c: num(1), h: num(2) });
+      } else if (fn === "cmyk" || fn === "device-cmyk") {
+        if (!need(4)) return null;
+        rgb = this.cmykToRgb({ c: num(0), m: num(1), y: num(2), k: num(3) });
+      } else return null;
+      if (!rgb) return null;
+      /* Alpha is preserved rather than dropped: a translator that silently discards it
+         is approximating, not round-tripping. */
+      return this.rgbToHex({ r: rgb.r, g: rgb.g, b: rgb.b, a: a });
+    },
+
     translate(hex) {
       const rgb = this.hexToRgb(hex);
       if (!rgb) return [];

@@ -81,6 +81,14 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **The colour translator reads back what it writes.** It printed twelve
+  representations of the current colour — hex, rgb, hsl, hsv, hwb, lab, lch, oklab,
+  oklch, cmyk — and could parse exactly one of them, so the panel would show you
+  `oklch(0.85 0.06 300)` and reject that string if you typed it into the field
+  underneath. Every space now has its inverse, plus named colours, alpha preservation
+  and both the comma and space syntaxes. Verified by round trip rather than by trusting
+  the arithmetic: every space emitted, parsed back, worst channel drift 1 of 255.
+
 - **Restyling something can be undone.** Every appearance write — each font, size,
   weight, toggle and colour change, and both reset buttons — went straight to the store
   without touching the history, so the one thing you could not undo in an app built
