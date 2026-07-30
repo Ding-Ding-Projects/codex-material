@@ -90,71 +90,108 @@ So the ms budget protects against one thing — a cheap pattern producing an eno
 matches — and does nothing at all about the classic exponential blow-up. The only real defence is
 to **refuse the shape before running it**.
 
-### Measured
+### Measured, not reasoned about
 
-Against a 37-character sample (`"a".repeat(30) + "!"` in `tools/test-frontend.mjs`, and a longer
-run of `a` by hand):
+Every threshold below comes from running the shape against the raw engine on 26 hostile
+characters, not from reasoning about which shapes "look" catastrophic:
 
-| Pattern | Result |
-| --- | --- |
-| `(a+)+$` | **Refused in under 1 ms** by `nestedQuantifier`, before `new RegExp` is even called |
-| `(a+){1,20}$` | Before the guard was widened: **ran past 20 seconds** and froze the window |
+| Pattern | Raw engine | Verdict |
+| --- | ---: | --- |
+| `(a?a?)+$` | **195 000 ms** | refused |
+| `([a-z]?[a-z]?)+$` | 178 000 ms | refused |
+| `([a-z]*)+$` | 32 000 ms | refused |
+| `(a\|a)*$` | 11 700 ms | refused |
+| `(a+\|b)+$` | 8 200 ms | refused |
+| `(a+)+$` | 8 100 ms | refused |
+| `(a+a)+$` | 33 ms | **allowed** |
+| `([A-Z][a-z]+)+$` | 0.0 ms | **allowed** |
+| `(\.\w+)+$` | 0.0 ms | **allowed** |
+| `(\s[A-Z][a-z]+)*$` | 0.0 ms | **allowed** |
+| `(\s*,\s*)+$` | 0.0 ms | **allowed** |
 
-That second row is the whole point. An earlier version of this guard treated `{n,m}` as a *safe*
-outer repeat, and its error message recommended rewriting `(a+)+` as `(a+){1,20}`. The advice was
-the defect: bounding the outer repeat does not remove the ambiguity that causes the backtracking,
-it only caps the number of ways the engine may split the input — at twenty, which is astronomically
-more work than the engine would do for `+` before giving up on a short string. **Bounding the outer
-repeat is not a fix.** `tools/test-frontend.mjs` asserts that the remedy text never suggests it:
+The pattern in that data is **not** "contains a nested quantifier". It is whether each iteration
+of the outer repeat has something it *must* consume. `(\.\w+)+` has to eat a literal dot every
+time round, so there is exactly one way to divide the input into iterations and it runs in zero
+milliseconds. `(a+)+` has no such anchor, so the outer repeat can re-split the same run of `a`s
+an exponential number of ways. `(a+a)+` has a mandatory trailing `a` and lands at 33 ms, which is
+why it is allowed rather than refused on principle.
 
-```js
-const advice = CX.evaluate("(a+)+$", "g", "aaa").error;
-assert.ok(!/for example \{1,20\}/.test(advice), "the remedy must not recommend the worse rewrite");
-```
+> [!WARNING]
+> **The previous rule refused any repeated group containing an unbounded quantifier anywhere
+> after the first position.** That caught the top six *and* the bottom four — so "match a run of
+> Title Case Words" and "match a chain of `.extensions`" were both rejected as catastrophic while
+> measuring nothing at all, and `(a?a?)+$`, the one that takes three minutes, sailed straight
+> through: it has no inner `+` for the scan to find and no repeated branch for the alternation
+> scan. Over-refusing is a real cost, not a safe default. A guard that rejects working patterns
+> teaches people to distrust it, and this one was doing that while missing the actual hazard.
 
 ### What is refused
 
-`nestedQuantifier(pattern)` walks the pattern, finds each group, and checks what follows it. Two
-shapes are refused; both return the **offending fragment**, which the error message quotes back so
-the user can see exactly which part of their pattern is the problem.
+`nestedQuantifier(pattern)` walks the pattern, finds each group that carries an unbounded outer
+repeat, and applies three tests to its body. Each returns the **offending fragment**, which the
+error message quotes back so the user can see which part of their pattern is the problem — and
+each gives its **own** reason, because they are not the same problem.
 
-**1. A repeat applied to a group that already repeats.**
+**1. The body can match nothing** — `nullable(body)`.
 
-The outer repeat counts as "repeats" when it can apply the group more than once — `*`, `+`,
-`{n,}`, and `{n,m}` with `m > 1`. `?`, `{1}`, `{0,1}` and `{1,1}` cannot, so they are not a risk
-and are allowed through (`repeatsMoreThanOnce`).
+`(a?a?)+`, `([a-z]*)+`, `(a|)+`, `(\s*)+`. Where the body is also ambiguous this is the worst
+case in the whole table. Where it is not, the repeat still does nothing useful, because a group
+matching the empty string cannot advance the position. Either way the pattern is a mistake.
+
+**2. The alternation branches overlap** — `overlappingBranches(body)`.
+
+`(a|a)*` and `(x|xx)+y` never touch a nested `+`, and blow up because two branches that can match
+the same text give the engine an exponential number of equivalent ways to split the input. The
+body is split on top-level `|` — skipping escapes, character classes and nested groups — and the
+leading token of each branch compared; a shared or unresolvable leading token means they may
+overlap.
+
+**3. No branch has a fixed-count anchor** — `everyBranchAnchored(body)`.
+
+An atom anchors when its quantifier is absent, or is `{n}`/`{n,m}` with `n ≥ 1` and `m` finite.
+`?`, `*` and `+` do not anchor. A group atom anchors only if it is itself anchored all the way
+down. If *any* top-level alternative lacks an anchor the pattern is refused, which is what catches
+`(a+|b)+` — the `b` branch is anchored, the `a+` branch is not, and one unanchored branch is
+enough.
 
 | Refused | Allowed |
 | --- | --- |
-| `(a+)+$` | `(ab){1,3}` — the body has no inner repeat |
-| `(a+){1,20}$` | `(a+)?` — the outer repeat runs at most once |
-| `(a+){1,10}$` | `\d+` — no group |
-| `(\w*)*` | `^(mcp\|plugin)-` — no outer repeat |
+| `(a?a?)+$` | `(a+a)+$` — the trailing `a` anchors each iteration |
+| `(a+)+$` | `(\.\w+)+$` — the literal `\.` anchors it |
+| `(a+\|b)+$` | `([A-Z][a-z]+)+$` — the `[A-Z]` anchors it |
+| `([a-z]*)+$` | `(\s*,\s*)+$` — the comma anchors it |
+| `(a\|a)*$` | `(?:abc)+$`, `(foo\|bar)+$`, `(https?://)+` |
 
-**2. A group whose alternation branches overlap.**
+Lookarounds are explicitly skipped — `(?=…)+` is a different shape — and `(?:…)` /
+`(?<name>…)` prefixes are stripped from the body before it is examined.
 
-`(a|a)*` and `(x|xx)+y` never touch a nested `+`, and both blow up for the same underlying reason:
-two branches that can match the same text give the engine an exponential number of equivalent ways
-to split the input. `overlappingBranches` splits the group body on top-level `|` (skipping escapes,
-character classes and nested groups) and compares the leading token of each branch; a shared or
-unresolvable leading token means the branches may overlap and the pattern is refused.
+### The message says the reason that applies
 
-Lookarounds are explicitly skipped — `(?=…)+` is a different shape and is not what this guard is
-about — and `(?:…)` / `(?<name>…)` prefixes are stripped from the body before it is examined.
+Three shapes, three messages. Telling a user that `(a?)+` will freeze their window is simply
+false — it returns in a fraction of a millisecond — and a guard that cries catastrophe every
+time is one people learn to click through.
 
-### The message
+| Shape | What the message says |
+| --- | --- |
+| nullable | "repeats a group that can match nothing at all… give the group something it must consume" |
+| overlapping branches | "repeats a group whose branches can match the same text… make the branches distinguishable" |
+| unanchored | "repeats a group with nothing in it that must appear a fixed number of times… add a part the group must consume once" |
 
-```
-Refused: `(a+)+` repeats a group that already repeats. That takes exponential time inside a
-single match attempt, where the 300 ms budget below cannot reach it — the window would simply
-stop responding. Bounding the outer repeat does not help. Remove the inner repeat, or rewrite
-the group so it cannot match the same text two ways.
-```
+`tools/test-frontend.mjs` asserts all three messages differ from each other, that each names its
+own cause, and that the remedy never recommends bounding the outer repeat — an earlier version of
+this guard suggested rewriting `(a+)+` as `(a+){1,20}`, and that advice was itself the defect:
+bounding the outer repeat does not remove the ambiguity, it caps the number of ways the engine
+may split the input at twenty, which is astronomically more work than `+` would do before giving
+up on a short string.
 
-The changelog engine carries the same refusal under the `rx.nested` key in `app/cx-changelog.js`,
-in all five funny levels and both languages, and every one of them says that bounding the outer
-repeat does not help. The bounds and the refusal are separate mechanisms and neither replaces the
-other: the refusal handles shapes, the bounds handle volume.
+The suite also pins the guard to the measurements: every pattern measured as catastrophic must be
+refused, and every pattern measured at ~0 ms must not be. **Zero holes and zero false positives**
+across that set, apart from four degenerate no-ops such as `(a?)+` that are refused deliberately
+because a repeated group matching the empty string is a bug either way.
+
+The changelog engine carries the same refusals under the `rx.*` keys in `app/cx-changelog.js`, in
+all five funny levels and both languages. The bounds and the refusal are separate mechanisms and
+neither replaces the other: the refusal handles shapes, the bounds handle volume.
 
 ### What the refusal does not cover
 
@@ -246,6 +283,14 @@ The Config panel's search filters the fields of the **currently selected section
 (`section.fields.filter(setMatch)`), so a setting whose name the user knows but whose section they
 do not is not found, and there is no "this match is on another tab" affordance. That is
 outstanding work, not documented behaviour.
+
+### Stacking
+
+The builder renders at `z-index: 99`, above every surface that can open it — the command palette's
+scrim sits at 96 and the bulk-close dialog's at 98. It was previously at **85**, so the builder
+those two dialogs offer opened *behind* the dialog offering it and could not be used at all: a
+feature that existed exactly as far as the eye could see and no further. If you add an overlay
+above 99, the builder has to move with it.
 
 ## Configuration
 
