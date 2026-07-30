@@ -964,7 +964,7 @@
     var facts = el("div", { "class": "card card--flat" });
     facts.appendChild(el("h2", { "class": "section-title" }, "The facts, in one table"));
     facts.appendChild(factTable([
-      ["Version", "`" + F.version + "` in `package.json`, unreleased"],
+      ["Version", "`" + F.version + "` in `package.json` — every green build publishes its own tagged release"],
       ["Platform", "Windows only — the bundle targets NSIS and MSI, and nothing is conditionally compiled for another platform"],
       ["Shell", "Electron `" + F.electron + "`, replacing the Tauri 2 shell at commit `561da4b`"],
       ["IPC surface", F.ipcTotal + " named commands (" + F.ipcCodex + " `codex_*`, " + F.ipcWindow + " `window_*`) — an allow-list, not a generic passthrough"],
@@ -1131,11 +1131,10 @@
     var note = el("div", { "class": "card card--flat" });
     note.innerHTML = [
       "<h3 class=\"section-title\" style=\"font-size:1.05rem\">One caveat, stated rather than hidden</h3>",
-      "<p>The pages under <code>docs/architecture/</code>, <code>docs/build/</code> and <code>docs/api/</code> were written against the ",
-      "Tauri 2 shell. Commit <code>561da4b</code> replaced that shell with Electron, so where those pages say ",
-      "<code>src-tauri/</code>, <code>lib.rs</code> or <code>@tauri-apps/cli</code>, the current tree has ",
-      "<code>electron/</code>, <code>electron/commands.js</code> and <code>electron-builder</code>. The command names, the argument ",
-      "shapes and the security properties they describe still hold — the transport underneath them changed.</p>",
+      "<p>The repository documentation under <code>docs/</code> was rewritten for the Electron shell after commit ",
+      "<code>561da4b</code>. Any remaining mention of <code>src-tauri/</code> or Tauri is framed as history, not as the ",
+      "current tree. Where a page and the code disagree, <strong>the code is right</strong> — say so in an issue and the page ",
+      "gets fixed.</p>",
       "<p><a href=\"#features\" data-open-article=\"shell\">The Electron shell article</a> on this site describes the current tree.</p>"
     ].join("");
     var link = note.querySelector("[data-open-article]");

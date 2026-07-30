@@ -32,8 +32,8 @@
     repoUrl: "https://github.com/Ding-Ding-Projects/codex-material",
     shell: "Electron",
     electron: "^40.5.0",
-    ipcTotal: "50",
-    ipcCodex: "47",
+    ipcTotal: "52",
+    ipcCodex: "49",
     ipcWindow: "3",
     cliSpec: "@openai/codex@0.146.0-win32-x64",
     cliVersion: "codex-cli 0.146.0",
@@ -42,8 +42,8 @@
     tests: "45",
     testsFrontend: "23",
     testsBackend: "22",
-    shots: "16",
-    dishes: "20",
+    shots: "18",
+    dishes: "72",
     dishCatalog: "72",
     subcommands: "26",
     globalFlags: "11",
@@ -341,17 +341,17 @@
       "A Tauri 2 backend was replaced by an Electron main process. The renderer reaches the machine through exactly " + FACTS.ipcTotal + " named IPC commands and nothing else.",
       {
         en: [
-          "The desktop shell is Electron. It was Tauri 2 until commit `561da4b`, and the documentation under `docs/architecture/` still describes the Rust backend that Electron replaced.",
-          "The desktop shell is Electron. It was Tauri 2 until commit `561da4b` — the pages under `docs/architecture/` still describe the Rust backend Electron replaced.",
-          "The desktop shell is Electron now. It was Tauri 2 until commit `561da4b`, and `docs/architecture/` has not caught up: those pages still describe the Rust backend.",
-          "The desktop shell is Electron. It was Tauri 2 right up until commit `561da4b`, and `docs/architecture/` has not caught up yet — those pages still describe the Rust backend that is no longer there.",
-          "The desktop shell is Electron. It was Tauri 2 until commit `561da4b` came along and swapped the engine out. The pages under `docs/architecture/` are still cheerfully describing a Rust backend that has left the building."],
+          "The desktop shell is Electron. It was Tauri 2 until commit `561da4b`; the Rust backend was ported to Node with the same command contract.",
+          "The desktop shell is Electron. It was Tauri 2 until commit `561da4b` — the Rust backend was ported to Node, command for command.",
+          "The desktop shell is Electron now. It was Tauri 2 until commit `561da4b` — the Tauri build launched and rendered a blank window, which is a hard thing to debug when the window is the thing you cannot see.",
+          "The desktop shell is Electron. It was Tauri 2 right up until commit `561da4b`, when the Tauri build turned out to render a perfectly blank window on every machine — and WebView2 cannot be captured off-screen, so nothing could tell you whether it had.",
+          "The desktop shell is Electron. It was Tauri 2 until commit `561da4b` swapped the engine out, on the grounds that the old one shipped a beautiful, fully functional, entirely invisible user interface."],
         yue: [
-          "桌面外殼係 Electron。喺 commit `561da4b` 之前係 Tauri 2，而 `docs/architecture/` 嗰幾頁仲係講緊被 Electron 換走咗嘅 Rust backend。",
-          "桌面外殼係 Electron。commit `561da4b` 之前係 Tauri 2 — `docs/architecture/` 嗰幾頁仲係講緊已經換走咗嘅 Rust backend。",
-          "桌面外殼而家係 Electron。commit `561da4b` 之前係 Tauri 2，`docs/architecture/` 未跟得上，嗰幾頁仲講緊 Rust backend。",
-          "桌面外殼係 Electron。一直到 commit `561da4b` 之前都係 Tauri 2，而 `docs/architecture/` 仲未跟到手 — 嗰幾頁仲喺度講一個已經唔存在嘅 Rust backend。",
-          "桌面外殼係 Electron。commit `561da4b` 一到就換咗個引擎。`docs/architecture/` 嗰幾頁仲好開心咁介紹緊一個早就走咗嘅 Rust backend。"]
+          "桌面外殼係 Electron。commit `561da4b` 之前係 Tauri 2；個 Rust backend 一條指令對一條咁搬咗去 Node。",
+          "桌面外殼係 Electron。commit `561da4b` 之前係 Tauri 2 — 個 Rust backend 搬晒去 Node，指令契約冇變。",
+          "桌面外殼而家係 Electron。commit `561da4b` 之前係 Tauri 2 —— 舊嗰個開到 app 但成塊畫面一片白，而你唯一想睇嗰樣嘢就係塊畫面。",
+          "桌面外殼係 Electron。一直到 commit `561da4b` 之前都係 Tauri 2 —— 嗰陣先發現 Tauri 版喺每部機都畫出一片白，而 WebView2 喺 off-screen 影唔到相，即係冇嘢話得你知佢到底有冇畫嘢。",
+          "桌面外殼係 Electron。commit `561da4b` 一到就換咗個引擎，理由係舊嗰個交出咗一個又靚又完整、但完全睇唔見嘅使用者介面。"]
       },
       [
         { h: "Behaviour", blocks: [
@@ -1502,7 +1502,7 @@
       version: "0.1.0",
       date: "2026-07-30",
       status: "Not released yet: no tag has been pushed and no installer has been published, so this section describes the current state of `main` rather than a downloadable build. Codex Studio is Windows-only — there is no macOS or Linux target in the bundle configuration.",
-      note: "The `Fixed` entries below correct the design prototype committed earlier in this same unreleased version (`design/`), not a shipped release. The `Added` entries describe the Tauri 2 shell as it stood when they were written; commit `561da4b` later replaced that shell with Electron, and the numbers in those entries refer to the Rust backend rather than to the current `electron/` tree.",
+      note: "The `Fixed` entries below correct the design prototype committed earlier in this same unreleased version (`design/`), not a shipped release. The `Added` entries were rewritten for the Electron shell after commit `561da4b`, so their counts and paths describe the current `electron/` tree.",
       sections: [
         { kind: "Added", items: [
           "Windows desktop shell bundling MSI and NSIS installers, installing per user so setup never asks for elevation. Product name `Codex Studio`, identifier `dev.codexstudio.app`, publisher `Ding Ding Projects`, licensed Apache-2.0.",
@@ -1545,14 +1545,15 @@
     { cat: "Architecture", pages: [
       { path: "docs/architecture/README.md", title: "Architecture index", note: "Layer diagram and the contracts each layer owes the others." },
       { path: "docs/architecture/overview.md", title: "Overview", note: "The three layers and why the CLI is never reimplemented." },
-      { path: "docs/architecture/tauri-bridge.md", title: "Backend bridge", note: "The invoke contract and every registered command, with argument and return shapes." },
+      { path: "docs/architecture/ipc-bridge.md", title: "The IPC bridge", note: "Every registered command with its argument and return shapes, and the preload allow-list that gates them." },
       { path: "docs/architecture/frontend-runtime.md", title: "Frontend runtime", note: "How the <x-dc> template and the DCLogic class render through React, and how to add a panel." }
     ]},
     { cat: "Build", pages: [
       { path: "docs/build/README.md", title: "Build index", note: "Prerequisites and the short version of every build path." },
       { path: "docs/build/building-locally.md", title: "Building locally", note: "The dev loop, the submodule, release builds, where output lands." },
       { path: "docs/build/packaging.md", title: "Packaging", note: "NSIS vs MSI, per-user install mode, icons, what the installer actually contains." },
-      { path: "docs/build/continuous-integration.md", title: "Continuous integration", note: "The workflow, its triggers, and how releases are published." }
+      { path: "docs/build/continuous-integration.md", title: "Continuous integration", note: "The workflow, its triggers, and how releases are published." },
+      { path: "docs/build/bundled-cli.md", title: "Bundled CLI", note: "Why the Codex CLI ships with the installer, how the binary is resolved, and the size it costs." }
     ]},
     { cat: "Features", pages: [
       { path: "docs/features/README.md", title: "Features index", note: "One page per feature, plus the rules every feature obeys." },
