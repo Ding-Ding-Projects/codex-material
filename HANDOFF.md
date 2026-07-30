@@ -290,38 +290,14 @@ Both were live earlier in this session and were re-tested after `5ed6e5c`:
 
 ## External-state blockers
 
-### GitHub Projects is unreachable — blocker, not a to-do
+These are not to-do items. Each needs an action an agent must not take on someone's
+account, or an API that does not exist.
 
-```
-$ gh project list --owner Ding-Ding-Projects
-error: your authentication token is missing required scopes [read:project]
-To request it, run:  gh auth refresh -s read:project
-
-$ gh auth status
-  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
-```
-
-The available `gh` token has no `read:project` or `project` scope. Granting it requires an
-interactive `gh auth refresh -s read:project`, which re-authorizes a human being's GitHub
-account — **an agent must not perform that on someone's account.** Project item creation,
-status moves and field updates therefore cannot be done from here.
-
-This is an external-state blocker on the user's credentials, not an unfinished task. The
-smallest action that unblocks it: the account owner runs `gh auth refresh -s read:project`
-themselves, once.
-
-### Not blockers, for the record
-
-- **Discussions** and the **wiki** are enabled on the repository (`has_discussions: true`,
-  `has_wiki: true`).
-- **GitHub Pages is now published** (`has_pages: true`). This flipped during the session:
-  `713b498` added `docs/site/index.html`, its own copy of the 16 screenshots under
-  `docs/site/assets/screenshots/`, and `tools/sync-site-assets.mjs` to keep them in step.
-  Two `pages-build-deployment` runs completed successfully. Note that the landing page is
-  deployed from the same `docs/` tree that still carries the stale Tauri text in gap 1.
-- **No open GitHub issues** on this repository (`gh issue list --state open` → empty).
-
----
+| Blocker | Evidence | Smallest unblocking action |
+| --- | --- | --- |
+| **GitHub Projects is unreachable** | The available `gh` token carries `gist, read:org, repo, workflow`. `gh project list --owner Ding-Ding-Projects` returns `your authentication token is missing required scopes [read:project]`. | Run `gh auth refresh -s project` interactively. An agent must not re-authenticate someone's account. |
+| **The wiki has no git repository yet** | `has_wiki` is `true`, but cloning `…/codex-material.wiki.git` returns `Repository not found`. GitHub creates the wiki's repo only when the first page is saved through the web UI; no REST or GraphQL endpoint creates it. | Open the repository's Wiki tab and save any page once. The intended first page is written and waiting at `docs/handoff/wiki-home.md`; every later edit can then be pushed by git. |
+| **~520 junk releases and their tags** | `on: push:` with no filter also fires on tag pushes, and the release job creates a tag. The loop published 533 releases; 11 were intended. The trigger is fixed in `aadfce1` and the loop is stopped, but the artifacts remain. | Deleting several hundred published releases and immutable tags is destructive and was not asked for. On confirmation it is a loop over `gh release delete --cleanup-tag`. |
 
 ## Where things live
 
