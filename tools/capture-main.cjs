@@ -179,7 +179,10 @@ async function main() {
     const image = await win.webContents.capturePage();
     const file = path.join(OUT, shot.file);
     fs.writeFileSync(file, image.toPNG());
-    written.push({ id: shot.id, file, applied, note: shot.note });
+    // Repo-relative, never absolute: this manifest is committed and mirrored into
+    // the published site, so an absolute path here publishes the operator's OS
+    // username to anyone who opens it.
+    written.push({ id: shot.id, file: shot.file, applied, note: shot.note });
     process.stdout.write(`${applied ? "✓" : "!"} ${shot.file}  ${shot.note}\n`);
   }
 

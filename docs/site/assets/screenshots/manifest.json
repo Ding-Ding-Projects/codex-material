@@ -3,97 +3,97 @@
   "shots": [
     {
       "id": "chats",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\01-chats.png",
+      "file": "01-chats.png",
       "applied": true,
       "note": "Chats — session list, transcript, composer"
     },
     {
       "id": "console",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\02-console.png",
+      "file": "02-console.png",
       "applied": true,
       "note": "Console — every CLI subcommand and flag"
     },
     {
       "id": "extend",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\03-extend.png",
+      "file": "03-extend.png",
       "applied": true,
       "note": "Extend — MCP, plugins, skills, hooks, feature flags"
     },
     {
       "id": "config",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\04-config.png",
+      "file": "04-config.png",
       "applied": true,
       "note": "Config — config.toml settings with live TOML preview"
     },
     {
       "id": "cost",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\05-cost.png",
+      "file": "05-cost.png",
       "applied": true,
       "note": "Cost — API-equivalent calculator"
     },
     {
       "id": "runtime",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\06-runtime.png",
+      "file": "06-runtime.png",
       "applied": true,
       "note": "Runtime — per-tab WSL instances"
     },
     {
       "id": "health",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\07-health.png",
+      "file": "07-health.png",
       "applied": true,
       "note": "Health — doctor, account, usage"
     },
     {
       "id": "history",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\08-history.png",
+      "file": "08-history.png",
       "applied": true,
       "note": "History — local git-backed, append-only"
     },
     {
       "id": "changelog",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\09-changelog.png",
+      "file": "09-changelog.png",
       "applied": true,
       "note": "Changelog viewer — date filter + regex search"
     },
     {
       "id": "studio",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\10-studio.png",
+      "file": "10-studio.png",
       "applied": true,
       "note": "Studio settings — language, funny sliders, narrator, dim sum, editor"
     },
     {
       "id": "regex",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\11-regex-builder.png",
+      "file": "11-regex-builder.png",
       "applied": true,
       "note": "Regex builder anchored beside the search bar that opened it"
     },
     {
       "id": "appearance",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\12-appearance.png",
+      "file": "12-appearance.png",
       "applied": true,
       "note": "Per-element appearance editor with the colour translator"
     },
     {
       "id": "notifications",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\13-notifications.png",
+      "file": "13-notifications.png",
       "applied": true,
       "note": "Corner notification stack and the reviewable centre"
     },
     {
       "id": "bulkclose",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\14-bulk-close.png",
+      "file": "14-bulk-close.png",
       "applied": true,
       "note": "Bulk close preview — the one place a blocking dialog is correct"
     },
     {
       "id": "dimsum",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\15-dim-sum.png",
+      "file": "15-dim-sum.png",
       "applied": true,
       "note": "Dim sum surprise — bundled catalog photo, non-blocking, auto-dismissing"
     },
     {
       "id": "light",
-      "file": "C:\\Users\\cntow\\Documents\\GitHub\\codex-material\\assets\\screenshots\\16-light-theme.png",
+      "file": "16-light-theme.png",
       "applied": true,
       "note": "Light theme — the same surface under the M3 light palette"
     }

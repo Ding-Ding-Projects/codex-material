@@ -14,7 +14,7 @@ finished.
 | Category | What lives there |
 | --- | --- |
 | [Architecture](architecture/README.md) | How the `app/` frontend, the `dc` template runtime and the `electron/` main process fit together, the main/preload/renderer process model, and the full 50-command IPC surface |
-| [Build](build/README.md) | Prerequisites, local builds, installer packaging, continuous integration |
+| [Build](build/README.md) | Prerequisites, local builds, the bundled Codex CLI, installer packaging, continuous integration |
 | [Features](features/README.md) | Regex builder, tabs, appearance, notifications, local version control, external editors, WSL runtimes |
 | [Experience](experience/README.md) | Language modes and funny levels, accessibility, changelog viewer, dim sum surprise |
 | [API](api/README.md) | Why there is no HTTP API and no Postman collection, and where the IPC surface is documented instead |

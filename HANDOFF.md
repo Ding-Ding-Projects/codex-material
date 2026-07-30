@@ -375,7 +375,8 @@ themselves, once.
   test publishes nothing. Tags are `v{version}+build.{run_number}` and are refused if they
   already exist, so nothing is ever overwritten.
 - `docs/` — Markdown pages across `architecture/`, `build/`, `features/`, `experience/`, `api/`.
-  **Accurate about features, stale about the backend on 11 of them** (gap 1).
+  Accurate about features; the backend description was being migrated off Tauri throughout this
+  session (gap 1).
 - `docs/site/` — the GitHub Pages landing page (`index.html`, `articles.js`) plus its own copy
   of the screenshots, kept in step by `tools/sync-site-assets.mjs`. Deployed and live.
 - `CHANGELOG.md` — Keep a Changelog format, mirrored into `app/CHANGELOG.md` and shipped as an
@@ -407,9 +408,11 @@ themselves, once.
 所以下面啲數字要自己行多次先算數；不過 `app/` 由 `ae0e562` 之後冇郁過，所以前端嗰幾項發現
 （第 2、3、4 項）係喺呢個 commit 度重新驗過，照樣成立。
 
-**未搞掂嘅嘢（有八項，詳情睇上面）：** 最大鑊係文件——個 Rust 殼喺 `561da4b` 已經換咗做
-Electron，`src-tauri/` 根本唔存在，但 **仲有 11 版文件喺度講 Tauri**（session 開頭係 15 版，
-而家有人一路喺度改緊）。寫錯過冇寫，因為新人會走去搵一堆唔存在嘅 Rust，仲會連累埋啲寫得啱
+**未搞掂嘅嘢（有八項，詳情睇上面）：** 第一項係文件——個 Rust 殼喺 `561da4b` 已經換咗做
+Electron，`src-tauri/` 根本唔存在，但仲有檔喺度講 Tauri。呢樣有人執緊，而且執得好快：一個
+session 之內由 **15 個檔跌到 11 個再跌到 4 個**，所以唔好信呢度寫嘅數字，自己行個 grep 睇
+下先。剩低嗰四個入面有兩個係 Pages 網站嘅 `.js`，唔係 `.md`——淨係 grep `.md` 會以為執完，
+但個網站仲喺度講 Tauri。寫錯過冇寫，因為新人會走去搵一堆唔存在嘅 Rust，仲會連累埋啲寫得啱
 嘅文件一齊冇人信。第二係 `(a?a?)+` 呢個 pattern 仲穿得過兩個引擎嘅防呆，實測 26 個字行足
 **154 秒**，打入 regex builder 就會凍死成個視窗。第三係 History 記錄唔齊：同一個「reset 晒
 所有外觀」嘅動作，Studio 面板嗰粒有 commit（佢自己個說明仲寫住「可以 undo」），但外觀編輯器

@@ -156,7 +156,9 @@ $modulePath = Join-Path $repoRoot 'app\cx-dimsum.js'
 # A machine-readable copy for the release tooling, which needs the full-resolution
 # source path to attach the real photo to a GitHub Release.
 $manifest = [pscustomobject]@{
-  generatedFrom  = $CatalogRoot
+  # Deliberately not $CatalogRoot: that path runs through the operator's home
+  # directory, and this manifest is committed and published.
+  generatedFrom  = 'the shared Hong Kong dim sum catalog'
   catalogStatus  = $index.catalogStatus
   catalogTotal   = $index.total
   bundledSize    = $Size

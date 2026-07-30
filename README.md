@@ -8,10 +8,12 @@ A Material 3 Windows desktop app that drives the OpenAI Codex CLI. Every action 
 [![Material Design](https://img.shields.io/badge/Material%20Design-3-6750A4)](https://m3.material.io/)
 [![Licence](https://img.shields.io/badge/licence-Apache--2.0-blue)](#licence-and-credits)
 
-**Project site: <https://ding-ding-projects.github.io/codex-material/>** — published to GitHub Pages from the [`docs/`](docs/) tree in this repository, so the site and the repository documentation are the same source.
+**Project site: <https://ding-ding-projects.github.io/codex-material/site/>** — published to GitHub Pages from the [`docs/`](docs/) tree in this repository, so the site and the repository documentation are the same source.
 
 > [!NOTE]
-> Codex Studio has **no published release yet**. `package.json` says `0.1.0`, no tag has been pushed, and no installer has been built by CI. The install section below describes what the pipeline produces once a release exists.
+> Every green build publishes a release. `package.json` says `0.1.0`; each build gets its own immutable tag (`v0.1.0+build.<n>`) carrying an NSIS `.exe`, an MSI, and the build's dim sum code-name photograph. **The installers are not code-signed**, so SmartScreen will warn on first run.
+>
+> Releases numbered `build.2` through `build.9` are the **Tauri** shell and render a blank window. They are annotated as such and left in place because tags here are immutable. Take the newest one.
 
 ---
 
@@ -195,15 +197,15 @@ Stated here rather than left for you to discover.
 
 | Area | What is actually true |
 | --- | --- |
-| **Releases** | None published. No tag, no installer, no verified build. `CHANGELOG.md` says so too. |
+| **Releases** | Published on every green build, unsigned. Builds 2–9 are the Tauri shell and render blank; they carry a warning and are superseded. Nothing installs and launches the artifact on a clean machine, so "it installs" is not among the things CI verifies. |
 | **Health ▸ Usage and Health ▸ Cloud tasks** | Still rendered from the in-page sample data. `codex_state` hydrates auth, MCP, plugins, marketplaces, skills, hooks, features, sessions, config and WSL distros — token usage and cloud tasks are not among them. |
 | **Appearance ▸ font family** | The picker offers five families. `codex_fonts` enumerates the machine's installed fonts and is registered and reachable, but the frontend does not call it yet. |
 | **Stopping a chat run** | Releases the composer; it does not kill the process. The UI says so rather than pretending otherwise. |
 | **Chats are one-shot** | Each message is its own `codex exec` invocation. There is no resumed interactive thread yet. |
 | **Config ▸ Write file** | Writes the active profile's overrides as the whole of `$CODEX_HOME/config.toml` (the previous file is backed up first). The panel's path label also says `~/.codex/<profile>.config.toml` for a non-default profile, but the backend always writes `config.toml`. Treat the button as "replace config.toml with what this panel holds" until that is fixed. |
-| **`docs/architecture/*` and `docs/build/*`** | Still describe the Tauri backend that commit `561da4b` replaced with Electron, including a `src-tauri/` tree that no longer exists and a claim that there is no `package.json`. The feature and experience pages are unaffected. |
-| **Repository files** | No `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `ROADMAP.md` or `HANDOFF.md` is committed. `package.json` declares `Apache-2.0`; no licence text ships with it yet. |
-| **`.gitignore`** | Still lists `src-tauri/target/` and `src-tauri/gen/` from the Tauri era. Harmless, but stale. |
+| **Documentation drift** | `docs/build/*` and the IPC page were rewritten for Electron. `docs/architecture/overview.md`, `docs/architecture/frontend-runtime.md` and `docs/api/README.md` still carry Tauri-era descriptions in places; every remaining mention elsewhere is explicitly framed as history. Where a page and the code disagree, the code is right. |
+| **Repository files** | `ROADMAP.md` and `HANDOFF.md` are committed. There is still no `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md` or `CODE_OF_CONDUCT.md`; `package.json` declares `Apache-2.0` but no licence text ships with it yet. |
+| **Screenshots** | `assets/screenshots/` holds the 16 surfaces the harness captures plus `00-packaged-app.png`, taken by hand from the packaged build to prove the installer's output runs. Only the 16 appear in `manifest.json`. |
 | **Test flakiness** | `app/codex-core.js — evaluate refuses catastrophic backtracking instead of freezing` was observed failing once at `561da4b` (`res.matches.length` came back `0` where `1` was expected) and passed on the three runs after it. Intermittent, not yet diagnosed. |
 
 ---
@@ -263,7 +265,7 @@ Every script below is exactly what `package.json` defines.
 | `app/vendor/` | React and ReactDOM 18.3.1 UMD builds, vendored so nothing is fetched at runtime. |
 | `app/fonts/` | Roboto and Roboto Mono `.woff2`, bundled for the same reason. |
 | `app/dimsum/` | 20 dish photographs plus their manifest. |
-| `app/CHANGELOG.md` | Mirror of the root changelog; kept in sync and checked by `tools/sync-changelog.mjs`. |
+| `app/CHANGELOG.md` | Mirror of the root changelog; kept in sync and checked by `tools/sync-changelog.mjs`, `tools/sync-site-assets.mjs`. |
 | `electron/main.js` | Window creation, single-instance lock, external-link handling, WSL shutdown on quit. |
 | `electron/preload.js` | The only bridge to the machine: an allow-list of 50 named commands and a prefixed event channel. |
 | `electron/commands.js` | Every IPC handler, registered by both the app and the capture harness. |
@@ -305,7 +307,7 @@ The title bar shows which bridge is live — `Electron IPC` when running under t
 ### Tests
 
 ```powershell
-npm test                        # everything CI's test job runs
+npm test                        # the two test suites and the changelog mirror check
 node tools/test-frontend.mjs    # frontend modules only
 node tools/test-backend.mjs     # backend modules only
 ```
