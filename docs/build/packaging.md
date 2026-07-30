@@ -1,148 +1,234 @@
 # Packaging
 
-> What `tauri build` produces, what is inside it, and which decisions in
-> `src-tauri/tauri.conf.json` produce that result.
+> What `npm run dist` produces, what is inside it, and which decisions in `package.json`
+> produce that result.
 
 ## Bundle configuration, as it stands
 
 ```jsonc
-// src-tauri/tauri.conf.json
-"productName": "Codex Studio",
-"version": "0.1.0",
-"identifier": "dev.codexstudio.app",
-"bundle": {
-  "active": true,
-  "targets": ["msi", "nsis"],
-  "publisher": "Ding Ding Projects",
+// package.json
+"main": "electron/main.js",
+"build": {
+  "appId": "dev.codexstudio.app",
+  "productName": "Codex Studio",
   "copyright": "Codex Studio contributors",
-  "category": "DeveloperTool",
-  "shortDescription": "Material 3 desktop GUI for the Codex CLI",
-  "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.ico"],
-  "windows": {
-    "nsis": { "installMode": "currentUser", "languages": ["English"] }
-  }
+  "directories": { "output": "dist", "buildResources": "assets" },
+  "files": ["electron/**/*", "app/**/*", "CHANGELOG.md", "!**/*.map"],
+  "extraResources": [
+    { "from": "CHANGELOG.md", "to": "CHANGELOG.md" },
+    { "from": "vendor/codex-bin", "to": "codex-bin", "filter": ["**/*"] }
+  ],
+  "win": {
+    "target": [ { "target": "nsis", "arch": ["x64"] }, { "target": "msi", "arch": ["x64"] } ],
+    "icon": "assets/icon.ico",
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
+  },
+  "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true, "createStartMenuShortcut": true,
+            "shortcutName": "Codex Studio" },
+  "msi":  { "oneClick": false, "perMachine": false, "createDesktopShortcut": true }
 }
 ```
 
-`identifier` (`dev.codexstudio.app`) is the stable identity Windows and the updater key off.
-Changing it makes an installed copy look like a different product; treat it as immutable.
+`appId` (`dev.codexstudio.app`) is the stable identity Windows keys off. Changing it makes an
+installed copy look like a different product, so treat it as immutable.
+
+There is no `mac` or `linux` block, no `publish` block, and no `afterSign`/`sign` configuration.
+`npm run dist` passes `--publish never`, so a local build never uploads anything.
 
 ## NSIS vs MSI
 
-Both targets are built. They are not interchangeable.
+Both targets are built from the same `win-unpacked` output. They install the same bytes; they differ
+in how an organisation deploys them.
 
-| | **NSIS** (`bundle\nsis\*-setup.exe`) | **MSI** (`bundle\msi\*.msi`) |
+| | **NSIS** (`Codex Studio-0.1.0-x64.exe`) | **MSI** (`Codex Studio-0.1.0-x64.msi`) |
 | --- | --- | --- |
-| Configured here | `installMode: "currentUser"`, `languages: ["English"]` | No `windows.wix` block — Tauri's default WiX template applies |
-| Elevation | Not required: installs under the user's profile | Not configured for a per-user install; expect the WiX default (per-machine, elevation required) |
-| Best for | The normal download-and-run path | Managed deployment, Group Policy, `msiexec` automation |
-| Uninstall | Add/Remove Programs, per user | Add/Remove Programs, machine-wide |
+| Configured here | `oneClick: false`, `perMachine: false`, `allowToChangeInstallationDirectory: true`, desktop + Start Menu shortcuts named **Codex Studio** | `oneClick: false`, `perMachine: false`, `createDesktopShortcut: true` |
+| Scope | Per user. No elevation. | Per user. electron-builder's WiX template sets `MSIINSTALLPERUSER` and defaults the install folder to the per-user one when `perMachine` is false. |
+| Install UI | A real wizard, with a directory page | A real wizard, with an install-scope page |
+| Best for | The normal download-and-run path | Managed or scripted deployment (`msiexec`, Group Policy, Intune) |
+| Uninstall | Add/Remove Programs, for that user | Add/Remove Programs, for that user |
 
-**Ship the NSIS installer as the primary artifact.** Per-user install means a developer can
-install Codex Studio without an administrator, and a per-user install matches where the app's data
-already lives (`$CODEX_HOME`, `localStorage`).
+**The NSIS installer is the primary artifact.** Per-user install means a developer can install Codex
+Studio without an administrator, which matches where the app's data already lives (`$CODEX_HOME`,
+`localStorage`).
 
-The MSI is kept because managed environments need one. Note the mismatch plainly rather than
-pretending it away: the MSI is not configured for `perUser` scope, so installing it does require
-elevation, and a machine that has both installed will show two entries in Add/Remove Programs.
+The MSI exists because managed environments need a Windows Installer package. It is *also* per-user
+here, which is a deliberate change from a stock WiX default: nothing in this app needs to write
+outside the user's profile.
+
+### Toolchains the packager downloads
+
+Neither installer format is vendored. On first use electron-builder fetches its own binaries into
+its cache: the NSIS toolset and, for the MSI, `wix-4.0.0.5512.2`, whose `candle.exe` and `light.exe`
+it then runs. On an offline or proxied machine the MSI target is the one that fails first, and the
+failure is about downloading a toolchain, not about anything in this repository.
 
 ## What the installer contains
 
-1. **`codex-studio.exe`** — the whole application. The frontend (`app/`) is not shipped as loose
-   files; `frontendDist: "../app"` causes `tauri-build` to embed the HTML, JS, fonts and vendored
-   React into the binary, served over Tauri's internal asset protocol. That is why the strict CSP
-   works and why there is nothing on disk for a user to edit after install.
-2. **Icons** — the `.ico` for the executable and shell, plus the PNG sizes listed in
-   `bundle.icon`.
-3. **Uninstaller registration**, publisher and copyright metadata from the bundle block.
-4. **WebView2 handling.** `bundle.windows.webviewInstallMode` is not set, so Tauri's default
-   applies: the installer arranges for the Evergreen WebView2 bootstrapper to run when the runtime
-   is missing. This is the one part of installation that can touch the network. On Windows 11 and
-   current Windows 10 the runtime is already present and nothing is downloaded.
+Measured from `dist\win-unpacked` in this checkout:
+
+| Component | Size | What it is |
+| --- | --- | --- |
+| `resources\codex-bin\` | **410 MiB** | The bundled Codex CLI, staged from `vendor/codex-bin` by the `extraResources` entry. See [bundled-cli.md](bundled-cli.md). |
+| The Electron runtime | **~330 MiB** | `Codex Studio.exe`, `*.dll`, `*.pak`, `icudtl.dat`, `locales\`, the V8 snapshots — Chromium and Node, shipped by electron-builder from `node_modules\electron\dist`. |
+| `resources\app.asar` | **4.7 MiB** (4 914 164 bytes) | The application itself. |
+| `resources\CHANGELOG.md` | **10 441 bytes** | The `extraResources` copy of the root changelog. |
+| **Total unpacked** | **745 MiB** | |
+
+Inside `app.asar`, exactly four top-level entries:
+
+```
+electron/      main.js, preload.js, commands.js, lib/{catalog,cli,config,editors,history,wsl}.js
+app/           index.html, codex-core.js, codex-data.js, cx-*.js, CHANGELOG.md, dimsum/, fonts/, vendor/
+node_modules/  smol-toml — the only runtime dependency
+package.json
+```
+
+The changelog the packaged app actually reads is `resources\CHANGELOG.md`. `loadChangelog()` calls
+`codex_read_text` with the relative path `CHANGELOG.md` whenever a bridge is present, and that
+command resolves it against `process.resourcesPath` first when `app.isPackaged`, then the repository
+root, then `app/` — the error names every path it tried. The mirrored `app/CHANGELOG.md` inside the
+asar serves the browser-preview path, which uses `fetch("./CHANGELOG.md")` instead.
+
+**The installer download is smaller than 745 MiB** — both formats compress — but this page does not
+quote a compressed figure, because none was measured here. CI's *Verify the installers exist* step
+prints the real size of each artifact it built; that number is the one to cite.
 
 ### What it does **not** contain
 
-- **The `codex` CLI.** Studio runs the binary the user already has; it never bundles, updates or
-  vendors it. A machine without the CLI installs fine and then reports the failure honestly in
-  every panel.
-- **Bundled resources.** `bundle.resources` is not declared, so the resource directory ships
-  empty. `codex_read_text` resolves a *relative* path against that directory specifically so a
-  shipped document (a changelog, for instance) can be read without network access — but until a
-  file is listed in `bundle.resources`, every relative `codex_read_text` call fails with a
-  not-found error. Adding one is a two-line change:
-  ```jsonc
-  "bundle": { "resources": ["../CHANGELOG.md"] }
-  ```
-- **A code signature.** No `signCommand` and no `certificateThumbprint` are configured, so both
-  installers are unsigned. SmartScreen will warn on first run, and the warning is legitimate — say
-  so in release notes rather than telling users to click through it as if it were noise.
-- **An updater.** No `plugins.updater` block and no `tauri-plugin-updater` dependency exist.
+- **A code signature.** No `sign`, `certificateFile` or `certificateSubjectName` is configured, so
+  both installers are unsigned. **SmartScreen will warn on first run**, and the warning is
+  legitimate: nothing cryptographically proves the file came from this project. Say so in release
+  notes — the generated notes already do — rather than telling users to click through it as if it
+  were noise.
+- **An auto-updater.** There is no `electron-updater` dependency and no `publish` configuration.
   Updates are manual: download the next release and install over the top.
+- **Anything from `assets/`.** It is the `buildResources` directory, which electron-builder excludes
+  from the app package (`!assets{,/**/*}` appears in `dist\builder-debug.yml`). That matters for one
+  line in `electron/main.js`:
+  ```js
+  icon: path.join(__dirname, "..", "assets", "icon.png"),
+  ```
+  which resolves only from a checkout. In an installed copy the path does not exist and the window
+  simply uses the executable's own icon, compiled in from `assets/icon.ico`.
+- **A WebView2 bootstrapper, or any runtime prerequisite.** Electron carries its own Chromium. The
+  installation touches the network only if Windows itself decides to.
+- **Any Rust or Tauri artifact.** `src-tauri/` no longer exists.
+
+## Icons
+
+Three files in `assets/`, and only one of them is generated by a script in this repository:
+
+| File | How it is made | What consumes it |
+| --- | --- | --- |
+| `assets/icon-source.png` | `node tools/make-icon.mjs assets/icon-source.png` — 1024×1024 RGBA, rasterised by hand with `node:zlib` alone. No image library, no network. | Nothing at build time. It is the master art. |
+| `assets/icon.ico` | **Committed artifact.** Six PNG-compressed entries at 32 bpp: 16×16, 24×24, 32×32, 48×48, 64×64, 256×256 (27 644 bytes). | `build.win.icon` — the executable icon, the shell icon, the installer icon. |
+| `assets/icon.png` | **Committed artifact**, 256×256. | `BrowserWindow({ icon })` in `electron/main.js`, which resolves only when running from a checkout (see above). |
+
+`tools/make-icon.mjs` draws the mark itself: an M3 squircle ramped from `#4F378B` to `#D0BCFF`
+carrying a white prompt chevron and caret, supersampled 3× for anti-aliasing.
+
+**Nothing in this repository converts the source PNG into the `.ico`.** Regenerating the icon is
+therefore a two-part job: run `make-icon.mjs` for the source, then produce the multi-size `.ico` with
+an external tool and commit it. The file header above is what a correct result looks like — six
+entries, PNG-compressed, 32 bpp, up to 256×256. A single-size `.ico` will look wrong in the taskbar.
 
 ## Window and security configuration carried into the build
 
-```jsonc
-"app": {
-  "withGlobalTauri": true,
-  "windows": [{ "label": "main", "title": "Codex Studio",
-                "width": 1440, "height": 940, "minWidth": 960, "minHeight": 640,
-                "decorations": false, "transparent": false, "dragDropEnabled": true }],
-  "security": { "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; connect-src 'self' ipc: http://ipc.localhost; media-src 'self' data:" }
-}
+From `electron/main.js`:
+
+```js
+new BrowserWindow({
+  width: 1440, height: 940, minWidth: 960, minHeight: 640,
+  frame: false, backgroundColor: "#141218", show: false, title: "Codex Studio",
+  webPreferences: {
+    preload: path.join(__dirname, "preload.js"),
+    contextIsolation: true, nodeIntegration: false, sandbox: false,
+    spellcheck: false, devTools: true,
+  },
+});
 ```
 
-- `decorations: false` — the app draws its own Material 3 title bar. That is why
-  `src-tauri/capabilities/default.json` grants `core:window:allow-minimize`,
-  `allow-toggle-maximize`, `allow-close` and `allow-start-dragging`: without them the custom
-  window buttons are dead.
-- `withGlobalTauri: true` — `window.__TAURI__` exists, which is what `CX.bridge` feature-detects.
-- `minWidth: 960, minHeight: 640` — the smallest size any layout must survive. Test clipping
-  there, not at the 1440 × 940 default.
-- The CSP admits **no external origin at all**. `'unsafe-inline'` for styles and scripts is what
-  lets the `dc` template inline its styles and evaluate the logic script; there is no
-  `unsafe-eval` and no CDN host.
+- `frame: false` — the app draws its own Material 3 title bar, which is why `window_minimize`,
+  `window_toggle_maximize` and `window_close` exist as IPC commands. Electron keeps the invisible
+  resize borders, so the window is still resizable.
+- `minWidth: 960, minHeight: 640` — the smallest size any layout must survive. Test clipping there,
+  not at the 1440 × 940 default.
+- `contextIsolation: true`, `nodeIntegration: false` — the renderer cannot reach Node. It gets
+  `window.CODEX_BRIDGE` and nothing else, and that object refuses any command outside its 50-name
+  allow-list before it ever reaches `ipcRenderer`.
+- `show: false` plus `ready-to-show` — no white flash on launch.
+- Navigation is pinned: `setWindowOpenHandler` denies every new window and hands `http(s)` URLs to
+  the user's real browser; `will-navigate` blocks anything that is not `file://` and does the same.
+- `app.requestSingleInstanceLock()` — a second launch focuses the running window instead of starting
+  a rival copy that would fight it for `$CODEX_HOME/studio`.
+- `window-all-closed` and `before-quit` both call `wsl.shutdown()`, because each pinned WSL shell is
+  a real `sleep infinity` process that would otherwise outlive the app.
+
+The CSP is a `<meta>` tag in `app/index.html`, not a shell setting:
+
+```
+default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self';
+img-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval';
+connect-src 'self'; media-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'
+```
+
+No external origin is admitted anywhere. `'unsafe-eval'` is present for one specific reason: the
+`dc` template runtime compiles the page's own markup with `new Function`, and without it the app
+refuses to run its own bundled code. `'unsafe-inline'` covers the template's inline styles and the
+inline logic script. React, both Roboto families and every dim sum image are vendored under `app/`
+precisely so nothing else has to be allowed.
 
 ## Versioning
 
-`version` in `src-tauri/tauri.conf.json` names the release and appears in the installer file
-names. `src-tauri/Cargo.toml` carries its own `version` for the crate. Keep them in step, and give
-every published release a new, unique, monotonic version — never rebuild a shipped one in place.
+`version` in `package.json` (`0.1.0`) names the release and appears in both installer file names
+through `artifactName`. CI does not bump it; it appends a monotonic build suffix to the tag instead —
+`v0.1.0+build.<run_number>`. See [continuous-integration.md](continuous-integration.md).
+
+Give every published release a new, unique tag, and never rebuild a shipped one in place.
 
 ## Failure modes
 
 | Symptom | Cause and fix |
 | --- | --- |
-| `tauri build` succeeds, no `bundle/` directory | `bundle.active` was set false, or `cargo build` was run instead of `tauri build`. |
-| MSI build fails while NSIS succeeds | WiX toolchain download or a `productName` containing a character WiX rejects. Read the bundler log; NSIS is the primary artifact and can ship alone in a pinch. |
-| SmartScreen blocks the installer | Expected: the build is unsigned. Do not tell users to bypass it casually — sign the build or state the risk. |
-| App installs but shows no data | The `codex` CLI is not on `PATH` for that user. Deliberate: Studio does not bundle the CLI. |
-| A relative `codex_read_text` path fails after install | Nothing is declared in `bundle.resources`; see above. |
-| Installing the MSI prompts for administrator | Expected — the MSI has no per-user WiX configuration. Use the NSIS installer for a per-user install. |
+| `npm run dist` succeeds but the installer carries no CLI | `vendor/codex-bin` was missing. electron-builder logs `file source doesn't exist` for that `extraResources` entry as a **warning** and ships anyway. Run `npm run prepare:cli` first. |
+| The MSI target fails while NSIS succeeds | electron-builder could not download the WiX toolset into its cache. Network, not configuration. NSIS is the primary artifact and can ship alone in a pinch. |
+| SmartScreen blocks the installer | Expected: the build is unsigned. Do not tell users to bypass it casually — sign the build, or state the risk plainly. |
+| The installed app shows no data anywhere | No `codex` is resolvable *and* no CLI was bundled. Check `codex --version`, or set `CODEX_BIN`. |
+| A file you expected inside the package is missing | Read `dist\builder-debug.yml`. It lists the resolved include and exclude patterns, including the automatic `!assets{,/**/*}` and `!dist{,/**/*}`. |
+| Two entries in Add/Remove Programs | Both the NSIS and the MSI build were installed. They are separate packages with the same `appId`; uninstall the one you do not want. |
+| The window has the wrong icon in a packaged install | Expected, and cosmetic: `assets/icon.png` is not packaged, so the window falls back to the executable icon from `assets/icon.ico`. |
 
 ## Security considerations
 
-- **Per-user NSIS install means no elevation**, which is the correct default for a developer tool
-  that only ever acts as the current user. Do not "upgrade" it to per-machine for convenience.
-- **Unsigned installers are a real risk to the user**, not a cosmetic one: nothing proves the file
-  came from this project. State it in the release notes until signing exists.
-- **The WebView2 bootstrapper is the only network-touching part of installation.** In an
-  air-gapped environment, use a machine that already has the Evergreen Runtime, or switch
-  `webviewInstallMode` to an offline mode and document the change.
-- **Never bundle credentials, tokens or a `.env` through `bundle.resources`.** Everything listed
-  there is extracted onto the user's disk in plain form.
-- **Publish the artifact the build actually produced.** A release carrying an installer that was
-  not built by that run is worse than a release with no installer.
+- **Per-user install means no elevation**, which is the correct default for a developer tool that
+  only ever acts as the current user. Do not "upgrade" either target to per-machine for convenience.
+- **Unsigned installers are a real risk to the user**, not a cosmetic one. State it in the release
+  notes until signing exists — the generated notes already do, in both languages.
+- **`extraResources` contents land on the user's disk in plain form.** Never list a credential, a
+  token or a `.env` there. Today it carries exactly two things: the changelog and the Codex CLI.
+- **The bundled CLI is a 410 MiB third-party executable.** It comes from OpenAI's own published npm
+  artifact, staged by a script in this repository, and it never overrides a CLI the user already
+  has. See [bundled-cli.md](bundled-cli.md#security-considerations).
+- **Publish the artifact the build actually produced.** A release carrying an installer that was not
+  built by that run is worse than a release with no installer.
+- **The renderer's security posture is part of the package**, not a dev-time nicety:
+  `contextIsolation`, the preload allow-list and the navigation guards all ship exactly as
+  configured above. Loosening one for debugging must never reach a release build.
 
 ## Verification
 
-1. `npx --yes @tauri-apps/cli@2 build` produces both bundles under
-   `src-tauri/target/release/bundle/`.
-2. The file names match `productName` and `version` in `src-tauri/tauri.conf.json`.
-3. Install the NSIS `.exe` **as a non-administrator**. It must complete without an elevation
-   prompt and appear in Add/Remove Programs for that user only.
+1. `npm run dist` produces both `dist\Codex Studio-0.1.0-x64.exe` and
+   `dist\Codex Studio-0.1.0-x64.msi`.
+2. `dist\win-unpacked\resources\` contains `app.asar`, `CHANGELOG.md` and `codex-bin\bin\codex.exe`.
+3. Install the NSIS `.exe` **as a non-administrator**. It completes with no elevation prompt and
+   appears in Add/Remove Programs for that user only.
 4. Launch the installed app: the custom title bar draws, minimise / maximise / close work (which
-   proves the window capabilities survived bundling), and the bridge chip reads **Tauri IPC**.
-5. Rename `codex.exe` out of `PATH` and relaunch: the app must still start and report the failure
-   in the UI, not crash or hang.
-6. Uninstall. The application directory is removed and `$CODEX_HOME` — the user's own Codex data —
-   is untouched.
+   proves the `window_*` commands survived packaging), and the bridge chip reads **Electron IPC**.
+5. The Health panel reports which `codex` is in use. On a machine with no Codex install it must say
+   the bundled one; with `codex` on `PATH` it must say the user's.
+6. Rename `codex.exe` out of `PATH` on a machine with no bundled copy and relaunch: the app still
+   starts and reports the failure in the UI rather than crashing.
+7. Uninstall. The application directory is removed and `$CODEX_HOME` — the user's own Codex data,
+   including Studio's history repository — is untouched.

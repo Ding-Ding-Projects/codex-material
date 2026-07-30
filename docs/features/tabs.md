@@ -1,218 +1,252 @@
 # Tabs
 
-> Content is **navigated, not scrolled**: every surface is a discrete tab in a persistent strip,
-> with pinning, groups, an overflow surface, four independent searches and text-based bulk close.
+> A browser-style strip: content is navigated, not scrolled. Pinning, groups, an overflow surface,
+> four independent searches, and a bulk close whose two directions are built from one predicate.
 
-**Implementation:** the model in `app/cx-tabs.js` (`window.CX_TABS`, wired onto `CX.tabs` by
-`app/codex-core.js`); the strip, menus, searches and the bulk-close preview in `app/index.html`
-(`tabVals`, `tabChipFor`, `groupMenu`, `tabSearchMenu`, `openBulk`, `dimSumVals`).
-
-The split matters: `cx-tabs.js` owns **order, pinning, groups, the four searches and the
-bulk-close predicate**. Presentation lives in the template, so the same rules hold however a strip
-is drawn.
+**Implementation:** `app/cx-tabs.js`, attached as `window.CX_TABS` and instantiated once in
+`app/codex-core.js` as `CX.tabs = CX_TABS.create(store)`. The module owns the **model only** —
+order, pinning, groups, the searches and the predicate. Presentation lives in `app/index.html`
+(`tabVals`, `tabChipFor`, `tabMenu`, `groupMenu`, the four `open*Search` methods, and
+`dimSumVals`, which also carries the bulk-close bindings).
 
 ## Two invariants
 
 Breaking either is a silent data-loss bug rather than a visual one, so they are stated at the top
-of `cx-tabs.js` and repeated here.
+of the module and repeated here.
 
 1. **Bulk close matches the tab's visible label and nothing else.** It never inspects page
    contents or hidden state. A user closing "everything with `payments` in the name" must be able
-   to predict the result from the strip.
-2. **"Close tabs containing X" and "close tabs NOT containing X" negate the exact same
-   predicate.** `predicate(spec)` is built once and `previewBulkClose` flips its result with
-   `invert`. Built separately, casing, Unicode handling or a regex flag could drift between them
-   and the two actions would stop being inverses.
+   to predict the result from what the strip shows them.
+2. **"Close tabs containing X" and "Close tabs NOT containing X" negate the exact same
+   predicate.** If they were built separately, casing, Unicode handling or a regex flag could
+   drift between them and the two actions would stop being inverses of each other.
 
 ## The tab model
 
-A tab:
+Each tab is a plain object:
 
 ```jsonc
-{ "id": "t-ab12cd3", "title": "payments regression", "kind": "chat", "payload": { … },
+{ "id": "t-3f9a2b1", "title": "sandbox policy audit", "kind": "chat", "payload": { "session": "…" },
   "pinned": false, "groupId": null, "order": 4, "dirty": false, "workspace": "default" }
 ```
 
-A group:
+`kind` drives both the chip glyph and what activating the tab opens (`openTabPayload`): `chat`
+(💬), `console` (▶), `changelog` (≡) and `studio`. A pinned tab shows 📌 instead of its kind glyph.
+`workspace` is the app's profile — the master search spans all of them.
+
+Groups are equally plain:
 
 ```jsonc
-{ "id": "g-9f8e7d6", "name": "Release", "color": "#D0BCFF", "collapsed": false,
-  "pinned": false, "icon": "", "order": 2, "appearance": null }
+{ "id": "g-8c1d40", "name": "Review", "color": "#D0BCFF", "collapsed": false,
+  "pinned": false, "icon": "", "order": 1, "appearance": null }
 ```
 
-### API — `CX.tabs`
-
-| Reading | Returns |
-| --- | --- |
-| `all()` | Every tab in strip order (pinned first, then by `order`) |
-| `loose()` | Ungrouped tabs, in strip order |
-| `inGroup(groupId)` / `groups()` / `pinned()` | Filtered views, same ordering |
-| `active()` / `get(id)` / `getGroup(id)` / `count()` | Lookups |
-| `overflow(capacity)` | The tabs that do not fit. **Pinned tabs are never returned**: `room = max(pinnedCount, capacity)` |
-
-| Mutating | Effect |
-| --- | --- |
-| `open(tab)` | Appends and activates; returns the created tab |
-| `activate(id)` / `rename(id, title)` / `setDirty(id, dirty)` / `close(id)` | Self-explanatory; closing the active tab activates the first remaining one |
-| `pin(id, on?)` | Toggles when `on` is omitted |
-| `move(id, index)` | Reorders **within the tab's own region** — a pinned tab cannot be dragged among the ordinary ones without unpinning first |
-| `createGroup(name, color)` / `renameGroup` / `setGroup(id, patch)` / `moveGroup(id, index)` / `toggleCollapsed(id)` | Group management |
-| `assign(tabId, groupId)` | Moves a tab into a group, or out with `null` |
-| `removeGroup(id)` | **Never closes its tabs** — they return to the loose region |
-| `snapshot()` / `restore(snap)` | Deep copies, used for undo after a bulk close |
-
-Every mutation persists (`store.set("codexstudio.tabs", …)`) and notifies subscribers, so order,
-pinned state, groups, group order, collapsed state and membership all survive a restart.
+The whole model persists to `localStorage` under `codexstudio.tabs` on **every** mutation —
+`emit()` calls `persist()` before notifying subscribers — so tab order, pinned order, group
+membership, group order and collapsed state all survive a restart. `load(seed)` restores it and
+only falls back to the seed (the active profile's sessions) when nothing was saved.
 
 ## Pinning
 
-Pinning is first-class, not a decoration.
+Pinned tabs occupy a stable region ahead of the ordinary ones and keep their own relative order
+within it. `sorted()` is the single place that decides:
 
-- Reachable from the tab context menu, the keyboard path and the searchable tab list.
-- Pinned tabs occupy a **stable region ahead of the ordinary ones** (`sorted()` sorts by `pinned`
-  first, then `order`) and keep their own relative order within it.
-- Pinned tabs **stay visible when ordinary tabs overflow**.
-- Pinned tabs are **excluded by default** from close-others, close-to-the-right and every
-  text-based bulk close. Including them is an explicit choice, and the preview names each
-  protected tab before anything closes.
-- A pinned chip is narrower (`maxWidth: 150px` versus `210px`) but keeps its full accessible name
-  in the `title` and its label text — a compact chip must never become an unlabelled icon.
+```js
+if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
+return (a.order || 0) - (b.order || 0);
+```
+
+Consequences, all of them deliberate:
+
+- `move(id, index)` reorders a tab **within its own region**. Moving a pinned tab can never drop it
+  among the ordinary ones and vice versa, so pinning is not silently undone by a reorder.
+- `overflow(capacity)` computes `room = Math.max(pinnedCount, capacity)` before slicing, so
+  **pinned tabs stay visible when ordinary tabs overflow**. That is the point of pinning.
+- Pinned tabs are excluded from `closeOthers`, `closeToRight` and both text-based bulk closes
+  unless the caller explicitly passes `includePinned`. The UI passes `false` for the two menu
+  actions and exposes the choice as a toggle in the bulk-close dialog.
+- Pinned chips cap their label at 150 px against 210 px for ordinary ones, and keep the full name
+  in `title` so it is still reachable when truncated.
+
+Pin and unpin are on the tab context menu (`pin(id)` with no second argument toggles), and the
+searchable tab lists mark pinned rows with 📌.
 
 ## Groups
 
-- Create, name, rename, colour, reorder, collapse/expand and remove. Removing a group returns its
-  tabs to the loose region.
-- Group headers render with the group's colour
-  (`color-mix(in srgb, <color> 14%, transparent)` fill and a solid border), a caret reflecting
-  collapsed state, and a live tab count.
-- Right-click a group header for its management menu, which includes **Edit group appearance…**
-  (see [appearance.md](appearance.md)).
-- The group's `appearance` field is reserved on the model for per-group decoration, persisted with
-  the rest of the group.
+`createGroup`, `renameGroup`, `setGroup(patch)`, `moveGroup(id, index)`, `removeGroup`, `assign`
+and `toggleCollapsed`. The group header's context menu offers collapse/expand, rename, colour,
+*search this group*, *close tabs in this group containing text*, ungroup and **Edit appearance**.
+
+Two behaviours are worth calling out:
+
+- **Removing a group never closes its tabs.** `removeGroup` sets `groupId = null` on every member
+  first, so they return to the loose region. The menu label says so: *"Ungroup (keeps every tab)"*.
+- **A collapsed group stays collapsed.** Activating a tab inside one does not force the group open
+  and does not rewrite the user's collapsed preference; `activate()` only sets `activeId`.
+
+Group colour is currently chosen from a six-swatch dropdown that also accepts free entry
+(`groupColourPrompt`, `allowFree: true`) rather than from the infinite colour picker the appearance
+editor uses. The `icon` and `appearance` fields exist on the group record and persist, but no
+control writes them yet — see [appearance.md](appearance.md) for the current reach of the
+per-element editor.
 
 ## Overflow
 
-`tabCapacity()` in `app/index.html` estimates how many ordinary tabs fit:
-`max(2, floor((window.innerWidth - 520) / 150))`. Anything beyond that is handed to
-`CX.tabs.overflow(capacity)` and reached through the `⋯` button, which shows the hidden count and
-turns primary-coloured while anything is hidden.
+`overflow(capacity)` returns the tabs that do not fit; **the caller measures**. `tabCapacity()` in
+`app/index.html` is that measurement:
 
-Tabs are **never silently clipped**: what does not fit is listed, in order, in the overflow
-surface, with pinned markers intact. Picking one activates it.
+```js
+Math.max(2, Math.floor((window.innerWidth - 520) / 150))
+```
+
+Tabs are never silently clipped: the strip renders only what fits, and the `⋯ N` button beside it
+opens a dropdown listing exactly the hidden ones, each with its pinned marker. The button turns
+primary-coloured while anything is hidden and its tooltip states the count. With nothing hidden,
+pressing it raises an informational toast rather than opening an empty menu.
 
 ## The four searches
 
-All four are reachable from the tab-strip search affordance (`tabSearchMenu`), and each opens a
-searchable dropdown that carries its own anchored regex builder — the `dd` anchor described in
-[regex-builder.md](regex-builder.md). Plain text is the default in every one.
+All four hang off the tab-strip search menu (`tabSearchMenu`), and each opens an anchored dropdown
+whose filter field carries `data-anchor="dd"` — so each gets the full regex builder bound to that
+dropdown's query, with plain text as the default.
 
-| # | Search | Model call | Result rows identify |
+| # | Model call | Scope | What a row shows |
 | --- | --- | --- | --- |
-| 1 | **This tab strip** | `searchStrip(spec)` | Pinned marker, title, group name when grouped |
-| 2 | **Inside one group** | `searchGroup(groupId, spec)` — preceded by a group picker | Pinned marker, title |
-| 3 | **Tab groups by name** | `searchGroups(spec)` | Group name, tab count, collapsed state |
-| 4 | **Every tab, everywhere** | `searchAll(spec)` plus the other profiles' sessions | Workspace, strip, group, pinned state, visible label |
+| 1 | `searchStrip(spec)` | Every tab in this strip | 📌 marker, title, and `▤ <group>` when grouped |
+| 2 | `searchGroup(groupId, spec)` | One group, chosen from a picker | 📌 marker and title |
+| 3 | `searchGroups(spec)` | Groups, by visible name and icon | Name, tab count, and whether it is collapsed |
+| 4 | `searchAll(spec)` | Every tab across every workspace | Workspace, strip, group, pinned state and label |
 
-Search 3 matches a group's visible name and its icon. Search 4 is the master search: it spans
-every workspace the app owns — here, every profile — and labels each hit with the workspace it
-came from, so a result is never ambiguous.
+Each returns `{ ok, error, mode, results, count }`. `mode` is `"text"` or `"regex"` so the caller
+can say which one ran; `error` carries the compile failure or the empty-query message verbatim.
 
-Selecting a result inside a **collapsed** group expands it for that navigation only; the user's
-collapsed preference is not destroyed. Results cap at `LIMITS.matches` (5000).
+Search 3 reveals a hit inside a collapsed group by expanding it on activation
+(`if (g && g.collapsed) CX.tabs.toggleCollapsed(g.id)`) — a deliberate, user-initiated expansion,
+not a silent loss of the preference. Search 4 identifies each hit's workspace by name so a result
+is never ambiguous, and picking a hit in another profile sets `activeProfile` before navigating.
 
-## Bulk close by text
+`_search` caps at `LIMITS.matches` (5000) rows — far above any realistic tab count, and there so a
+pathological pattern cannot build an unbounded array.
 
-Two actions, one predicate: **Close tabs containing text…** and **Close tabs not containing
-text…**.
+## Bulk close, from one predicate
 
-The flow is deliberately three steps.
+`predicate(spec)` is the only matcher in the module. It takes
+`{ text, regex: { pattern, flags[] } | null, caseSensitive }` and returns
+`{ ok, error, mode, test(label) }`.
 
-1. **Compose.** A text field (plain text by default) with a `.*` button opening the anchored regex
-   builder, a match-inversion toggle, and a pinned-inclusion toggle that turns error-coloured when
-   the user opts to include pinned tabs.
-2. **Preview.** `previewBulkClose(spec)` returns, without closing anything:
-   ```jsonc
-   { "ok": true, "error": null, "mode": "text"|"regex", "invert": false, "scope": { "kind": "strip" },
-     "matched": [ … ], "protectedPinned": [ … ], "dirty": [ … ], "total": 12 }
-   ```
-   The dialog lists every tab that will close (marked `✕`, with an *unsaved* note where
-   `dirty`) and every pinned tab that will not (marked `📌`, noted as protected), and states the
-   match mode and the affected count.
-3. **Apply.** `bulkClose(preview)` closes only what the preview showed, and reports what actually
-   closed and what did not — it never pretends a protected tab went away. A success notification
-   carries an **Undo** action backed by the `snapshot()` taken immediately before the close.
+- **Plain text is the default.** With no `regex.pattern` it lowercases both sides unless
+  `caseSensitive` is set, then does an `indexOf` test.
+- **Regex is opt-in**, arriving from the anchored builder. `g` and `y` are stripped (a carried
+  `lastIndex` would make the same label match on one pass and miss on the next), the pattern is
+  length-checked against `LIMITS.pattern` (2000), and a compile failure comes back as `ok: false`
+  with the constructor's own message.
+- **An empty query is refused**, not treated as "matches everything":
+  *"Enter text to match — an empty query closes nothing."*
 
-**Nothing runs on an empty query or an invalid pattern.** `predicate()` returns
-`ok: false` with *"Enter text to match — an empty query closes nothing."* or the `RegExp`
-constructor's own message, the apply button goes inert, and the field border turns error-coloured.
+Both directions run through it:
 
-`scope` selects the pool: `{kind:"strip"}` (all tabs), `{kind:"group", id}`,
-`{kind:"groups", ids[]}` or `{kind:"all"}`. The preview states its scope, so a bulk close never
-silently crosses a group boundary.
+```js
+var hit = p.test(t.title);
+if (spec && spec.invert) hit = !hit;
+```
 
-`closeOthers(keepId, includePinned)` and `closeToRight(fromId, includePinned)` route through the
-same `bulkClose`, with the same pinned protection.
+That single negation is the entire implementation of "NOT containing". Flags, casing, Unicode
+handling and scope physically cannot differ between the two actions, because there is one compiled
+`RegExp` and one comparison.
+
+### Preview, then apply
+
+`previewBulkClose(spec)` closes nothing. It returns:
+
+| Field | Meaning |
+| --- | --- |
+| `matched` | Tabs that would close |
+| `protectedPinned` | Pinned tabs that matched but are excluded because `includePinned` is off |
+| `dirty` | Matched tabs with unsaved work, so the preview can flag them |
+| `total` | Size of the pool the scope selected |
+| `mode`, `invert`, `scope`, `ok`, `error` | What ran, and on what |
+
+`scope` is `{kind:"strip"}`, `{kind:"group", id}`, `{kind:"groups", ids[]}` or `{kind:"all"}`. The
+preview never crosses a scope boundary silently: the dialog title states which direction it is and
+the summary states the mode (`regex` or `plain text`) and the counts.
+
+That dialog is the **one blocking modal in the app** (`role="dialog" aria-modal="true"`), because
+closing tabs is a decision that must be made before anything else continues. It lists every matched
+tab with a ✕, every protected pinned tab with a 📌 and the word *protected*, and marks dirty tabs
+as unsaved. The apply button reads *"Nothing to close"* and is not actionable until something
+matches.
+
+`bulkClose(preview)` applies it and reports honestly:
+
+```jsonc
+{ "closed": [ … ], "skipped": [ … protected pinned … ], "error": null }
+```
+
+It never claims a protected tab went away. `applyBulk` in `app/index.html` takes a
+`CX.tabs.snapshot()` **before** closing and offers **Undo** as an action on the resulting
+notification, which calls `restore(snapshot)` — so a bulk close is reversible from the toast, not
+only from History.
+
+`closeOthers` and `closeToRight` are built from the same `bulkClose` entry point with a
+hand-constructed preview, so they report skipped pinned tabs the same way.
 
 ## Configuration
 
 | Knob | Where | Default |
 | --- | --- | --- |
-| Persistence key | `create(store, { key })` | `"tabs"` → `localStorage["codexstudio.tabs"]` |
-| Pattern length / match count / evaluation budget | `CX_TABS.LIMITS` | 2000 chars / 5000 matches / 250 ms |
-| Strip capacity before overflow | `tabCapacity()` in `app/index.html` | `max(2, floor((innerWidth − 520) / 150))` |
-| Seed tabs on first run | `CX.tabs.load(seed)` in `componentDidMount` | The active profile's sessions |
-
-Saved state wins over the seed: `load()` only uses the seed when nothing is persisted.
+| Storage key | `create(store, { key })` | `"tabs"` → `localStorage["codexstudio.tabs"]` |
+| Pattern length / result cap / ms budget | `LIMITS` in `app/cx-tabs.js` | 2000 / 5000 / 250 |
+| Strip capacity | `tabCapacity()` in `app/index.html` | `max(2, floor((innerWidth - 520) / 150))` |
+| Default group colour | `createGroup(name, color)` | `#D0BCFF` |
+| Pinned label width | `tabChipFor` | 150 px pinned, 210 px ordinary |
 
 ## Failure modes
 
-| Symptom | Cause / behaviour |
-| --- | --- |
-| Bulk close button inert | Empty query or an invalid pattern; the reason is shown inline |
-| Preview shows fewer tabs than expected | Pinned tabs are protected by default — they are listed separately as protected, not hidden |
-| A group vanished but its tabs remain | `removeGroup` never closes tabs; they return to the loose region |
-| Tabs missing from the strip | They overflowed; the `⋯` button shows the count and lists them |
-| A search finds nothing | Honest empty result — the predicate's `mode` is reported so plain-text-versus-regex confusion is visible |
-| Tab layout lost after restart | `store` was unavailable (private-mode `localStorage`), so `persist()` silently no-ops |
-| `CX.tabs` is `null` | `cx-tabs.js` did not load; `tabVals()` degrades to an empty strip rather than throwing |
-| Reordering a pinned tab does nothing | `move()` reorders within a region; unpin first |
+| Symptom | What happens | Why |
+| --- | --- | --- |
+| Empty bulk-close query | *"Enter text to match — an empty query closes nothing."*, apply inert | An empty predicate would close the whole strip |
+| Invalid regex in bulk close | The constructor's message; `test()` returns `false` for everything, apply inert | Never close on a pattern that did not compile |
+| Pattern over 2000 characters | *"Pattern exceeds 2000 characters."* | `LIMITS.pattern` |
+| A pinned tab matches | Listed in the preview as *protected*, not closed, named in the result's `skipped` | Pinned exclusion is the default |
+| Closing the active tab | The first tab in sorted order becomes active; `null` when none remain | `close()` and `bulkClose()` both re-resolve `activeId` |
+| A subscriber throws while repainting | The others still repaint | `emit()` wraps each callback in `try/catch` |
+| `assign` to a group that does not exist | Returns `false`, nothing changes | Guarded in `assign` |
+| `restore` with a malformed snapshot | Returns `false`, nothing changes | Guarded in `restore` |
 
 ## Security considerations
 
-- **Labels only.** No search and no bulk close reads page contents, transcript bodies, file
-  contents or any hidden field. This is a privacy property as much as a predictability one.
-- **Regex is bounded** by `LIMITS` and evaluated locally, with `g` and `y` stripped so a stateful
-  `lastIndex` cannot make the same pattern match a row on one pass and miss it on the next. See
-  [regex-builder.md](regex-builder.md) for the residual regex-DoS caveat.
-- **Destructive actions are previewed, never inferred.** The preview is the confirmation, the
-  pinned protection is on by default, and unsaved (`dirty`) tabs are called out by name.
-- **Undo is real.** The pre-close snapshot is a deep copy, so the Undo action restores the exact
-  strip, groups and active tab.
-- **Persisted state is local.** Tab titles can carry session names, which can carry project names;
-  they live in `localStorage` and are never transmitted.
+- **Labels only.** Every search and both bulk closes match `t.title` and nothing else. No search
+  reads transcript bodies, file contents, payloads or any hidden field.
+- **Local evaluation, bounded.** Patterns compile and run in the renderer under the bounds above;
+  see [regex-builder.md](regex-builder.md), including why a time budget alone is not sufficient and
+  which pattern shapes are refused before they run.
+- **Destructive actions are gated and reversible.** Preview before apply, pinned excluded by
+  default, dirty tabs flagged, undo on the confirmation toast.
+- **Persistence is local.** `localStorage` inside the app's own profile directory. Tab titles can
+  contain session names and paths; they are never transmitted, and the tab model rides along in the
+  local git snapshot described in [local-version-control.md](local-version-control.md).
 
 ## Verification
 
-1. **Persistence:** open several tabs, pin two, group three, collapse the group, reorder, restart
-   the app. Order, pinned region, group membership, group order and collapsed state all return.
-2. **Overflow:** narrow the window until the `⋯` count appears. Pinned tabs must remain visible;
-   the overflow list must contain exactly the tabs missing from the strip.
-3. **Search 1–4:** run each against a known layout and confirm the result rows identify workspace,
-   group, pinned state and label; confirm each has its own `.*` builder and that applying a
-   pattern in one does not change another's query.
-4. **Collapsed reveal:** search for a tab inside a collapsed group, pick it, then check the group
-   is collapsed again afterwards — the preference must survive.
-5. **Bulk close, plain text:** type a substring, confirm the preview count and list, apply,
-   confirm the notification names what closed, then Undo and confirm everything returns.
-6. **Bulk close, inverted:** the same query with inversion on must close exactly the complement.
-   Run both against the same layout and confirm the two sets partition the strip.
-7. **Pinned protection:** a pinned tab matching the query appears as protected and survives; turn
-   the inclusion toggle on and confirm the preview moves it into the closing list before anything
-   happens.
-8. **Empty and invalid:** an empty query and `(` must both leave the apply button inert with a
-   message.
-9. **Keyboard and screen reader:** reach the strip by keyboard, move between tabs, activate one,
-   open a context menu and close it with <kbd>Esc</kbd>. See
-   [../experience/accessibility.md](../experience/accessibility.md).
-10. **Language modes:** switch to `yue` and to bilingual at funny level 1 and level 5, and confirm
-    the bulk-close dialog still names the count, the mode and the protected tabs at every setting.
+1. **Persistence:** open several tabs, pin two, group three, collapse the group, reorder, restart.
+   Order, pinned region, group membership, group order and collapsed state must all come back.
+2. **Pinned stay visible:** narrow the window until ordinary tabs overflow. Every pinned tab must
+   remain in the strip, and the `⋯ N` count must equal the number of hidden ordinary tabs.
+3. **Overflow completeness:** the dropdown must list exactly the hidden tabs — no more, no fewer.
+4. **Ungroup is not a close:** remove a group with three tabs; all three must reappear loose.
+5. **The four searches:** run each in turn. Search 3 must name the group and its collapsed state;
+   search 4 must label the workspace on every row.
+6. **Inverse pairs:** with tabs `alpha`, `beta`, `gamma`, run *close containing* `a` and note the
+   preview, cancel, then run *close NOT containing* `a`. The two matched sets must partition the
+   strip exactly — no tab in both, none in neither.
+7. **Regex parity:** apply `^b` through the builder in both directions. Same requirement.
+8. **Pinned protection:** pin `beta`, then *close containing* `b`. `beta` must appear as protected
+   and survive. Enable *include pinned* and confirm it is then listed for closing — previewed
+   before anything happens.
+9. **Empty and invalid queries:** neither may close anything, and both must say why.
+10. **Undo:** apply a bulk close, then press **Undo** on the toast. Every closed tab must return
+    with its pinned state, group and order intact.
+11. **Keyboard and screen reader:** the strip is a `role="tablist"` of `role="tab"` chips carrying
+    `aria-selected`; each close affordance is a focusable `role="button"` with an `aria-label`
+    naming its tab; the group header exposes `aria-expanded`. Confirm with a screen reader, and see
+    [../experience/accessibility.md](../experience/accessibility.md) for the gaps that remain.

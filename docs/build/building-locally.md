@@ -119,8 +119,10 @@ again.
 
 `CX.bridge` falls through to the simulation in `app/codex-core.js` whenever `window.CODEX_BRIDGE` is
 absent, which is what makes `app/` viewable without a shell around it. Serve the directory rather
-than double-clicking the file — the page enforces its own `default-src 'self'` CSP from a `<meta>`
-tag, and a `file://` origin can trip it:
+than double-clicking the file: the page enforces its own `default-src 'self'` CSP from a `<meta>`
+tag, and a `file://` origin trips it — the changelog viewer's `fetch("./CHANGELOG.md")` is refused
+before it reaches the disk, which is exactly why the in-shell path goes through `codex_read_text`
+instead.
 
 ```powershell
 npx --yes serve app

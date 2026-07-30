@@ -6,18 +6,29 @@ Nothing here is predicted, and nothing is claimed green that was not observed gr
 
 | | |
 | --- | --- |
-| **Snapshot commit** | `ae0e562` — *Rewrite the changelog against what actually ships, and label the new panels* |
-| **Branch** | `main`, clean working tree, `0` commits ahead of and `0` behind `origin/main` |
+| **Snapshot commit** | `713b498` — *Give the landing page its own assets, and check that it keeps them* |
+| **Branch** | `main` |
 | **Captured** | 2026-07-30 |
 | **Platform** | Windows-only Electron app (`electron/main.js`), no macOS or Linux target |
 | **Public repo** | `Ding-Ding-Projects/codex-material` |
 
 > [!IMPORTANT]
-> **This tree moved while this document was being written.** Three commits landed in
-> sequence during the session: `561da4b` → `5ed6e5c` → `ae0e562`. Two defects that were
-> live at the start (`5ed6e5c` fixed them) are recorded below under *Recently closed* rather
-> than as open defects, because they were re-tested and are genuinely closed. If you are
-> reading this at a later commit, re-run the verification block before trusting the numbers.
+> **This tree moved continuously while this document was being written** — five commits landed
+> during the session: `561da4b` → `5ed6e5c` → `ae0e562` → `ac625c2` → `713b498`. Consequences
+> you need to know about:
+>
+> - Two defects that were live at the start were fixed by `5ed6e5c` mid-session. They are
+>   recorded under *Recently closed* rather than as open defects, because they were **re-tested
+>   after the fix** and are genuinely closed.
+> - **The documentation migration described in gap 1 is in progress right now.** The count
+>   dropped from 15 stale files to 11 while this was being written. Re-run the grep before
+>   acting on it.
+> - `app/` has not changed since `ae0e562`, so every frontend finding below (gaps 2, 3, 4) was
+>   re-confirmed at this commit and stands.
+> - This file was itself swept into commit `713b498` by a concurrent `git add -A`.
+>
+> If you are reading this at a later commit, re-run the verification block before trusting any
+> number in it.
 
 ---
 
@@ -75,14 +86,17 @@ process.
 
 | Run | Commit | State |
 | --- | --- | --- |
+| [`30519168126`](https://github.com/Ding-Ding-Projects/codex-material/actions/runs/30519168126) | `713b498` — the snapshot commit | **still running** when this was written |
+| [`30519056622`](https://github.com/Ding-Ding-Projects/codex-material/actions/runs/30519056622) | `ac625c2` | **still running** when this was written |
+| [`30518601495`](https://github.com/Ding-Ding-Projects/codex-material/actions/runs/30518601495) | `ae0e562` | **success** (observed) |
 | [`30518399551`](https://github.com/Ding-Ding-Projects/codex-material/actions/runs/30518399551) | `5ed6e5c` | **success** (observed) |
 | [`30518029262`](https://github.com/Ding-Ding-Projects/codex-material/actions/runs/30518029262) | `561da4b` | **success** (observed) |
-| [`30518601495`](https://github.com/Ding-Ding-Projects/codex-material/actions/runs/30518601495) | `ae0e562` — the snapshot commit | **still running** when this was written |
 
 > [!WARNING]
-> **CI for the snapshot commit `ae0e562` had not finished.** The last *completed* run on `main`
-> is `30518399551` for the parent commit `5ed6e5c`, and it was green. Do not record `ae0e562`
-> as verified until its own run reports. Check with `gh run list --branch main --limit 5`.
+> **CI for the snapshot commit `713b498` had not finished.** The last *completed* CI run on
+> `main` is `30518601495` for `ae0e562`, and it was green. Two runs were in flight at once
+> because commits were landing faster than CI could clear them. Do not record `713b498` as
+> verified until its own run reports: `gh run list --branch main --limit 5`.
 
 ### Verified versus merely written
 
@@ -93,28 +107,41 @@ process.
 | Regex guard refuses the catastrophic shapes it names | **Verified** — measured, see below |
 | Installers build and publish | **Verified** — 10 releases exist with attached artifacts |
 | Screenshots come from the real app | **Verified** — manifest records the capture path |
-| CI green at `ae0e562` | **Not verified** — run still in progress |
+| CI green at `713b498` | **Not verified** — run still in progress |
 | Installers work on a clean machine | **Not verified** — nothing installs or launches them |
 | Installers are trustworthy to Windows | **False** — they are unsigned; SmartScreen warns |
-| The docs describe the current backend | **False** — see gap 1 |
+| The docs describe the current backend | **Partly false** — 11 pages still stale, see gap 1 |
 
 ---
 
 ## Known gaps and defects
 
-### 1. Fourteen documentation pages describe a backend that no longer exists
+### 1. Documentation still describes a backend that no longer exists — migration in progress
 
 `561da4b` replaced the Tauri 2 / Rust shell with Electron and deleted `src-tauri/`. The
-documentation was not migrated. `docs/README.md` still opens with *"built on Tauri 2"*, still
-maps `src-tauri/    Rust backend, Tauri 2 configuration…` in its repository tree, and
-`docs/architecture/tauri-bridge.md` documents an IPC surface that is now
-`electron/preload.js` + `electron/commands.js`.
+documentation was not migrated with it. `docs/README.md` still opens with *"built on Tauri 2"*
+and still maps `src-tauri/    Rust backend, Tauri 2 configuration…` in its repository tree.
 
-**Verified:** `ls src-tauri` → no such directory. `grep -rl "src-tauri\|Tauri 2" docs/` matches
-**15 files** (14 Markdown pages plus `docs/site/articles.js`).
+**Verified:** `ls src-tauri` → no such directory. `grep -rl "src-tauri\|Tauri 2" docs/` matched
+**15 files** at the start of this session and **11 files** at this commit:
 
-This is the highest-impact gap in the tree: the docs are confidently wrong, which is worse
-than missing, because a newcomer will go looking for Rust that is not there.
+```
+docs/README.md                        docs/architecture/README.md
+docs/api/README.md                    docs/architecture/frontend-runtime.md
+docs/build/building-locally.md        docs/build/continuous-integration.md
+docs/build/packaging.md               docs/features/external-editor.md
+docs/features/local-version-control.md  docs/features/wsl-runtimes.md
+docs/site/articles.js
+```
+
+**A migration is actively underway.** `docs/architecture/tauri-bridge.md` has already been
+replaced by `docs/architecture/ipc-bridge.md`, and `overview.md`, `packaging.md` and
+`features/tabs.md` were corrected. Re-run the grep before starting: someone may be finishing
+this as you read.
+
+This is still the highest-impact gap in the tree. The docs are confidently wrong rather than
+merely incomplete, which sends a newcomer hunting for Rust that was deleted — and it
+discredits the many pages that are accurate.
 
 ### 2. `(a?a?)+` still gets past both regex guards and freezes the window
 
@@ -285,9 +312,11 @@ themselves, once.
 
 - **Discussions** and the **wiki** are enabled on the repository (`has_discussions: true`,
   `has_wiki: true`).
-- **GitHub Pages is not published** (`has_pages: false`) and there is no Pages workflow —
-  `.github/workflows/` contains only `ci.yml`. A Pages source exists in embryo at
-  `docs/site/articles.js`, but nothing builds or deploys it.
+- **GitHub Pages is now published** (`has_pages: true`). This flipped during the session:
+  `713b498` added `docs/site/index.html`, its own copy of the 16 screenshots under
+  `docs/site/assets/screenshots/`, and `tools/sync-site-assets.mjs` to keep them in step.
+  Two `pages-build-deployment` runs completed successfully. Note that the landing page is
+  deployed from the same `docs/` tree that still carries the stale Tauri text in gap 1.
 - **No open GitHub issues** on this repository (`gh issue list --state open` → empty).
 
 ---
@@ -333,6 +362,7 @@ themselves, once.
 | `fetch-codex.mjs` (141) | Stages the ~410 MB Codex CLI into `vendor/codex-bin` for packaging. |
 | `release-codename.mjs` (148) | Derives the per-build dim sum code name from the monotonic run number. |
 | `sync-changelog.mjs` (40) | Mirrors `CHANGELOG.md` into `app/`; `--check` mode fails CI on drift. |
+| `sync-site-assets.mjs` (92) | Added in `713b498`. Keeps the Pages landing page's copy of the screenshots in step with `assets/screenshots/`. |
 | `make-icon.mjs` (129) | Generates the icon with no image dependencies. |
 | `sync-dimsum.ps1` | Syncs the dim sum artwork. |
 
@@ -342,8 +372,10 @@ themselves, once.
   check and a parse check over every `.js`/`.mjs`/`.cjs`. `release` `needs: test`, so a failed
   test publishes nothing. Tags are `v{version}+build.{run_number}` and are refused if they
   already exist, so nothing is ever overwritten.
-- `docs/` — 23 Markdown pages across `architecture/`, `build/`, `features/`, `experience/`,
-  `api/`. **Accurate about features, stale about the backend** (gap 1).
+- `docs/` — Markdown pages across `architecture/`, `build/`, `features/`, `experience/`, `api/`.
+  **Accurate about features, stale about the backend on 11 of them** (gap 1).
+- `docs/site/` — the GitHub Pages landing page (`index.html`, `articles.js`) plus its own copy
+  of the screenshots, kept in step by `tools/sync-site-assets.mjs`. Deployed and live.
 - `CHANGELOG.md` — Keep a Changelog format, mirrored into `app/CHANGELOG.md` and shipped as an
   `extraResource` so the in-app viewer reads the real file.
 - `design/` — the original design-tool export the app was grown from.
@@ -362,21 +394,24 @@ themselves, once.
 
 ## 中文摘要
 
-呢份係接手文件，寫喺 commit `ae0e562`。所有數字都係真係行過先寫落嚟，冇一個係估嘅。
+呢份係接手文件，寫喺 commit `713b498`。所有數字都係真係行過先寫落嚟，冇一個係估嘅。
 
 **行得通嘅嘢：** 前端 23 個測試、後端 22 個，總共 **45 個全部綠**；changelog 同步檢查過關；
 16 張截圖係喺真 app 影返嚟（唔係砌圖）；已經出咗 **10 個 release**，每個都有真嘅 NSIS `.exe`
-同 `.msi`。
+同 `.msi`；GitHub Pages 啱啱上咗線。
 
-**要留意：** snapshot 嗰個 commit 嘅 CI **仲行緊**，未綠——上一個 commit `5ed6e5c` 就係綠嘅。
-唔好當佢綠咗。
+**要留意：** snapshot 嗰個 commit 嘅 CI **仲行緊**，未綠——上一個 commit `ae0e562` 就係綠嘅。
+唔好當佢綠咗。仲有，成個 session 期間有第二個 agent 一路喺度 commit（前後五個 commit），
+所以下面啲數字要自己行多次先算數；不過 `app/` 由 `ae0e562` 之後冇郁過，所以前端嗰幾項發現
+（第 2、3、4 項）係喺呢個 commit 度重新驗過，照樣成立。
 
-**未搞掂嘅嘢（有八項，詳情睇上面）：** 最大鑊係 **14 版文件仲喺度講 Tauri**，但個 Rust 殼喺
-`561da4b` 已經換咗做 Electron，`src-tauri/` 根本唔存在——寫錯過冇寫，因為新人會走去搵一堆
-唔存在嘅 Rust。第二係 `(a?a?)+` 呢個 pattern 仲穿得過兩個引擎嘅防呆，實測 26 個字行足 **154 秒**，
-打入 regex builder 就會凍死成個視窗。第三係 History 記錄唔齊：同一個「reset 晒所有外觀」嘅動作，
-Studio 面板嗰粒有 commit（佢自己個說明仲寫住「可以 undo」），但外觀編輯器嗰粒完全冇——同一件事，
-兩個入口，得一個 undo 到。
+**未搞掂嘅嘢（有八項，詳情睇上面）：** 最大鑊係文件——個 Rust 殼喺 `561da4b` 已經換咗做
+Electron，`src-tauri/` 根本唔存在，但 **仲有 11 版文件喺度講 Tauri**（session 開頭係 15 版，
+而家有人一路喺度改緊）。寫錯過冇寫，因為新人會走去搵一堆唔存在嘅 Rust，仲會連累埋啲寫得啱
+嘅文件一齊冇人信。第二係 `(a?a?)+` 呢個 pattern 仲穿得過兩個引擎嘅防呆，實測 26 個字行足
+**154 秒**，打入 regex builder 就會凍死成個視窗。第三係 History 記錄唔齊：同一個「reset 晒
+所有外觀」嘅動作，Studio 面板嗰粒有 commit（佢自己個說明仲寫住「可以 undo」），但外觀編輯器
+嗰粒完全冇——同一件事，兩個入口，得一個 undo 到。
 
 **外部卡住咗嘅嘢：** GitHub Projects 開唔到，個 `gh` token 冇 `read:project` 權限，要人手行
 `gh auth refresh` 先得——呢樣係人哋個 account，agent 唔應該代勞。所以呢個係**卡住咗**，唔係

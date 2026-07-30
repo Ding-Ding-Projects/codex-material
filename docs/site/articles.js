@@ -39,8 +39,8 @@
     cliVersion: "codex-cli 0.146.0",
     cliBytes: "429,285,783",
     cliSize: "409 MiB",
-    tests: "44",
-    testsFrontend: "22",
+    tests: "45",
+    testsFrontend: "23",
     testsBackend: "22",
     shots: "16",
     dishes: "20",
@@ -95,7 +95,7 @@
       en: [
         "Version {version}. No tag has been pushed and no installer has been published, so this describes the current state of `main`.",
         "Version {version}. No tag has been pushed and no installer published yet — this describes the current state of `main`.",
-        "Version {version}, unreleased. No tag, no installer yet: this is the current state of `main`.",
+        "Version {version}. Installers are published on every green build — the newest is `v0.1.0+build.19`, carrying an NSIS `.exe` and an MSI, both unsigned.",
         "Version {version}, and not released yet — no tag, no installer. What you are reading is the current state of `main`.",
         "Version {version}, still in the kitchen. No tag, no installer, nothing to download: this is `main` as it stands right now."],
       yue: [

@@ -1,163 +1,249 @@
 # Appearance
 
 > Every rendered element is its own customisation target, edited from a non-modal popover anchored
-> beside the element itself — with typography controls, an infinite colour picker and a colour
-> translator that speaks twelve colour spaces.
+> beside the element itself — with typography controls, a colour picker, a translator that speaks
+> twelve colour spaces, and a WCAG contrast readout.
 
 **Implementation:** the editor panel and its bindings in `app/index.html` (`appearItem`,
-`applyAppearance`, `patchAppear`, and the `appear*` / `colorRows` / `contrastLabel` keys of
-`renderVals`); the colour mathematics in `CX.color` (`app/codex-core.js`). Deeper typography is
-scheduled for `app/cx-appearance.js`.
+`onContextMenu`, `applyAppearance`, `patchAppear`, and the `appear*` / `colorRows` /
+`contrastLabel` keys of `renderVals`); the colour mathematics in `CX.color` in
+`app/codex-core.js`.
+
+There is no `app/cx-appearance.js`. Everything described here lives in the two files above, and
+the section [What is not implemented yet](#what-is-not-implemented-yet) is an honest list rather
+than a roadmap footnote.
 
 ## How an element becomes editable
 
-Two things, both in the template:
+Two lines, and it is done:
 
-1. `data-appear="<name>"` on the element. The name is the identity of that target — it keys the
-   saved overrides, so renaming it orphans a user's customisation.
-2. `this.appearItem(e)` as the last entry of the element's context menu. It walks up from the
-   event target with `closest("[data-appear]")`, so a menu opened anywhere inside the element
-   finds the right target and the menu entry reads **Edit appearance — Navigation rail** rather
-   than a generic label.
+1. Put `data-appear="<human name>"` on the element.
+2. End its context menu with `this.appearItem(e)`.
 
-Every panel added to the app must do both. Elements currently carrying `data-appear` include the
-title bar, the lifetime-cost chip, the navigation rail, the tab strip, every search bar, list
-items, message bubbles, the flag panel, the command preview, filter bars, the settings panel, the
-TOML preview, cost inputs, health cards, runtime cards, commit rows, the command catalog, the
-composer, the command palette, dropdowns and the regex builder itself.
+`appearItem` walks up from the event target with `closest("[data-appear]")`, reads the name, and
+returns a menu item labelled **"Edit appearance — &lt;name&gt;"**. Elements that carry
+`data-appear` but have no menu of their own are covered by the root `onContextMenu` handler, which
+does the same lookup and builds a two-item menu: *Edit appearance* and *Reset this element's
+appearance*.
 
-## The editor
+**<kbd>Shift</kbd>+right-click opens the editor directly**, skipping the menu:
 
-Opened from **Edit appearance…** in any element's right-click menu. It is a **non-modal popover**
-positioned from the click point and clamped inside the viewport
-(`Math.min(e.clientX, window.innerWidth - 350)`, and likewise vertically), so it stays beside what
-is being edited and never lands half off-screen. <kbd>Esc</kbd> closes it; the rest of the app
-stays live and repaints as values change.
+```js
+if (e.shiftKey) { this.setState({ appearOpen: true, appearTarget: name, appearAt: at }); return; }
+```
 
-### What it edits today
+Ordinary right-click therefore keeps the element's real menu — tab management on a tab, filter
+actions on a search field — and never has it replaced by a styling menu.
 
-| Control | Values | Applied as |
+### The 37 named targets
+
+| | | | |
+| --- | --- | --- | --- |
+| Bulk close dialog | Changelog toolbar | Command catalog | Command palette |
+| Command preview | Commit row | Composer | Conversation header |
+| Cost headline | Cost inputs | Dropdown | Extension card |
+| Filter bar | Flag panel | Health card | History intro |
+| Lifetime cost | List item | Message bubble | Model comparison |
+| Navigation rail | Notification | Notification centre | Profile tabs |
+| Regex builder | Release entry | Runtime card | Runtime intro |
+| Settings panel | Sidebar search | Studio search | Tab |
+| Tab group header | Tab strip | Title bar | TOML preview |
+| Yolo card | | | |
+
+The pickers and dialogs are in that list on purpose: **the appearance system styles its own
+chrome.** The regex builder, the dropdown, the command palette, the notification centre and the
+bulk-close dialog are all editable targets, so a theming feature that cannot theme its own popover
+is not what ships here.
+
+## Anchoring
+
+The popover opens at the cursor, clamped into the viewport before it is placed:
+
+```js
+{ x: Math.min(e.clientX, window.innerWidth - 350),
+  y: Math.max(8, Math.min(e.clientY, window.innerHeight - 470)) }
+```
+
+It is **non-modal** — no `aria-modal`, no backdrop, no focus trap. The page behind it stays live,
+so a user can watch a change land on the element they are editing. <kbd>Esc</kbd> closes it
+(`appearOpen: false` in the global key handler), as does the ✕ in its header. Its own width is
+330 px with `max-width: calc(100vw - 24px)` and `max-height: 70vh` with internal scrolling, so it
+does not overflow a narrow window.
+
+## What the editor controls
+
+| Control | Stored as | Applied as |
 | --- | --- | --- |
-| Font family | Default (Roboto), Roboto Mono, Georgia, Helvetica Neue, System UI | `font-family` |
-| Size | 70–180 %, step 5 | `font-size: <n>%` |
-| Weight | 300–700, step 100 | `font-weight` |
-| Italic / Underline / Strike / Wide | On/off | `font-style`, `text-decoration`, `letter-spacing: .06em` |
-| Colour | HSV sliders (hue 0–360, saturation 0–100, value 0–100) plus direct hex entry | `color` |
-| Translator | 12 rows, click to copy | — |
-| Contrast | Live ratio against the current theme surface | — |
-| Reset element / Reset all | — | Removes the override(s) |
+| Font family (5 options) | `font` | `style.fontFamily` |
+| Size, 70–180 % in steps of 5 | `size` | `style.fontSize = size + "%"` |
+| Weight, 300–700 in steps of 100 | `weight` | `style.fontWeight` |
+| Italic | `italic` | `style.fontStyle` |
+| Underline | `underline` | `style.textDecoration` |
+| Strikethrough | `strike` | `style.textDecoration` |
+| Wide (letter spacing) | `wide` | `style.letterSpacing = ".06em"` |
+| Colour | `color` | `style.color` |
 
-Overrides are applied by `applyAppearance()` on every `componentDidUpdate`, which walks
-`[data-appear]` elements and writes inline styles. An unset property is written as `""`, which
-restores the stylesheet value — so a reset genuinely reverts rather than freezing the default.
+`patchAppear` merges the patch into `state.appearance[target]`, writes the whole map to
+`localStorage` under `codexstudio.appearance`, and `componentDidUpdate` calls `applyAppearance`,
+which walks `document.querySelectorAll("[data-appear]")` and re-applies every stored style. So a
+change lands live, on every instance of that named element, without a restart.
 
-### Status: what is required and not yet shipped
+An unset property writes `""`, which removes the inline style and lets the Material 3 token
+underneath show through — the editor never bakes a computed value it did not receive.
 
-Stated plainly rather than implied:
+### The colour picker
 
-| Required | State |
-| --- | --- |
-| Every installed font, searchable, each name rendered in its own face | **Not shipped.** The picker offers five hard-coded families. The backend command `codex_fonts` already returns the installed families from `%WINDIR%\Fonts` and `%LOCALAPPDATA%\Microsoft\Windows\Fonts` — it is not yet wired to the picker, and its values are file stems that need mapping to family names. |
-| Word-depth typography: variable-font axes, small caps, super/subscript, underline style and colour, double strikethrough, overline, word spacing, line height, baseline offset, text direction, alignment, highlight, outline, shadow, glow | **Not shipped.** Four toggles plus size, weight and colour exist today. |
-| A continuous 2-D colour field / wheel | **Partly shipped.** Hue, saturation and value are continuous sliders plus free hex entry — continuous, not swatch-only — but there is no 2-D field or eyedropper. |
-| Named presets, user-saved themes, export/import as a file | **Not shipped.** Overrides persist, but cannot be named, exported or shared. |
-| Per-element search wired to the regex builder | **Not shipped** for the appearance editor's own controls. |
-| Density and seed-colour controls | `CX.settings` carries a `density` value; the appearance editor does not expose it yet. |
-| Unsupported properties shown with a capability explanation instead of disappearing | **Not applicable yet** — nothing is hidden, because nothing beyond the list above is offered. |
+Three sliders — hue 0–360, saturation 0–100, value 0–100 — over `CX.color.hsvToRgb`, plus a free
+text field that accepts any 3-, 6- or 8-digit hex (`hexToRgb` expands `#abc`, defaults alpha to
+`ff`, and returns `null` on anything else). The sliders are a continuous HSV field rather than a
+finite swatch grid; the text field is the direct-entry path.
 
-Do not describe any of the above as working. Adding them is the next project-changing task's job.
+### The colour translator: twelve spaces
 
-## The infinite colour picker and translator
+`CX.color.translate(hex)` returns twelve `[space, value]` pairs, each a click away from the
+clipboard. These are the real values the app prints for `#D0BCFF`, the Material 3 primary:
 
-`CX.color` is the engine. It is continuous by construction: `hsvToRgb` accepts any hue in
-0–360 and any saturation/value in 0–100, and the hex field accepts `#rgb`, `#rrggbb` and
-`#rrggbbaa`. Swatches, when they exist, will be a convenience on top — never a replacement.
-
-`CX.color.translate(hex)` returns the same colour in twelve representations, each copyable with
-one click:
-
-| | | |
+| # | Space | Rendered as |
 | --- | --- | --- |
-| `HEX` | `HEX8` (with alpha) | `RGB` |
-| `RGBA` | `HSL` | `HSV` |
-| `HWB` | `LAB` | `LCH` |
-| `OKLAB` | `OKLCH` | `CMYK` |
+| 1 | HEX | `#D0BCFF` |
+| 2 | HEX8 | `#D0BCFF` — the alpha byte is appended only when alpha is below 1, so `#D0BCFF80` round-trips as `#D0BCFF80` |
+| 3 | RGB | `rgb(208 188 255)` |
+| 4 | RGBA | `rgb(208 188 255 / 1)` |
+| 5 | HSL | `hsl(257.9 100% 86.9%)` |
+| 6 | HSV | `hsv(257.9 26.3% 100%)` |
+| 7 | HWB | `hwb(257.9 73.7% 0%)` |
+| 8 | LAB | `lab(80% 20.2 -30.4)` |
+| 9 | LCH | `lch(80% 36.5 303.5)` |
+| 10 | OKLAB | `oklab(0.835 0.044 -0.083)` |
+| 11 | OKLCH | `oklch(0.835 0.095 298)` |
+| 12 | CMYK | `cmyk(18.4% 26.3% 0% 0%)` |
 
-Alpha is preserved through `hexToRgb`/`rgbToHex` — an 8-digit input round-trips, and a fully
-opaque colour omits the alpha pair rather than appending a redundant `ff`.
+The maths is real, not approximated from a lookup table: sRGB is linearised (`lin`), converted to
+CIE XYZ with the D65 matrix and on to CIELAB, and separately through the OKLab matrices; LCH and
+OKLCH are the polar forms of their Cartesian pairs, with hue normalised into `[0, 360)`. Alpha
+survives into HEX8 and RGBA. Hue is carried from HSV into HWB, whose whiteness and blackness come
+from `min`/`max` of the channels.
 
-`CX.color.contrast(fg, bg)` computes the WCAG ratio from relative luminance, and the editor shows
-it live against the current theme's surface with a verdict — *passes AA body text* (≥ 4.5),
-*large text only* (≥ 3), or *fails AA*. That readout is the point of the picker: a user changing a
-label's colour finds out immediately if they have made it unreadable.
+### The contrast readout
 
-**Known conversions to treat with care:** `LAB`/`LCH` use the D65 white point via the sRGB matrix
-in `CX.color.lab`, and `CMYK` is a naive device-independent conversion with no ICC profile. Both
-are correct for on-screen reasoning and are **not** print-accurate.
+Under the translator, computed live against the current theme's surface —
+`#141218` in dark, `#FEF7FF` in light:
 
-## Configuration and persistence
+```
+Contrast vs surface 10.91:1 — passes AA body text
+```
 
-| What | Where | Shape |
+(that is `#D0BCFF` against the dark surface; the same colour against the light surface reports
+`1.62:1 — fails AA`, which is exactly the point of showing the number)
+
+`CX.color.contrast` is the WCAG 2 formula over relative luminance
+(`0.2126 R + 0.7152 G + 0.0722 B` on linearised channels, `(L₁+0.05)/(L₂+0.05)`). The verdict is
+banded at the WCAG thresholds: **≥ 4.5** *passes AA body text*, **≥ 3** *large text only*, below
+that *fails AA*. An unparseable colour reads *"Enter a valid colour to see contrast."* rather than
+showing a wrong number.
+
+## Reset, export and persistence
+
+| Action | Where | Effect |
 | --- | --- | --- |
-| Per-element overrides | `localStorage["codexstudio.appearance"]` | `{ "<data-appear name>": { font, size, weight, italic, underline, strike, wide, color } }` |
-| Theme (light/dark) | `localStorage["codexstudio.theme"]` | `"dark"` \| `"light"`, mirrored to `<html data-theme>` |
-| Density, and other Studio settings | `localStorage["codexstudio.settings"]` | `{ density, dimSum, narrator, … }` |
+| Reset element | Editor footer, and the root context menu | Deletes `appearance[target]` |
+| Reset all | Editor footer | Clears the whole map |
+| Reset every element | Studio → Appearance | Clears the map **and commits a revision**, so it is undoable from History |
+| Export appearance presets | Studio → Appearance | Copies `{ version: 1, appearance }` as JSON to the clipboard |
+| Theme (light/dark) | Studio → Appearance, and the title bar | Sets `data-theme` on `<html>`, persisted under `codexstudio.theme` |
 
-Appearance is a **Studio preference and never enters `config.toml`** — uninstalling Studio must
-not change how the CLI behaves.
+The appearance map is part of the local version-control snapshot (`vcs.snapshot()` reads both
+`appearance` and `appearancePresets`), so restoring an earlier revision restores the styling that
+was in force at the time — see [local-version-control.md](local-version-control.md).
 
-Theme tokens are Material 3 custom properties declared in the `<helmet>` block of
-`app/index.html`: `--m3-surface*`, `--m3-on-surface*`, `--m3-primary*`, `--m3-secondary-container`,
-`--m3-tertiary`, `--m3-error*`, `--m3-outline*`, `--m3-ok`, `--m3-warn`, plus `--cx-cjk` for the
-Traditional Chinese fallback stack. Light mode overrides them under `[data-theme="light"]`. New UI
-must use these tokens, never literal colours — a hard-coded hex is invisible to theming and to the
-appearance system.
+## Configuration
+
+| Knob | Where | Default |
+| --- | --- | --- |
+| Per-element styles | `localStorage["codexstudio.appearance"]` | `{}` |
+| Theme | `localStorage["codexstudio.theme"]`, `data-theme` on `<html>` | `dark` |
+| Font family options | `openFontMenu` / `fontRows` in `app/index.html` | Default (Roboto), Roboto Mono, Georgia, Helvetica Neue, System UI |
+| Size / weight ranges | The editor's `<input type="range">` bounds | 70–180 % step 5; 300–700 step 100 |
+| Default editor colour | `appearColor` fallback | `#D0BCFF` |
+| Bundled faces | `app/fonts/` | Roboto and Roboto Mono, 10 woff2 files, Apache-2.0 |
+
+Traditional Chinese glyphs fall through to the Windows system CJK stack
+(`--cx-cjk`: Microsoft JhengHei UI, Noto Sans HK, PingFang HK, …) rather than shipping a
+multi-megabyte CJK webfont, so Cantonese copy stays legible in every language mode.
+
+## What is not implemented yet
+
+Stated plainly, because a documented capability that does not exist is worse than an absent one.
+
+- **Installed fonts are not offered.** The backend command `codex_fonts` exists, is registered in
+  `electron/commands.js`, and enumerates `%WINDIR%\Fonts` and
+  `%LOCALAPPDATA%\Microsoft\Windows\Fonts` for `.ttf`/`.otf`/`.ttc` — but **no frontend code calls
+  it**. The picker offers five hard-coded families and no per-family live preview of the typeface
+  itself.
+- **Word-depth typography is not there.** Missing: variable-font axes, small caps, capitalisation,
+  superscript and subscript, underline style and colour, double strikethrough, overline, outline,
+  shadow, glow, word spacing, line height, baseline offset, text direction and alignment. What
+  ships is the eight properties in the table above.
+- **The colour picker has no swatch grid, no recents, no eyedropper and no saved palettes.** The
+  continuous HSV sliders and the hex field are the whole picker.
+- **Colour entry is one-way per space.** The twelve translations are read-only output; you cannot
+  type an `oklch(…)` or `cmyk(…)` value in and have it parsed back. Only hex is an input.
+- **No named presets, no import.** Export copies JSON to the clipboard; nothing reads it back in.
+- **No search bar inside the appearance editor.** The Studio settings surface has one, wired to the
+  regex builder; the per-element popover does not.
+- **Non-typographic properties are not editable per element** — no radius, border, spacing,
+  background, icon or per-state (hover/focus/collapsed) targeting. Groups carry an `appearance`
+  field in their record that nothing writes.
+- **`density` and `reducedMotion` are stored but unread.** Both appear in the `CX.settings`
+  defaults in `app/codex-core.js`; no control sets them and no code consumes them. The Studio
+  Appearance section's description mentions density, which is currently inaccurate.
+- **Gamut warnings are absent.** LAB, LCH, OKLab, OKLCH and CMYK are computed and displayed
+  without checking whether the value is representable in sRGB, and nothing warns before clipping.
 
 ## Failure modes
 
-| Symptom | Cause |
-| --- | --- |
-| **Edit appearance…** opens with a generic label and edits nothing | The element has no `data-appear` ancestor |
-| An override survives but the element looks unstyled | The `data-appear` name changed; the saved entry is now orphaned. Reset all, or rename it back |
-| A colour override does not appear | `applyAppearance` sets `color` on the marked element; a child with its own explicit colour wins. Mark the child instead |
-| The contrast readout says *Enter a valid colour* | `hexToRgb` rejected the text; only 3-, 6- and 8-digit hex parse |
-| Overrides lost after restart | `localStorage` was unavailable (private mode); `CX.store` swallows the failure by design so the app still runs |
-| Editor opens off-screen near an edge | Should not happen — the position is clamped. If it does, the clamp constants no longer match the panel size |
-| A `style-hover` colour ignores the override | Pseudo-class styles are compiled into a CSS class at parse time; inline overrides do not reach them |
+| Symptom | What the user sees | Cause |
+| --- | --- | --- |
+| Right-click gives no appearance item | The element's own menu, unchanged | The element has no `data-appear`, or its menu omits `appearItem(e)` |
+| Editor opens with an empty title | Header reads *"Appearance — "* | `appearTarget` is null; the root handler only opens the editor when a name was found |
+| Invalid hex typed | Contrast line reads *"Enter a valid colour to see contrast."*; the swatch keeps the last valid colour | `hexToRgb` returned `null` |
+| A style does not visibly apply | Nothing changes | The property is one of the eight; anything else is not implemented — see above |
+| Styling survives a reset | The old value returns | Reset removes the map entry; the Material 3 token underneath may look similar |
+| Editor clipped at a window edge | It is not | Position is clamped to `innerWidth - 350` / `innerHeight - 470` before opening |
 
 ## Security considerations
 
-- **Everything is local.** No font, colour or theme is fetched; `codex_fonts` reads two local
-  directories and returns names only.
-- **Contrast is a safety feature, not decoration.** A theming system that lets a user make an
-  error message invisible has created an accessibility failure. Keep the live readout visible
-  wherever a foreground colour is edited.
-- **`codex_fonts` returns file stems, not family names.** Treat them as candidates to validate
-  before writing into `font-family`, or the picker will offer families the renderer cannot
-  resolve.
-- **Overrides are inline styles written into the live DOM**, always from a fixed set of properties
-  with values the editor generated. Never widen `applyAppearance` to write arbitrary CSS text
-  from stored state — that is a style-injection primitive.
-- **Export/import, when it lands, is an untrusted-file boundary.** A shared theme file must be
-  validated key by key against the known property set, not merged wholesale.
+- **Everything is local.** Styles live in `localStorage`; nothing is fetched or transmitted. The
+  CSP (`style-src 'self' 'unsafe-inline'`, `font-src 'self'`) means a stored font family can only
+  ever resolve to a bundled or system face — a hostile value cannot pull a remote font.
+- **Values are applied as DOM style properties**, never interpolated into a stylesheet or markup
+  string, so a crafted value cannot escape into CSS injection.
+- **Export is a clipboard write the user asked for.** It contains only element names and style
+  values — no paths, no session content, no credentials.
+- **Contrast is advisory.** The readout compares against the app's surface colour, not against
+  whatever the element actually sits on. A passing number is not a guarantee for a chip on a
+  coloured container.
 
 ## Verification
 
-1. Right-click each `data-appear` element in turn: the menu's last entry names that element, and
-   the popover opens beside it.
-2. Change font, size, weight and each toggle; the live UI updates immediately — no restart.
-3. Drag the hue slider through 0–360 and confirm the twelve translator rows update together and
-   the hex field agrees. Click a row and confirm the clipboard receives that exact string.
-4. Type `#7f3` and `#7f3a00cc` into the hex field: both parse, and alpha survives in `HEX8` and
-   `RGBA`.
-5. Set a low-contrast colour and confirm the readout drops through *large text only* to
-   *fails AA*.
-6. **Reset element** restores only that element; **Reset all** clears every override.
-7. Restart the app: surviving overrides match what was set. Switch theme and confirm overrides
-   still apply and the contrast readout re-evaluates against the new surface.
-8. Open the popover near each screen edge at 100 / 125 / 150 / 200 % display scale and confirm it
-   stays fully visible.
-9. Switch to `yue` and to bilingual mode and confirm no editor label clips at the minimum window
-   size (960 × 640).
-10. Confirm the editor is reachable by keyboard and returns focus to the originating element when
-    closed — see [../experience/accessibility.md](../experience/accessibility.md).
+1. **Reach:** right-click each of the 37 targets and confirm the appearance entry appears and names
+   that element.
+2. **Shift path:** <kbd>Shift</kbd>+right-click opens the editor straight away; plain right-click
+   keeps the element's own menu intact (test on a tab, which has a full management menu).
+3. **Live application:** change size, weight, italic and colour; each must land immediately on
+   every instance of that named element, with no restart.
+4. **Persistence:** restart and confirm the styles return.
+5. **Translator:** set `#D0BCFF` and check all twelve rows render; click one and confirm the
+   clipboard holds exactly that string.
+6. **Contrast bands:** pick a colour near 4.5:1 and one near 3:1; confirm the verdict changes at
+   the thresholds and that both light and dark themes recompute.
+7. **Invalid input:** type `#zz` and confirm the contrast line reports it instead of showing a
+   number.
+8. **Reset:** reset one element, then reset all. Confirm *Reset every element* in Studio also
+   records a revision that History can undo.
+9. **Edge placement:** open the editor from an element at the extreme right and bottom of the
+   window; it must stay fully on screen.
+10. **Self-theming:** style the *Regex builder* and the *Dropdown* targets and confirm the popovers
+    themselves change.
+11. **Screenshot:** `node tools/capture.mjs --only appearance` renders the editor from the real
+    app into `assets/screenshots/`.
