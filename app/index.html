@@ -2966,7 +2966,13 @@ class Component extends DCLogic {
         desc: "Off by default. When on it speaks one line at a time through a serialised queue, never overlapping, and yields to an active screen reader. Spoken errors still name the actual failure and are never suppressed by the rate limit.",
         rows: [
           toggle("Narrate app events", "Uses the platform voice. Off unless you turn it on.", "tts", !!se.get("narrator", false),
-            () => { const on = !se.get("narrator", false); se.set("narrator", on); CX.narrator.enabled = on; this.setState({ tick: this.state.tick + 1 }); }),
+            () => {
+              const on = !se.get("narrator", false);
+              se.set("narrator", on);
+              CX.narrator.enabled = on;
+              CX.vcs.commit((on ? "Enabled" : "Disabled") + " the spoken narrator", "settings");
+              this.setState({ tick: this.state.tick + 1 });
+            }),
           pick("Narrated language", "Both speaks English first, then 廣東話, strictly one after the other.", "ttslang",
             se.get("narratorLang", "en") === "en" ? "English" : se.get("narratorLang", "en") === "yue" ? "廣東話" : "Both",
             (e) => this.openDropdown(e, {
@@ -2982,7 +2988,12 @@ class Component extends DCLogic {
         desc: "A 1-in-100 chance at launch of a randomly chosen dim sum dish, named in both languages. It never blocks startup, never steals focus, and never appears on a first run or during an error.",
         rows: [
           toggle("Show the dim sum surprise", "One fresh draw per launch, at most 1%. Bundled artwork, no network.", "dimsum", !!se.get("dimSum", true),
-            () => { se.set("dimSum", !se.get("dimSum", true)); this.setState({ tick: this.state.tick + 1 }); }),
+            () => {
+              const on = !se.get("dimSum", true);
+              se.set("dimSum", on);
+              CX.vcs.commit((on ? "Enabled" : "Disabled") + " the dim sum surprise", "settings");
+              this.setState({ tick: this.state.tick + 1 });
+            }),
           action("Show one now", "Preview the surface without waiting for the draw.", "dimsumtest", "Preview", "var(--m3-primary)",
             () => { const cat = window.CX_DIMSUM; const d = cat ? cat.draw(1) : null; if (d) { clearTimeout(this._dimTimer); this.setState({ dimSum: d }); this._dimTimer = setTimeout(() => this.setState({ dimSum: null }), 9000); } })
         ]

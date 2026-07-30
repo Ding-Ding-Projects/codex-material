@@ -122,8 +122,8 @@
       yue: ["Pattern 唔啱：{error}。日期篩選照樣生效，改返個 pattern 或者轉返純文字搜尋。", "呢個 pattern 編譯唔到：{error}。日期篩選照計，改返 pattern 或者轉返純文字。", "呢個 pattern 編譯唔到：{error}。日期篩選照做嘢，改返個 pattern，或者轉返純文字搜尋。"]
     },
     "rx.nested": {
-      en: ["This pattern repeats a repetition ({found}), which can take exponential time on an ordinary line and would freeze the window before any budget could stop it. Put a bound on the outer repeat (for example {1,20}), rewrite it without the nesting, or search plain text.", "This pattern repeats a repetition ({found}). That can take exponential time on an ordinary line and would freeze the window before any budget could stop it — bound the outer repeat (for example {1,20}), rewrite it without the nesting, or search plain text.", "This pattern repeats a repetition ({found}) — the classic way to make a regex engine think until the heat death of the window. Bound the outer repeat (for example {1,20}), drop the nesting, or search plain text."],
-      yue: ["呢個 pattern 喺重複入面再重複（{found}），撞正一行普通字都可以行到指數級咁耐，未等到時間上限就已經卡死成個視窗。畀個上限外面嗰個重複（例如 {1,20}），或者拆走個嵌套，又或者用純文字搜尋。", "呢個 pattern 重複入面再重複（{found}），一行普通字都可能行到指數級咁耐，時間上限都嚟唔切救，成個視窗會卡死。外面嗰個重複加返上限（例如 {1,20}）、拆走個嵌套，或者用純文字搜尋。", "呢個 pattern 重複入面再重複（{found}），係整死 regex 引擎嘅經典手法，計到天荒地老都未計完，時間上限都救唔切。外面嗰個重複加返上限（例如 {1,20}）、拆走個嵌套，或者用純文字搜尋。"]
+      en: ["This pattern applies a repetition to a group that already repeats ({found}). That takes exponential time on an ordinary line and would freeze the window before any time budget could stop it. Bounding the outer repeat does not help — {1,20} is measurably worse than +. Remove the inner repeat, make the group atomic by rewriting what it matches, or search plain text.", "This pattern repeats a repetition ({found}) — exponential time on an ordinary line, and it would freeze the window before the time budget could stop it. Bounding the outer repeat does not help; {1,20} is worse than +. Remove the inner repeat, rewrite the group so it cannot match the same text two ways, or search plain text.", "This pattern repeats a repetition ({found}) — the classic way to make a regex engine think until the heat death of the window. Bounding the outer repeat is a trap: {1,20} is measurably worse than +. Drop the inner repeat, rewrite the group so it cannot match the same text two ways, or just search plain text."],
+      yue: ["呢個 pattern 對一個本身已經會重複嘅 group 再加重複（{found}）。撞正一行普通字就行到指數級咁耐，未等到時間上限就已經卡死成個視窗。同埋畀個上限外面嗰個係冇用嘅 —— {1,20} 實測仲慢過 +。要拆走入面嗰個重複，或者改寫個 group 令佢唔會有兩種方法夾到同一段字，再唔係用純文字搜尋。", "呢個 pattern 重複入面再重複（{found}），一行普通字都可能行到指數級咁耐，時間上限都嚟唔切救。外面加上限係冇用嘅，{1,20} 仲差過 +。拆走入面個重複、改寫個 group，或者用純文字搜尋。", "呢個 pattern 重複入面再重複（{found}），係整死 regex 引擎嘅經典手法，計到天荒地老。唔好諗住外面加個上限 —— {1,20} 實測仲衰過 +。拆走入面嗰個重複、改寫個 group 令佢唔會兩路夾到同一段字，或者索性用純文字。"]
     },
     "rx.slow": {
       en: ["The search stopped after {ms} ms — that pattern is too expensive to run over the whole changelog. What matched before it stopped is shown below; simplify the pattern, or use plain text.", "The search stopped after {ms} ms because that pattern is too expensive for the whole changelog. What matched first is shown below — simplify the pattern, or use plain text.", "The search tapped out after {ms} ms: that pattern is too expensive to run over the whole changelog. What matched before it gave up is below — simplify it, or use plain text."],
@@ -358,7 +358,26 @@
   /* A budget can only be checked between calls. One `exec` of `(a+)+$` against sixty
      ordinary characters never returns to be checked at all, so the shapes that blow up
      exponentially are refused before they run rather than timed out afterwards. */
-  const UNBOUNDED = /^(\*|\+|\{\d+,\})/;
+  /* Any repeat that can run more than once is dangerous when it wraps a group that
+     itself repeats: `(a+){1,20}` backtracks just as catastrophically as `(a+)+`, and
+     measurably worse — a 37-character sample takes tens of seconds and freezes the
+     window, because a single `re.test` call cannot be interrupted from JavaScript.
+     Only `{1}`, `{0,1}`, `{1,1}` and `?` are safe outer repeats. */
+  const UNBOUNDED = /^(\*|\+|\{\d+,\d*\}|\{[2-9]\d*\})/;
+
+  /** True when `tail` opens with a repeat that may apply the preceding group more
+   *  than once. `?` and `{0,1}`/`{1}` cannot, so they are not a risk. */
+  function repeatsMoreThanOnce(tail) {
+    const m = /^(\*|\+|\?|\{(\d+)(,(\d*))?\})/.exec(tail);
+    if (!m) return false;
+    if (m[1] === "*" || m[1] === "+") return true;
+    if (m[1] === "?") return false;
+    const min = Number(m[2]);
+    const openEnded = m[3] !== undefined && (m[4] === "" || m[4] === undefined);
+    if (openEnded) return true;
+    const max = m[4] !== undefined && m[4] !== "" ? Number(m[4]) : min;
+    return max > 1;
+  }
   function skipClass(s, i) {
     let j = i + 1;
     if (s[j] === "^") j++;
@@ -423,7 +442,7 @@
       if (c !== "(") continue;
       const end = groupEnd(s, i);
       if (end < 0) break;
-      if (!UNBOUNDED.test(s.slice(end + 1))) continue;
+      if (!repeatsMoreThanOnce(s.slice(end + 1))) continue;
       if (/^\?(=|!|<=|<!)/.test(s.slice(i + 1))) continue;        // a lookaround is not the shape meant here
       const body = s.slice(i + 1, end).replace(/^\?(:|<[A-Za-z_$][\w$]*>)/, "");
       if (hasUnbounded(body) || overlapping(body)) return s.slice(i, Math.min(end + 3, s.length));

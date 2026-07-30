@@ -304,7 +304,38 @@ suite("app/codex-core.js", (ctx, file) => {
     for (const key of ["bridge", "store", "toToml", "evaluate", "color", "i18n", "narrator", "vcs", "LIMITS"]) {
       assert.ok(CX[key] !== undefined, `CX.${key} is missing`);
     }
-    assert.equal(CX.bridge.mode, "browser", "with no __TAURI__ present the bridge must fall back, not throw");
+    assert.equal(CX.bridge.mode, "browser", "with no CODEX_BRIDGE present the bridge must fall back, not throw");
+  });
+
+  unit(file, "evaluate refuses catastrophic backtracking instead of freezing", () => {
+    // A single RegExp.exec cannot be interrupted from JavaScript, so the ms budget
+    // only helps BETWEEN matches. These shapes spend their whole time inside one
+    // call and would hang the window outright — they have to be refused up front.
+    const evil = "a".repeat(30) + "!";
+    for (const pattern of ["(a+)+$", "(a+){1,20}$", "(a+){1,10}$", "(a|a)*$", "(x|xx)+y"]) {
+      const started = Date.now();
+      const res = CX.evaluate(pattern, "gi", evil);
+      const elapsed = Date.now() - started;
+      assert.equal(res.ok, false, `${pattern} should be refused`);
+      assert.match(res.error, /repeats a group that already repeats/);
+      assert.ok(elapsed < 250, `${pattern} took ${elapsed}ms — it should be refused, not run`);
+      assert.ok(res.refused && res.refused.length > 2, `${pattern} should name its offending fragment`);
+    }
+    // Bounding the outer repeat is not a fix, so the message must not suggest it.
+    const advice = CX.evaluate("(a+)+$", "g", "aaa").error;
+    assert.ok(!/for example \{1,20\}/.test(advice), "the remedy must not recommend the worse rewrite");
+
+    // And the ordinary patterns a user actually types still work.
+    for (const [pattern, sample, expect] of [
+      ["^(mcp|plugin)-", "mcp-server", 1],
+      ["(ab){1,3}", "ababab", 1],
+      ["\\d+", "abc 123", 1],
+      ["^(a|b)+$", "ababab", 1],
+    ]) {
+      const res = CX.evaluate(pattern, "gi", sample);
+      assert.equal(res.ok, true, `${pattern} should be allowed: ${res.error}`);
+      assert.equal(res.matches.length, expect);
+    }
   });
 
   unit(file, "evaluate terminates on a zero-width match", () => {

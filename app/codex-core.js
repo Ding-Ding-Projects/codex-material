@@ -236,10 +236,117 @@
 
   /* ------------------------------------------------ regex engine (bounded) */
   const LIMITS = { pattern: 2000, sample: 20000, matches: 500, ms: 300 };
+
+  /* A single `RegExp.exec` call cannot be interrupted from JavaScript, so the ms
+     budget below only helps BETWEEN matches. A pattern that repeats a group which
+     already repeats — `(a+)+`, and just as badly `(a+){1,20}` — spends that time
+     inside one call and freezes the window outright. The only real defence is to
+     refuse the shape before running it. */
+  function repeatsMoreThanOnce(tail) {
+    const m = /^(\*|\+|\?|\{(\d+)(,(\d*))?\})/.exec(tail);
+    if (!m) return false;
+    if (m[1] === "*" || m[1] === "+") return true;
+    if (m[1] === "?") return false;
+    const min = Number(m[2]);
+    if (m[3] !== undefined && (m[4] === "" || m[4] === undefined)) return true;   // {n,}
+    const max = m[4] !== undefined && m[4] !== "" ? Number(m[4]) : min;
+    return max > 1;
+  }
+  function skipClass(s, i) {
+    let j = i + 1;
+    if (s[j] === "^") j++;
+    if (s[j] === "]") j++;
+    while (j < s.length && s[j] !== "]") { if (s[j] === "\\") j++; j++; }
+    return j + 1;
+  }
+  function groupEnd(s, i) {
+    let depth = 0;
+    for (let j = i; j < s.length; j++) {
+      const c = s[j];
+      if (c === "\\") { j++; continue; }
+      if (c === "[") { j = skipClass(s, j) - 1; continue; }
+      if (c === "(") depth++;
+      else if (c === ")" && !--depth) return j;
+    }
+    return -1;
+  }
+  /** Top-level alternation branches of a group body. */
+  function branches(s) {
+    const out = [];
+    let depth = 0, last = 0;
+    for (let j = 0; j < s.length; j++) {
+      const c = s[j];
+      if (c === "\\") { j++; continue; }
+      if (c === "[") { j = skipClass(s, j) - 1; continue; }
+      if (c === "(") depth++;
+      else if (c === ")") depth--;
+      else if (c === "|" && !depth) { out.push(s.slice(last, j)); last = j + 1; }
+    }
+    out.push(s.slice(last));
+    return out;
+  }
+  /** `(a|a)*` is the other classic blow-up: two branches that can match the same
+   *  text give the engine an exponential number of equivalent ways to split it. */
+  function overlappingBranches(body) {
+    const b = branches(body);
+    if (b.length < 2) return false;
+    const first = (x) => {
+      const t = x.replace(/^\^+/, "");
+      if (!t) return null;
+      if (t[0] === "\\") return t.slice(0, 2);
+      if (t[0] === "[") return t.slice(0, skipClass(t, 0));
+      if (t[0] === "(" || t[0] === ".") return t[0];
+      return t[0];
+    };
+    const seen = {};
+    for (let i = 0; i < b.length; i++) {
+      const f = first(b[i]);
+      if (f === null) continue;
+      if (f === "." || seen[f]) return true;
+      seen[f] = true;
+    }
+    return false;
+  }
+
+  /** The offending fragment, or null. Reported to the user verbatim so the refusal
+   *  names the exact part of their pattern that is the problem. */
+  function nestedQuantifier(pattern) {
+    const s = String(pattern);
+    for (let i = 0; i < s.length; i++) {
+      const c = s[i];
+      if (c === "\\") { i++; continue; }
+      if (c === "[") { i = skipClass(s, i) - 1; continue; }
+      if (c !== "(") continue;
+      const end = groupEnd(s, i);
+      if (end < 0) break;
+      const tail = /^(\*|\+|\{\d+(,\d*)?\})/.exec(s.slice(end + 1));
+      if (!repeatsMoreThanOnce(s.slice(end + 1))) continue;
+      const fragment = s.slice(i, end + 1 + (tail ? tail[0].length : 0));
+      if (/^\?(=|!|<=|<!)/.test(s.slice(i + 1))) continue;   // a lookaround is a different shape
+      const body = s.slice(i + 1, end).replace(/^\?(:|<[A-Za-z_$][\w$]*>)/, "");
+      if (overlappingBranches(body)) return fragment;
+      let j = 0;
+      while (j < body.length) {
+        if (body[j] === "\\") { j += 2; continue; }
+        if (body[j] === "[") { j = skipClass(body, j); continue; }
+        if (repeatsMoreThanOnce(body.slice(j)) && j > 0) return fragment;
+        j++;
+      }
+    }
+    return null;
+  }
+
   function evaluate(pattern, flags, sample) {
     const res = { ok: true, error: null, matches: [], truncated: false, ms: 0, groups: [], timedOut: false };
     if (!pattern) { res.ok = false; res.error = "Empty pattern — nothing is matched."; return res; }
     if (pattern.length > LIMITS.pattern) { res.ok = false; res.error = `Pattern exceeds ${LIMITS.pattern} characters.`; return res; }
+    const nested = nestedQuantifier(pattern);
+    if (nested) {
+      res.ok = false;
+      res.refused = nested;
+      res.error = `Refused: \`${nested}\` repeats a group that already repeats. That takes exponential time inside a single match attempt, where the ${LIMITS.ms} ms budget below cannot reach it — the window would simply stop responding. Bounding the outer repeat does not help. Remove the inner repeat, or rewrite the group so it cannot match the same text two ways.`;
+      return res;
+    }
     if (sample.length > LIMITS.sample) { res.ok = false; res.error = `Sample exceeds ${LIMITS.sample} characters.`; return res; }
     let re;
     try { re = new RegExp(pattern, flags.includes("g") ? flags : flags + "g"); }
