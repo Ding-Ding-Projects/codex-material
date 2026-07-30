@@ -64,6 +64,20 @@ const MAY_REFUSE = new Set([
   "codex_hook_toggle",
 ]);
 
+/* Commands that shell out to `codex`. If the binary is absent AND the build has
+   declared it optional, these cannot possibly work, so they are reported as "no-cli"
+   rather than counted as failures — otherwise the workflow's documented
+   no-bundled-CLI path could never go green. When the binary IS present they are
+   exercised like everything else, so this never quietly reduces coverage. */
+const NEEDS_CLI = new Set([
+  "codex_version", "codex_doctor", "codex_run",
+  "codex_mcp_list", "codex_mcp_toggle", "codex_mcp_add", "codex_mcp_remove",
+  "codex_plugin_list", "codex_plugin_catalog", "codex_plugin_install",
+  "codex_plugin_uninstall", "codex_plugin_toggle",
+  "codex_marketplace_list", "codex_marketplace_add", "codex_marketplace_remove",
+  "codex_features", "codex_set_feature", "codex_session_action", "codex_login_status",
+]);
+
 function argsFor(name, ctx) {
   const A = {
     codex_read_text: { path: path.join(ctx.home, "config.toml") },
@@ -138,15 +152,23 @@ async function main() {
   if (!hasBridge) report.consoleErrors.push("window.CODEX_BRIDGE is absent — the preload did not run");
 
   /* ------------------------------------------------------------------- CLI */
+  /* A missing binary normally fails the run: the app is a front end for `codex`, and
+     one that cannot find it is a shell around nothing. The workflow does have a
+     legitimate no-CLI path though — tools/fetch-codex.mjs may decline to stage a copy,
+     and an installer without one is still usable by someone who already has Codex.
+     That case sets CODEX_STUDIO_SMOKE_CLI_OPTIONAL, which downgrades this one phase to
+     a reported warning rather than quietly weakening the check for everyone. */
+  const cliOptional = process.env.CODEX_STUDIO_SMOKE_CLI_OPTIONAL === "1";
   out("CLI\n");
   try {
     const bin = cli.codexBin();
     const v = await cli.run(["--version"], { timeout: 30000 });
-    report.cli = { binary: bin, ok: !!(v && v.ok), stdout: ((v && v.stdout) || "").trim().slice(0, 80) };
+    report.cli = { binary: bin, ok: !!(v && v.ok), optional: cliOptional, stdout: ((v && v.stdout) || "").trim().slice(0, 80) };
     out("  " + (report.cli.ok ? "ok  " : "FAIL") + " " + bin + "\n       " + report.cli.stdout + "\n\n");
   } catch (e) {
-    report.cli = { ok: false, error: String((e && e.message) || e) };
-    out("  FAIL " + report.cli.error + "\n\n");
+    report.cli = { ok: false, optional: cliOptional, error: String((e && e.message) || e) };
+    out("  " + (cliOptional ? "warn" : "FAIL") + " " + report.cli.error + "\n" +
+        (cliOptional ? "       no CLI was staged, and this build does not require one\n" : "") + "\n");
   }
 
   /* ------------------------------------------------------------------- IPC */
@@ -181,7 +203,13 @@ async function main() {
   const hooks = await raw("codex_hook_list");
   if (hooks && hooks[0]) { ctx.hookEvent = hooks[0].event; ctx.hookIndex = hooks[0].index; }
 
+  const noCli = cliOptional && !report.cli.ok;
   for (const name of list) {
+    if (noCli && NEEDS_CLI.has(name)) {
+      report.ipc.push({ name, status: "no-cli", why: "needs the codex binary, which this build does not bundle" });
+      out("  --   " + name.padEnd(26) + "needs the codex binary, which this build does not bundle\n");
+      continue;
+    }
     if (SKIP[name]) {
       report.ipc.push({ name, status: "skipped", why: SKIP[name] });
       out("  skip " + name.padEnd(26) + SKIP[name] + "\n");
@@ -252,6 +280,7 @@ async function main() {
     ipcOk: report.ipc.filter((r) => r.status === "ok").length,
     ipcRefused: report.ipc.filter((r) => r.status === "refused").length,
     ipcSkipped: report.ipc.filter((r) => r.status === "skipped").length,
+    ipcNoCli: report.ipc.filter((r) => r.status === "no-cli").length,
     ipcFailed: report.ipc.filter((r) => r.status === "FAIL").length,
     panelsOk: report.panels.filter((r) => r.status === "ok").length,
     panelsFailed: report.panels.filter((r) => r.status === "FAIL").length,
@@ -263,13 +292,15 @@ async function main() {
   fs.writeFileSync(OUT, JSON.stringify(report, null, 2));
 
   out("\nSUMMARY\n");
-  out("  CLI      " + (s.cliOk ? "the real binary answered" : "DID NOT ANSWER") + "\n");
-  out("  IPC      " + s.ipcOk + " ok, " + s.ipcRefused + " refused as designed, " + s.ipcSkipped + " skipped, " + s.ipcFailed + " failed\n");
+  out("  CLI      " + (s.cliOk ? "the real binary answered" : cliOptional ? "absent, and this build does not require one" : "DID NOT ANSWER") + "\n");
+  out("  IPC      " + s.ipcOk + " ok, " + s.ipcRefused + " refused as designed, " + s.ipcSkipped + " skipped" +
+      (s.ipcNoCli ? ", " + s.ipcNoCli + " need a CLI this build does not bundle" : "") +
+      ", " + s.ipcFailed + " failed\n");
   out("  Panels   " + s.panelsOk + " ok, " + s.panelsFailed + " failed\n");
   out("  Console  " + s.consoleErrors + " unexpected error(s)\n");
   out("  report   " + path.relative(ROOT, OUT).replace(/\\/g, "/") + "\n");
 
-  const bad = s.ipcFailed + s.panelsFailed + s.consoleErrors + (s.cliOk ? 0 : 1);
+  const bad = s.ipcFailed + s.panelsFailed + s.consoleErrors + (s.cliOk || cliOptional ? 0 : 1);
   out(bad === 0 ? "\nSMOKE TEST PASSED\n" : "\nSMOKE TEST FAILED — " + bad + " problem(s)\n");
   win.destroy();
   app.exit(bad === 0 ? 0 : 1);

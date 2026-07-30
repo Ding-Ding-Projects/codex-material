@@ -2230,8 +2230,14 @@ class Component extends DCLogic {
           detail: inst ? "pid " + inst.pid + " · " + inst.memMB + " MB · up " + Math.max(1, Math.round((Date.now() - inst.startedAt) / 60000)) + " min" : "not spawned · Windows host shell",
           border: s.id === st.activeSession ? "var(--m3-primary)" : "var(--m3-outline-variant)",
           dot: running ? "var(--m3-ok)" : inst ? "var(--m3-warn)" : "var(--m3-outline)",
-          distro: inst ? inst.distro : CX.sim.wslDistros[0],
-          distroRows: CX.sim.wslDistros.map((d) => ({ key: d, value: d, label: d })),
+          /* `wslDistros[0]` is undefined on a machine with no WSL installed — which
+             is most machines — so this binding rendered empty and the dc runtime
+             reported it as unresolved. It went unnoticed because the development box
+             has WSL; the smoke test caught it on the first CI runner it touched. */
+          distro: inst ? inst.distro : (CX.sim.wslDistros[0] || CX.i18n.t("wsl.none")),
+          distroRows: CX.sim.wslDistros.length
+            ? CX.sim.wslDistros.map((d) => ({ key: d, value: d, label: d }))
+            : [{ key: "__none", value: "", label: CX.i18n.t("wsl.noneHint") }],
           setDistro: (e) => { const distro = e.target.value; if (inst) CX.bridge.invoke("codex_wsl_set", { session: s.id, patch: { distro } }).then(() => this.setState({ tick: st.tick + 1 })); else this.wslSpawn(s, distro); },
           openDistro: (e) => this.openDropdown(e, {
             title: "WSL distribution", value: inst ? inst.distro : CX.sim.wslDistros[0], width: 260,

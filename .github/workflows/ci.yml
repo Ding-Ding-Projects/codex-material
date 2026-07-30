@@ -213,6 +213,11 @@ jobs:
         # build before an installer is cut. Unit tests passing is not the same claim as
         # the application working.
         run: node tools/smoke.mjs
+        env:
+          # The staging step above is allowed to decline, and an installer with no
+          # bundled CLI is still usable by someone who already has Codex. Only that
+          # case relaxes the CLI phase; every other failure still fails the build.
+          CODEX_STUDIO_SMOKE_CLI_OPTIONAL: ${{ steps.cli.outputs.bundled == 'true' && '0' || '1' }}
 
       - name: Build the Windows installers
         run: npx electron-builder --win nsis msi --publish never

@@ -81,6 +81,13 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **The Runtime panel rendered an empty control on any machine without WSL.**
+  `CX.sim.wslDistros[0]` is `undefined` when no distribution is installed — which is
+  most machines — so the distribution button's binding never resolved and the dropdown
+  offered nothing. It says "No WSL installed" now, and the dropdown explains how to
+  install one. The development machine has WSL, which is why this survived; the smoke
+  test caught it on the first CI runner it ran on.
+
 - **There is a full smoke test** (`npm run smoke`, `tools/smoke.mjs`). Unit tests
   exercise modules in a `node:vm` with a browser shim and the capture harness proves
   the surfaces render; neither answers whether the thing works wired together. This

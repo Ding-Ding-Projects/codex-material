@@ -1,21 +1,22 @@
 {
-  "startedAt": "2026-07-30T20:56:24.640Z",
+  "startedAt": "2026-07-30T21:06:40.996Z",
   "cli": {
-    "binary": "C:\\Users\\cntow\\AppData\\Local\\Programs\\OpenAI\\Codex\\bin\\codex.exe",
-    "ok": true,
-    "stdout": "codex-cli 0.145.0"
+    "binary": "C:/nonexistent/codex.exe",
+    "ok": false,
+    "optional": false,
+    "stdout": ""
   },
   "ipc": [
     {
       "name": "codex_version",
       "status": "ok",
-      "ms": 67,
+      "ms": 24,
       "shape": "object"
     },
     {
       "name": "codex_state",
       "status": "ok",
-      "ms": 152,
+      "ms": 91,
       "shape": "object"
     },
     {
@@ -27,19 +28,19 @@
     {
       "name": "codex_read_config_text",
       "status": "ok",
-      "ms": 1,
+      "ms": 0,
       "shape": "object"
     },
     {
       "name": "codex_write_config",
       "status": "ok",
-      "ms": 2,
+      "ms": 3,
       "shape": "object"
     },
     {
       "name": "codex_set_config",
       "status": "ok",
-      "ms": 4,
+      "ms": 3,
       "shape": "object"
     },
     {
@@ -51,7 +52,7 @@
     {
       "name": "codex_run",
       "status": "ok",
-      "ms": 62,
+      "ms": 23,
       "shape": "object"
     },
     {
@@ -69,80 +70,80 @@
     {
       "name": "codex_capture",
       "status": "ok",
-      "ms": 477,
+      "ms": 25,
       "shape": "object"
     },
     {
       "name": "codex_doctor",
-      "status": "ok",
-      "ms": 940,
-      "shape": "object"
+      "status": "FAIL",
+      "ms": 29,
+      "error": "Error invoking remote method 'codex_doctor': Error: `codex doctor --json --all` exited 1: The system cannot find the path specified."
     },
     {
       "name": "codex_mcp_list",
-      "status": "ok",
-      "ms": 70,
-      "shape": "array(3)"
+      "status": "FAIL",
+      "ms": 22,
+      "error": "Error invoking remote method 'codex_mcp_list': Error: `codex mcp list --json` exited 1: The system cannot find the path specified."
     },
     {
       "name": "codex_mcp_toggle",
-      "status": "ok",
-      "ms": 59,
-      "shape": "array(3)"
+      "status": "FAIL",
+      "ms": 43,
+      "error": "Error invoking remote method 'codex_mcp_toggle': Error: `codex mcp list --json` exited 1: The system cannot find the path specified."
     },
     {
       "name": "codex_mcp_add",
-      "status": "ok",
-      "ms": 139,
-      "shape": "array(4)"
+      "status": "refused",
+      "ms": 28,
+      "error": "Error invoking remote method 'codex_mcp_add': Error: The system cannot find the path specified."
     },
     {
       "name": "codex_mcp_remove",
-      "status": "ok",
-      "ms": 145,
-      "shape": "array(3)"
+      "status": "refused",
+      "ms": 26,
+      "error": "Error invoking remote method 'codex_mcp_remove': Error: The system cannot find the path specified."
     },
     {
       "name": "codex_plugin_list",
-      "status": "ok",
-      "ms": 61,
-      "shape": "array(0)"
+      "status": "FAIL",
+      "ms": 29,
+      "error": "Error invoking remote method 'codex_plugin_list': Error: `codex plugin list --json` exited 1: The system cannot find the path specified."
     },
     {
       "name": "codex_plugin_catalog",
-      "status": "ok",
-      "ms": 66,
-      "shape": "array(0)"
+      "status": "FAIL",
+      "ms": 21,
+      "error": "Error invoking remote method 'codex_plugin_catalog': Error: `codex plugin list --available --json` exited 1: The system cannot find the path specified."
     },
     {
       "name": "codex_plugin_install",
       "status": "refused",
-      "ms": 61,
-      "error": "Error invoking remote method 'codex_plugin_install': Error: Error: plugin requires --marketplace unless passed as <plugin>@<marketplace>"
+      "ms": 30,
+      "error": "Error invoking remote method 'codex_plugin_install': Error: The system cannot find the path specified."
     },
     {
       "name": "codex_plugin_uninstall",
       "status": "refused",
-      "ms": 77,
-      "error": "Error invoking remote method 'codex_plugin_uninstall': Error: Error: plugin requires --marketplace unless passed as <plugin>@<marketplace>"
+      "ms": 42,
+      "error": "Error invoking remote method 'codex_plugin_uninstall': Error: The system cannot find the path specified."
     },
     {
       "name": "codex_marketplace_list",
-      "status": "ok",
-      "ms": 59,
-      "shape": "array(0)"
+      "status": "FAIL",
+      "ms": 24,
+      "error": "Error invoking remote method 'codex_marketplace_list': Error: `codex plugin marketplace list --json` exited 1: The system cannot find the path specified."
     },
     {
       "name": "codex_marketplace_add",
       "status": "refused",
-      "ms": 80,
-      "error": "Error invoking remote method 'codex_marketplace_add': Error: error: unexpected argument 'https://example.invalid/smoke' found\n\nUsage: codex plugin marketplace add [OPTIONS] <SOURCE>\n\nFor more informat"
+      "ms": 30,
+      "error": "Error invoking remote method 'codex_marketplace_add': Error: The system cannot find the path specified."
     },
     {
       "name": "codex_marketplace_remove",
       "status": "refused",
-      "ms": 62,
-      "error": "Error invoking remote method 'codex_marketplace_remove': Error: Error: marketplace `__smoke_probe_absent` is not configured or installed"
+      "ms": 26,
+      "error": "Error invoking remote method 'codex_marketplace_remove': Error: The system cannot find the path specified."
     },
     {
       "name": "codex_skill_list",
@@ -169,39 +170,39 @@
     },
     {
       "name": "codex_features",
-      "status": "ok",
-      "ms": 62,
-      "shape": "array(96)"
+      "status": "FAIL",
+      "ms": 22,
+      "error": "Error invoking remote method 'codex_features': Error: The system cannot find the path specified."
     },
     {
       "name": "codex_set_feature",
-      "status": "ok",
-      "ms": 155,
-      "shape": "array(96)"
+      "status": "FAIL",
+      "ms": 25,
+      "error": "Error invoking remote method 'codex_set_feature': Error: `codex features enable web_search_request` failed: The system cannot find the path specified."
     },
     {
       "name": "codex_usage",
       "status": "ok",
-      "ms": 3,
+      "ms": 2,
       "shape": "object"
     },
     {
       "name": "codex_cloud_tasks",
       "status": "ok",
-      "ms": 77,
+      "ms": 30,
       "shape": "object"
     },
     {
       "name": "codex_session_list",
       "status": "ok",
-      "ms": 3,
+      "ms": 2,
       "shape": "array(5)"
     },
     {
       "name": "codex_session_action",
       "status": "refused",
-      "ms": 687,
-      "error": "Error invoking remote method 'codex_session_action': Error: `codex archive 0f3c1a92-7b41-4d6e-9c02-51ab8e7d3f10` failed: Error: failed to archive session"
+      "ms": 26,
+      "error": "Error invoking remote method 'codex_session_action': Error: `codex archive 0f3c1a92-7b41-4d6e-9c02-51ab8e7d3f10` failed: The system cannot find the path specified."
     },
     {
       "name": "codex_login",
@@ -211,7 +212,7 @@
     {
       "name": "codex_login_status",
       "status": "ok",
-      "ms": 93,
+      "ms": 42,
       "shape": "object"
     },
     {
@@ -222,73 +223,73 @@
     {
       "name": "codex_wsl_list",
       "status": "ok",
-      "ms": 87,
+      "ms": 40,
       "shape": "object"
     },
     {
       "name": "codex_wsl_spawn",
       "status": "refused",
-      "ms": 71,
+      "ms": 51,
       "error": "Error invoking remote method 'codex_wsl_spawn': Error: `Ubuntu` is not an installed WSL distribution"
     },
     {
       "name": "codex_wsl_stop",
       "status": "ok",
-      "ms": 1,
+      "ms": 0,
       "shape": "object"
     },
     {
       "name": "codex_wsl_kill",
       "status": "ok",
-      "ms": 51,
+      "ms": 46,
       "shape": "object"
     },
     {
       "name": "codex_wsl_set",
       "status": "ok",
-      "ms": 49,
+      "ms": 53,
       "shape": "object"
     },
     {
       "name": "codex_wsl_exec",
       "status": "ok",
-      "ms": 1890,
+      "ms": 480,
       "shape": "object"
     },
     {
       "name": "codex_history_commit",
       "status": "ok",
-      "ms": 244,
+      "ms": 199,
       "shape": "object"
     },
     {
       "name": "codex_history_log",
       "status": "ok",
-      "ms": 40,
+      "ms": 33,
       "shape": "object"
     },
     {
       "name": "codex_history_show",
       "status": "ok",
-      "ms": 39,
+      "ms": 35,
       "shape": "object"
     },
     {
       "name": "codex_history_diff",
       "status": "ok",
-      "ms": 43,
+      "ms": 37,
       "shape": "object"
     },
     {
       "name": "codex_history_prune",
       "status": "ok",
-      "ms": 40,
+      "ms": 53,
       "shape": "object"
     },
     {
       "name": "codex_editors",
       "status": "ok",
-      "ms": 1312,
+      "ms": 1234,
       "shape": "object"
     },
     {
@@ -304,13 +305,13 @@
     {
       "name": "codex_fonts",
       "status": "ok",
-      "ms": 2,
+      "ms": 1,
       "shape": "object"
     },
     {
       "name": "codex_read_text",
       "status": "ok",
-      "ms": 0,
+      "ms": 1,
       "shape": "object"
     },
     {
@@ -350,9 +351,9 @@
     },
     {
       "nav": "ext",
-      "chars": 1072,
+      "chars": 873,
       "unresolved": 0,
-      "controls": 30,
+      "controls": 27,
       "drove": null,
       "newErrors": [],
       "status": "ok"
@@ -386,7 +387,7 @@
     },
     {
       "nav": "health",
-      "chars": 1513,
+      "chars": 369,
       "unresolved": 0,
       "controls": 22,
       "drove": null,
@@ -404,7 +405,7 @@
     },
     {
       "nav": "changelog",
-      "chars": 27280,
+      "chars": 28118,
       "unresolved": 0,
       "controls": 28,
       "unresolvedInProse": 1,
@@ -426,13 +427,14 @@
     "%cElectron Security Warning (Insecure Content-Security-Policy) font-weight: bold; This renderer process has either no Content Security\n  Policy set or a policy with \"unsafe-eval\" enabled. This exposes users of\n  this app to unnecessary security risks.\n\nFor more information and help, consult\nhttps://electronjs.org/docs/tutorial/security.\nThis warning will not show up\nonce the app is packaged."
   ],
   "summary": {
-    "ipcOk": 40,
-    "ipcRefused": 7,
+    "ipcOk": 30,
+    "ipcRefused": 9,
     "ipcSkipped": 8,
-    "ipcFailed": 0,
+    "ipcNoCli": 0,
+    "ipcFailed": 8,
     "panelsOk": 10,
     "panelsFailed": 0,
-    "cliOk": true,
+    "cliOk": false,
     "consoleErrors": 0
   }
 }

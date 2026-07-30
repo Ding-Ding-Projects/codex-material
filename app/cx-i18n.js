@@ -1284,6 +1284,24 @@
       en: ["廣東話 (playful HK Cantonese)", "廣東話 — playful HK Cantonese", "廣東話 (playful HK style)", "廣東話 (cheeky HK Cantonese)", "廣東話 (full-on cheeky HK)"],
       yue: ["廣東話（香港口語）", "廣東話（香港地道口語）", "廣東話（港式生鬼中文）", "廣東話（港式抵死中文）", "廣東話（港式抵死，玩到盡）"]
     },
+    /* Shown where a WSL distribution name would go, on a machine that has none. The
+       binding used to resolve to undefined and render as a blank button. */
+    "wsl.none": {
+      en: ["No WSL installed", "No WSL installed", "No WSL installed", "No WSL here", "No WSL on this machine"],
+      yue: ["未安裝 WSL", "未安裝 WSL", "冇裝 WSL", "呢部機冇 WSL", "呢部機冇 WSL"]
+    },
+    "wsl.noneHint": {
+      en: ["Install a distribution with wsl --install",
+        "Install a distribution with wsl --install",
+        "Install one first — run wsl --install",
+        "Install one first — run wsl --install in an elevated terminal",
+        "Install one first — run wsl --install in an elevated terminal"],
+      yue: ["用 wsl --install 裝一個發行版",
+        "用 wsl --install 裝一個發行版",
+        "先裝一個 —— 行 wsl --install",
+        "先裝一個 —— 喺管理員終端機行 wsl --install",
+        "先裝一個 —— 喺管理員終端機行 wsl --install"]
+    },
     "act.open": {
       en: ["Open", "Open", "Open", "Open", "Open"],
       yue: ["開啟", "開啟", "打開", "打開", "打開"]
