@@ -9,9 +9,10 @@
 `contrastLabel` keys of `renderVals`); the colour mathematics in `CX.color` in
 `app/codex-core.js`.
 
-There is no `app/cx-appearance.js`. Everything described here lives in the two files above, and
-the section [What is not implemented yet](#what-is-not-implemented-yet) is an honest list rather
-than a roadmap footnote.
+`app/cx-appearance.js` also exists and holds the validation, export and import paths. An earlier
+version of this document asserted the file was not there at all — it is, and it is 27 KB. The
+section [What is not implemented yet](#what-is-not-implemented-yet) is an honest list rather than
+a roadmap footnote, and it is shorter than it was.
 
 ## How an element becomes editable
 
@@ -57,12 +58,32 @@ is not what ships here.
 
 ## Anchoring
 
-The popover opens at the cursor, clamped into the viewport before it is placed:
+The popover opens **beside the element**, never on top of it. `appearAnchor(host)` measures the
+element's own rectangle, prefers the right-hand side, flips to the left when the right would
+leave the viewport, and clamps vertically against the height the panel can actually occupy:
 
 ```js
-{ x: Math.min(e.clientX, window.innerWidth - 350),
-  y: Math.max(8, Math.min(e.clientY, window.innerHeight - 470)) }
+const W = 330, GAP = 12;
+const H = Math.min(470, Math.round(window.innerHeight * 0.7));
+const r = host.getBoundingClientRect();
+let x = r.right + GAP;
+if (x + W > window.innerWidth - 8) x = r.left - W - GAP;
 ```
+
+> It used to anchor to the **pointer** — `clientX`/`clientY` clamped to the window — so
+> right-clicking anywhere near the middle of a control opened the editor directly on top of the
+> control being edited. The screenshot audit photographed exactly that. Clamping against a
+> constant `470` rather than `70vh` also pushed the panel off the bottom of short windows.
+
+**Keyboard route:** <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> opens the editor for whatever
+element currently has focus, walking up to the nearest `[data-appear]` ancestor. The context menu
+was previously the only door, which made the entire feature unreachable without a mouse — an
+accessibility defect, and those are completion blockers here rather than polish. Closing returns
+focus to whatever opened it.
+
+**The editor is itself a target.** It carries `data-appear="Appearance editor"`, so it can be
+restyled by the system it exists to provide; a theming feature that cannot theme its own dialog
+is incomplete. It also announces itself as a named `role="dialog"`.
 
 It is **non-modal** — no `aria-modal`, no backdrop, no focus trap. The page behind it stays live,
 so a user can watch a change land on the element they are editing. <kbd>Esc</kbd> closes it
@@ -185,9 +206,8 @@ Stated plainly, because a documented capability that does not exist is worse tha
   shadow, glow, word spacing, line height, baseline offset, text direction and alignment. What
   ships is the eight properties in the table above.
 - **The colour picker has no swatch grid, no recents, no eyedropper and no saved palettes.** The
-  continuous HSV sliders and the hex field are the whole picker.
-- **Colour entry is one-way per space.** The twelve translations are read-only output; you cannot
-  type an `oklch(…)` or `cmyk(…)` value in and have it parsed back. Only hex is an input.
+  two-dimensional saturation/brightness field, the hue strip, the three named sliders and the
+  free-text field are the whole picker.
 - **No named presets, no import.** Export copies JSON to the clipboard; nothing reads it back in.
 - **No search bar inside the appearance editor.** The Studio settings surface has one, wired to the
   regex builder; the per-element popover does not.
@@ -199,6 +219,45 @@ Stated plainly, because a documented capability that does not exist is worse tha
   Appearance section's description mentions density, which is currently inaccurate.
 - **Gamut warnings are absent.** LAB, LCH, OKLab, OKLCH and CMYK are computed and displayed
   without checking whether the value is representable in sRGB, and nothing warns before clipping.
+
+## The colour picker
+
+A draggable **two-dimensional saturation/brightness field** with the thumb sitting at the current
+colour, a hue strip painted in the hues it selects, and three named sliders beneath it for
+keyboard use and exact numbers. Before this it was a swatch and three unlabelled range inputs —
+neither continuous in two dimensions nor identifiable, since three identical sliders in a row
+tell you nothing about which is which.
+
+The free-text field reads **every representation the translator writes**: hex, hex8, `rgb()`,
+`rgba()`, `hsl()`, `hsv()`/`hsb()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()`, `cmyk()`,
+and the named colours. Both the legacy comma form and the modern space-with-slash-alpha form
+parse, alpha is preserved rather than dropped, and anything that is not a colour returns `null`
+rather than a guess — an unparseable value stays in the field instead of being swallowed
+mid-keystroke.
+
+> This was one-way until recently: the panel printed `oklch(0.85 0.06 300)` and then refused that
+> exact string if you typed it into the field directly beneath. `CX.color.parse` is verified by
+> round trip in `tools/test-frontend.mjs` — every space emitted for seven colours, parsed back,
+> compared — because an inverse transform that is subtly wrong in one space is the bug nobody
+> notices for a year. Worst channel drift is 1 of 255.
+
+## Per-element keying, and why tabs use ids
+
+The appearance store is keyed by the `data-appear` string. Every loose tab used to render with
+the same literal `data-appear="Tab"`, so restyling one restyled all of them at once — and a tab
+*inside a group* carried no `data-appear` at all and could not be restyled. Both chips now key by
+`"Tab:" + tab.id`, which survives a rename where the visible title does not, and the editor
+resolves the id back to the tab's title for its heading so nobody is asked to read `Tab:9f3c`.
+
+## Every change is a revision
+
+`patchAppear` and both reset buttons commit to the local version history, so restyling something
+can be undone from the History panel like anything else. The commit is **debounced by 900 ms**:
+`patchAppear` fires on every frame of a colour drag, and one revision per frame would bury the
+log under a few hundred entries nobody will read. The two resets skip the debounce because they
+are discrete, deliberate and destructive, and an unchanged state still records nothing.
+
+See [local-version-control.md](local-version-control.md).
 
 ## Failure modes
 
