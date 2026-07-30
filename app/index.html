@@ -1003,27 +1003,32 @@ const PRICES = {
   "oss:gpt-oss-120b": { in: 0, cached: 0, out: 0 }
 };
 
+/* Labels and hints are resolved through CX.i18n at render time — see navRows(). The
+   array itself is evaluated once at load, before a language change can be applied, so
+   holding the strings here would freeze them at whatever the mode was on startup. */
 const NAV = [
-  { id: "chat", icon: "💬", label: "Chats", hint: "Interactive sessions in the active profile" },
-  { id: "console", icon: "▶", label: "Console", hint: "Every CLI subcommand and flag" },
-  { id: "ext", icon: "⧉", label: "Extend", hint: "MCP, plugins, marketplaces, skills, hooks, feature flags" },
-  { id: "settings", icon: "⚙", label: "Config", hint: "Every config.toml setting for this profile" },
-  { id: "cost", icon: "$", label: "Cost", hint: "API-equivalent cost calculator" },
-  { id: "runtime", icon: "🐧", label: "Runtime", hint: "Per-tab WSL instances — spawn one per session and route work through it" },
-  { id: "health", icon: "✚", label: "Health", hint: "Doctor, account, usage, cloud tasks" },
-  { id: "history", icon: "↺", label: "History", hint: "Local git history — undo anything, including an undo" },
-  { id: "changelog", icon: "≡", label: "Changelog", hint: "Every released version, filtered by date and searched with the regex builder" },
-  { id: "studio", icon: "◐", label: "Studio", hint: "Language, funny level, narrator, dim sum, external editor and history retention" }
+  { id: "chat", icon: "\u{1F4AC}" },
+  { id: "console", icon: "\u25B6" },
+  { id: "ext", icon: "\u29C9" },
+  { id: "settings", icon: "\u2699" },
+  { id: "cost", icon: "$" },
+  { id: "runtime", icon: "\u{1F427}" },
+  { id: "health", icon: "\u271A" },
+  { id: "history", icon: "\u21BA" },
+  { id: "changelog", icon: "\u2261" },
+  { id: "studio", icon: "\u25D0" }
 ];
 
+/* Titles and subtitles resolve through CX.i18n where they are rendered, for the same
+   reason as NAV above. */
 const EXT_CATEGORIES = [
-  { id: "mcp", title: "MCP servers", sub: "External tool servers" },
-  { id: "browse", title: "Plugin marketplace", sub: "Browse and install plugins" },
-  { id: "plugins", title: "Installed plugins", sub: "Enable, disable, remove" },
-  { id: "marketplaces", title: "Registries", sub: "Marketplace sources" },
-  { id: "skills", title: "Skills", sub: "SKILL.md entries" },
-  { id: "hooks", title: "Hooks", sub: "Lifecycle hooks" },
-  { id: "features", title: "Feature flags", sub: DATA.FEATURES.length + " keys" }
+  { id: "mcp" },
+  { id: "browse" },
+  { id: "plugins" },
+  { id: "marketplaces" },
+  { id: "skills" },
+  { id: "hooks" },
+  { id: "features" }
 ];
 
 /* Wizards for the slash-command catalog: argument shape per command. */
@@ -1504,6 +1509,29 @@ class Component extends DCLogic {
     return true;
   }
 
+  /* Resolved per render, not once at load: the arrays are evaluated before a language
+     change can be applied, so holding the strings in them would freeze the rail and the
+     category list at whatever the mode was on startup. */
+  /** The rail label.
+   *
+   *  In bilingual mode the rail shows only the PRIMARY language: it is 76px wide, and
+   *  concatenating both at funny level 5 wrapped every item to three lines and pushed
+   *  the ten entries far apart — the crowding the bilingual rule exists to prevent.
+   *  The full pair is not lost, it moves to the tooltip, which is the progressive
+   *  disclosure the rule asks for on constrained layouts. */
+  navLabel(id) {
+    const key = "nav." + id;
+    if (CX.i18n.mode !== "bi") return CX.i18n.t(key);
+    const both = CX.i18n.t(key);
+    const cut = both.indexOf("  ·  ");
+    return cut === -1 ? both : both.slice(0, cut);
+  }
+  /** Both languages always: a tooltip has room, and bilingual mode should not cost the
+   *  user the second reading. */
+  navHint(id) { return CX.i18n.t("nav." + id) + " — " + CX.i18n.t("nav." + id + ".hint"); }
+  extTitle(id) { return CX.i18n.t("ext." + id); }
+  extSub(id) { return id === "features" ? DATA.FEATURES.length + " keys" : CX.i18n.t("ext." + id + ".sub"); }
+
   appearTargetName(key) {
     if (!key) return "";
     if (key.indexOf("Tab:") !== 0) return key;
@@ -1894,10 +1922,10 @@ class Component extends DCLogic {
       })));
     }
     if (nav === "ext") {
-      return mk("Categories", "Search categories", "Add", EXT_CATEGORIES.filter((c) => match(c.title)).map((c) => ({
+      return mk("Categories", "Search categories", "Add", EXT_CATEGORIES.map((c) => ({ id: c.id, title: this.extTitle(c.id), sub: this.extSub(c.id) })).filter((c) => match(c.title + " " + c.sub)).map((c) => ({
         key: c.id, title: c.title, subtitle: c.sub, meta: "", initial: c.title[0], active: c.id === st.extCat,
         go: () => this.setState({ extCat: c.id, extQuery: "", extRegex: null }),
-        context: (e) => this.menuAt(e, c.title, [{ key: "o", icon: "→", label: "Open", click: () => this.setState({ menu: null, extCat: c.id }) }].concat(this.filterItems("list", c.title)).concat([this.appearItem(e)]))
+        context: (e) => this.menuAt(e, c.title, [{ key: "o", icon: "→", label: CX.i18n.t("act.open"), click: () => this.setState({ menu: null, extCat: c.id }) }].concat(this.filterItems("list", c.title)).concat([this.appearItem(e)]))
       })));
     }
     if (nav === "settings") {
@@ -2128,12 +2156,13 @@ class Component extends DCLogic {
 
       navRows: NAV.map((n) => {
         const on = n.id === st.nav;
-        return { key: n.id, icon: n.icon, label: n.label, hint: n.hint,
+        const label = this.navLabel(n.id), hint = this.navHint(n.id);
+        return { key: n.id, icon: n.icon, label: label, hint: hint,
           pillBg: on ? "var(--m3-secondary-container)" : "transparent",
           pillFg: on ? "var(--m3-on-secondary-container)" : "var(--m3-on-surface-variant)",
           labelFg: on ? "var(--m3-on-surface)" : "var(--m3-on-surface-variant)",
           go: () => this.setState({ nav: n.id, listQuery: "", listRegex: null }),
-          context: (e) => this.menuAt(e, n.label, [{ key: "g", icon: "→", label: "Open " + n.label, click: () => this.setState({ menu: null, nav: n.id }) }, this.appearItem(e)]) };
+          context: (e) => this.menuAt(e, label, [{ key: "g", icon: "→", label: CX.i18n.t("act.open") + " " + label, click: () => this.setState({ menu: null, nav: n.id }) }, this.appearItem(e)]) };
       }),
 
       profileTabs: st.profiles.map((pr) => ({
@@ -2239,7 +2268,7 @@ class Component extends DCLogic {
 
       headerTitle: st.nav === "chat" ? activeSession.name
         : st.nav === "console" ? "codex " + (sub.name === "(interactive)" ? "" : sub.name)
-        : st.nav === "ext" ? ((EXT_CATEGORIES.find((c) => c.id === st.extCat) || {}).title || "")
+        : st.nav === "ext" ? this.extTitle(st.extCat)
         : st.nav === "settings" ? section.title
         : st.nav === "cost" ? "API-equivalent cost"
         : st.nav === "health" ? "Health · " + st.healthView
@@ -2523,7 +2552,7 @@ class Component extends DCLogic {
       })),
 
       extQuery: st.extQuery,
-      extPlaceholder: st.extRegex ? "/" + st.extRegex.pattern + "/" : "Filter " + ((EXT_CATEGORIES.find((c) => c.id === st.extCat) || {}).title || "").toLowerCase(),
+      extPlaceholder: st.extRegex ? "/" + st.extRegex.pattern + "/" : "Filter " + this.extTitle(st.extCat).toLowerCase(),
       extBorder: st.extRegex ? "var(--m3-primary)" : "transparent",
       extRegexBg: st.extRegex ? "var(--m3-primary)" : "transparent",
       extRegexFg: st.extRegex ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",

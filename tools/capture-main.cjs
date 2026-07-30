@@ -40,6 +40,14 @@ const SHOTS = [
   },
   { id: "studio", file: "10-studio.png", nav: "studio", note: "Studio settings — language, funny sliders, narrator, dim sum, editor" },
   {
+    id: "cantonese",
+    file: "17-cantonese.png",
+    nav: "chat",
+    note: "Bilingual mode at funny level 5 — the navigation rail, headings and empty state all localised",
+    before: `CX.i18n.mode = "bi"; CX.i18n.funny = { en: 5, yue: 5 }; CX.i18n.save && CX.i18n.save();`,
+    state: { lang: "bi" },
+  },
+  {
     id: "regex",
     file: "11-regex-builder.png",
     nav: "ext",

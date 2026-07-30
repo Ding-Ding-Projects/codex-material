@@ -93,11 +93,11 @@
     },
 
     /* ---- nav */
-    "nav.chats": {
+    "nav.chat": {
       en: ["Chats", "Chats", "Chats", "Chats", "Chats"],
       yue: ["對話", "對話", "傾偈", "傾偈", "吹水位"]
     },
-    "nav.chats.hint": {
+    "nav.chat.hint": {
       en: ["Interactive Codex sessions in the active profile.",
         "Interactive Codex sessions in the active profile.",
         "Your interactive Codex sessions in the active profile.",
@@ -125,11 +125,11 @@
         "全部 CLI 子指令同 flag：撳兩下就行得。",
         "全部 CLI 子指令同 flag 都喺度，唔使再靠估打 shell。"]
     },
-    "nav.extend": {
+    "nav.ext": {
       en: ["Extend", "Extend", "Extend", "Extend", "Extend"],
       yue: ["擴充", "擴充", "擴充", "加料", "加料區"]
     },
-    "nav.extend.hint": {
+    "nav.ext.hint": {
       en: ["MCP servers, plugins, marketplaces, skills, hooks and feature flags.",
         "MCP servers, plugins, marketplaces, skills, hooks and feature flags.",
         "MCP servers, plugins, marketplaces, skills, hooks and feature flags — all the bolt-ons.",
@@ -141,11 +141,11 @@
         "所有加料嘢：MCP 伺服器、外掛、市集、技能、掛鈎同功能旗標。",
         "加料抽屜：MCP 伺服器、外掛、市集、技能、掛鈎同功能旗標。"]
     },
-    "nav.config": {
+    "nav.settings": {
       en: ["Config", "Config", "Config", "Config", "Config"],
       yue: ["設定", "設定", "設定", "設定", "設定房"]
     },
-    "nav.config.hint": {
+    "nav.settings.hint": {
       en: ["Every config.toml setting for this profile.",
         "Every config.toml setting for this profile.",
         "Every config.toml setting for this profile, with what each one does.",
@@ -1565,6 +1565,107 @@
        git repository written by a previous install, for instance. The old code
        returned null and did nothing, which on a data-recovery feature is the worst
        possible response. */
+    /* The navigation rail, the Extend category list and the window chrome. These were
+       hard-coded English literals, so switching to 廣東話 or bilingual left the app's
+       primary surface untranslated — the language mode reached the messages and missed
+       the furniture. Nav labels stay one or two words at every level because the rail
+       is 76px wide and a wrapped label is a layout defect, not a joke. */
+                    "nav.studio": {
+      en: ["Preferences", "Studio", "Studio", "Your Studio", "Studio Vibes"],
+      yue: ["偏好設定", "Studio", "Studio", "你嘅 Studio", "Studio 氣氛"]
+    },
+    "nav.studio.hint": {
+      en: ["Language, funny level, narrator, dim sum surprise, external editor and history retention.", "Language mode, funny level, narrator, dim sum surprise, external editor and history retention.", "Language, funny level, narrator, dim sum, external editor and how long history is kept.", "Language, funny level, narrator, dim sum surprise, external editor and how long history sticks around.", "Language, funny level, narrator, dim sum surprise, external editor and how long history hangs about — the app's whole personality lives here."],
+      yue: ["語言、幽默程度、旁白、點心驚喜、外部編輯器同歷史保留期。", "語言模式、幽默程度、旁白、點心驚喜、外部編輯器同歷史保留期。", "語言、幽默程度、旁白、點心、外部編輯器，同歷史留幾耐。", "語言、幽默程度、旁白、點心驚喜、外部編輯器，仲有歷史留幾耐。", "語言、幽默程度、旁白、點心驚喜、外部編輯器同歷史留幾耐 — 成個 app 嘅性格都喺呢度調。"]
+    },
+    "ext.mcp": {
+      en: ["MCP servers", "Your MCP servers", "MCP servers you run", "Your MCP server crew", "The MCP server gang"],
+      yue: ["MCP 伺服器", "你嘅 MCP 伺服器", "你行緊嘅 MCP 伺服器", "你嘅 MCP 伺服器班底", "MCP 伺服器天團"]
+    },
+    "ext.mcp.sub": {
+      en: ["External tool servers", "Servers that supply external tools", "Servers that lend Codex extra tools", "Outside servers, lending Codex extra tools", "Outside servers handing Codex extra tools on a plate"],
+      yue: ["外部工具伺服器", "提供外部工具嘅伺服器", "借額外工具畀 Codex 用嘅伺服器", "外面嘅伺服器，借啲工具畀 Codex 傍身", "外面嘅伺服器孝敬 Codex，工具任攞"]
+    },
+    "ext.browse": {
+      en: ["Plugin marketplace", "The plugin marketplace", "Plugin shop", "Plugin bazaar", "Plugin shopping spree"],
+      yue: ["外掛市集", "外掛市集一覽", "外掛商店", "外掛街市", "外掛掃貨天堂"]
+    },
+    "ext.browse.sub": {
+      en: ["Browse and install plugins", "Browse the marketplace and install plugins", "Browse plugins and install the ones you like", "Window-shop the plugins, install the keepers", "Browse plugins, install the ones you can't live without"],
+      yue: ["瀏覽同安裝外掛", "喺市集瀏覽同安裝外掛", "慢慢睇外掛，鍾意邊個就裝邊個", "任你睇外掛，啱心水就㩒個掣裝", "外掛任你睇到眼花，啱心水就裝"]
+    },
+    "ext.plugins": {
+      en: ["Installed plugins", "Your installed plugins", "Plugins you've installed", "Plugins already on board", "Plugins you've let in"],
+      yue: ["已安裝外掛", "你已安裝嘅外掛", "你裝咗嘅外掛", "已經上咗船嘅外掛", "畀你請咗入嚟嘅外掛"]
+    },
+    "ext.plugins.sub": {
+      en: ["Enable, disable, remove", "Enable, disable or remove them", "Turn them on, turn them off, or remove them", "Switch one on, switch one off, or remove it for good", "On, off, or removed for good — every plugin, your call"],
+      yue: ["啟用、停用、移除", "啟用、停用或者移除佢哋", "開佢、閂佢，唔要就刪咗佢", "開得閂得，唔啱就一鍵刪走", "開、閂、刪走佢，每個外掛都你話事"]
+    },
+    "ext.marketplaces": {
+      en: ["Registries", "Registry list", "Plugin registries", "Plugin supply lines", "Plugin wholesalers"],
+      yue: ["註冊庫", "註冊庫清單", "外掛註冊庫", "外掛供應線", "外掛批發商"]
+    },
+    "ext.marketplaces.sub": {
+      en: ["Marketplace sources", "Sources for the plugin marketplace", "The lists Codex pulls plugins from", "The shops Codex fetches its plugins from", "Codex's little black book of plugin shops"],
+      yue: ["市集來源", "外掛市集嘅來源", "Codex 攞外掛嘅來源清單", "Codex 幫襯緊邊幾間外掛舖", "Codex 嘅外掛入貨秘笈"]
+    },
+    "ext.skills": {
+      en: ["Skills", "Your skills", "Skills Codex can use", "Codex's skill set", "Codex's bag of skills"],
+      yue: ["技能", "你嘅技能", "Codex 用得嘅技能", "Codex 嘅技能組合", "Codex 嘅技能百寶袋"]
+    },
+    "ext.skills.sub": {
+      en: ["SKILL.md entries", "Entries from your SKILL.md files", "Everything your SKILL.md files define", "Whatever your SKILL.md files taught Codex", "SKILL.md files — Codex's cheat sheets"],
+      yue: ["SKILL.md 項目", "你 SKILL.md 檔案入面嘅項目", "你 SKILL.md 入面寫低嘅嘢", "你喺 SKILL.md 教過 Codex 嘅嘢", "SKILL.md 就係 Codex 嘅貓紙"]
+    },
+    "ext.hooks": {
+      en: ["Hooks", "Your hooks", "Hooks you've set up", "Your trigger-happy hooks", "Hooks lying in wait"],
+      yue: ["掛鈎", "你嘅掛鈎", "你設定咗嘅掛鈎", "一觸即發嘅掛鈎", "埋伏緊嘅掛鈎"]
+    },
+    "ext.hooks.sub": {
+      en: ["Lifecycle hooks", "Hooks that fire on lifecycle events", "Commands that run at set moments", "Your commands, fired at exactly the right moment", "Commands that pounce the moment their cue lands"],
+      yue: ["生命週期掛鈎", "喺生命週期事件觸發嘅掛鈎", "喺指定時刻自動行嘅指令", "夠鐘就自動彈出嚟行嘅指令", "時辰一到就撲出嚟嘅指令"]
+    },
+    "ext.features": {
+      en: ["Feature flags", "Codex feature flags", "Feature switches", "Feature toggles, flip away", "Switches begging to be flipped"],
+      yue: ["功能旗標", "Codex 功能旗標", "功能開關", "功能開關，任你㩒", "啲開關喺度等你㩒"]
+    },
+    "chrome.appName": {
+      en: ["Codex Studio", "Codex Studio", "Codex Studio", "Codex Studio", "Codex Studio"],
+      yue: ["Codex Studio", "Codex Studio", "Codex Studio", "Codex Studio", "Codex Studio"]
+    },
+    "chrome.apiEquiv": {
+      en: ["API equivalent", "API-equivalent cost", "API-equiv", "API-equiv if you were metered", "API-equiv (the meter you dodged)"],
+      yue: ["API 等值", "API 等值成本", "當 API 計", "當 API 收費咁計", "當 API 計（慳返嗰筆）"]
+    },
+    "chrome.paid": {
+      en: ["Paid", "Amount paid", "You paid", "Actually paid", "Paid — out of your pocket"],
+      yue: ["已付", "實付金額", "你付咗", "真係俾咗", "已付 — 荷包出嗰啲"]
+    },
+    "chrome.undo": {
+      en: ["Undo", "Undo change", "Undo that", "Take that back", "Undo — never happened"],
+      yue: ["復原", "還原改動", "撤返佢", "收返佢", "撤返，當冇發生過"]
+    },
+    "chrome.yoloHint": {
+      en: ["YOLO mode: one click disables approvals and the sandbox", "YOLO mode — one click turns off approvals and the sandbox", "One-click YOLO mode — no approvals, no sandbox", "One-click YOLO: approvals off, sandbox off, seatbelt off", "One-click YOLO — approvals off, sandbox off, nothing left between Codex and your disk"],
+      yue: ["YOLO 模式：一㩒關閉批准同沙盒", "YOLO 模式 — 一㩒批准同沙盒一齊熄", "一鍵 YOLO — 唔使批准、冇沙盒", "一鍵 YOLO：批准冇咗、沙盒冇咗、安全帶都甩埋", "一鍵 YOLO — 批准同沙盒全關，Codex 同你部機之間乜都冇"]
+    },
+    "console.preview": {
+      en: ["Composed command", "Composed command preview", "Command preview", "What we're about to run", "The exact line hitting your shell"],
+      yue: ["組成嘅指令", "組成指令預覽", "指令預覽", "即刻要行嘅指令", "就係呢行字入你 shell"]
+    },
+    "console.run": {
+      en: ["Run", "Run command", "Run it", "Send it", "Run — let it rip"],
+      yue: ["執行", "執行指令", "行佢", "㩒落去行", "行喇，唔使諗"]
+    },
+    "cost.loadUsage": {
+      en: ["Load session usage", "Load usage from the latest session", "Load the latest session's real token counts", "Grab the real token counts off your newest session", "Yank the real token counts out of your newest session"],
+      yue: ["載入 session 用量", "由最新 session 載入用量", "攞最新 session 嘅真實 token 數", "攞返最新 session 嗰啲真數字入嚟", "直接搶最新 session 嗰堆 token 數入嚟"]
+    },
+    "act.open": {
+      en: ["Open", "Open", "Open", "Open", "Open"],
+      yue: ["開啟", "開啟", "打開", "打開", "打開"]
+    },
     "appear.tabNamed": {
       en: ["Tab · {title}", "Tab · {title}", "Tab · {title}", "the {title} tab", "the {title} tab"],
       yue: ["分頁 · {title}", "分頁 · {title}", "分頁 · {title}", "{title} 嗰個分頁", "{title} 嗰個分頁"]

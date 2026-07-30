@@ -59,6 +59,12 @@ The app is pointed at an **authored `CODEX_HOME`** ([`tools/make-capture-home.mj
 
 ![The appearance editor anchored to an element, showing typography controls, a continuous colour picker and a list of colour-space translations](assets/screenshots/12-appearance.png)
 
+**Bilingual mode** — English and playful Hong Kong Cantonese together, at funny level 5.
+
+![Codex Studio in bilingual mode: the navigation rail shows one label per item, the transcript empty state reads "Beautifully, completely empty · 空空如也，靚到有啲淒涼", and the composer placeholder reads "Message Codex · 打 / 開指令目錄"](assets/screenshots/17-cantonese.png)
+
+*Both languages reach the interface, not just the messages. The rail shows the primary language only — it is 76px wide, and concatenating both wrapped every item to three lines — with the full pair in each item's tooltip. The two funny-level sliders are independent, so English can sit at 1 while Cantonese sits at 5.*
+
 <details>
 <summary><b>The rest of the gallery</b> — Extend, Config, Cost, Runtime, Health, usage, cloud tasks, History, Changelog, the calendar picker, Studio settings, notifications, bulk close, dim sum, light theme</summary>
 
@@ -81,6 +87,7 @@ Descriptions come from [`assets/screenshots/manifest.json`](assets/screenshots/m
 | [`14-bulk-close.png`](assets/screenshots/14-bulk-close.png) | Bulk close preview — the one place a blocking dialog is correct |
 | [`15-dim-sum.png`](assets/screenshots/15-dim-sum.png) | Dim sum surprise — bundled catalog photo, non-blocking, auto-dismissing |
 | [`16-light-theme.png`](assets/screenshots/16-light-theme.png) | Light theme — the same surface under the M3 light palette |
+| [`17-cantonese.png`](assets/screenshots/17-cantonese.png) | Bilingual mode at funny level 5 — the navigation rail, headings and empty state all localised |
 
 </details>
 

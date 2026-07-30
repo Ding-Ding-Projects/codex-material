@@ -6,31 +6,56 @@ Nothing here is predicted, and nothing is claimed green that was not observed gr
 
 | | |
 | --- | --- |
-| **Snapshot commit** | `713b498` — *Give the landing page its own assets, and check that it keeps them* |
+| **Snapshot commit** | `c9c2763` — *A restore now restores all of it, not the half that happened to be listed* |
 | **Branch** | `main` |
 | **Captured** | 2026-07-30 |
 | **Platform** | Windows-only Electron app (`electron/main.js`), no macOS or Linux target |
 | **Public repo** | `Ding-Ding-Projects/codex-material` |
+| **Newest release** | `v0.1.0+build.566` — non-draft, carrying a real NSIS `.exe` and `.msi` |
 
-> [!IMPORTANT]
-> **This tree moved continuously while this document was being written** — five commits landed
-> during the session: `561da4b` → `5ed6e5c` → `ae0e562` → `ac625c2` → `713b498`. Consequences
-> you need to know about:
->
-> - Two defects that were live at the start were fixed by `5ed6e5c` mid-session. They are
->   recorded under *Recently closed* rather than as open defects, because they were **re-tested
->   after the fix** and are genuinely closed.
-> - **The documentation migration described in gap 1 is in progress right now.** The count
->   dropped from 15 stale files to 11 while this was being written. Re-run the grep before
->   acting on it.
-> - `app/` has not changed since `ae0e562`, so every frontend finding below (gaps 2, 3, 4) was
->   re-confirmed at this commit and stands.
-> - This file was itself swept into commit `713b498` by a concurrent `git add -A`.
->
-> If you are reading this at a later commit, re-run the verification block before trusting any
-> number in it.
+## Verification block
 
----
+Run these four. Every figure in this document came from them.
+
+```bash
+node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/capture.mjs && node tools/audit-ui.mjs
+```
+
+| Command | Observed at `c9c2763` |
+| --- | --- |
+| `node tools/test-frontend.mjs` | **24 passed, 0 failed** |
+| `node tools/test-backend.mjs` | **28 passed, 0 failed** |
+| `node tools/capture.mjs` | **exit 0** — 19 shots written, 1 console message (the expected CSP notice) |
+| `node tools/audit-ui.mjs` | **17 findings across 240 cells, 0 severity high** |
+
+> [!NOTE]
+> **All 17 remaining audit findings are the harness noting a deliberately ellipsised label.**
+> That is evidence a label no longer fits its box, not a defect: the capture fixture contains a
+> 76-character session name specifically to exercise truncation. There are currently **no
+> unaddressed real findings** in the UI audit. Before this session there were 228 unique
+> findings across 1646 occurrences.
+
+> [!WARNING]
+> `node tools/capture.mjs` **exits non-zero if the app fails to render.** It distinguishes a
+> broken render — a thrown exception, or a `{{ binding }}` that never resolved — from the
+> permanent Content-Security-Policy notice that the design-compiler runtime provokes on every
+> launch because it compiles templates with `new Function`. Do not "fix" that notice by
+> removing `unsafe-eval`; the app will not start. Do not ignore a non-zero exit: it has caught
+> three real regressions, including one where every binding in the window was empty and the
+> harness still wrote nineteen screenshots of a black rectangle.
+
+## What is genuinely done
+
+- **The app runs the real CLI.** 53 named IPC commands behind an allow-list preload; no generic
+  invoke. Every handler either executes the real `codex` binary and hands its output back
+  verbatim, or reads and writes a real file under `$CODEX_HOME`.
+- **Screenshots are captured against an authored `CODEX_HOME`** (`tools/make-capture-home.mjs`),
+  never the operator's own. An earlier set had a real Windows username legible in seven images
+  and a private repository name in an eighth, committed and mirrored to the published site.
+- **Accessibility**: 0 severity-high findings, and every target-size, focus-visible,
+  accessible-name and clipped-text finding is closed. The window reflows at 200% zoom.
+- **CI** publishes one non-draft release per green push, each carrying a real installer.
+
 
 ## What this project is
 
@@ -116,177 +141,89 @@ process.
 
 ## Known gaps and defects
 
-### 1. Documentation still describes a backend that no longer exists — migration in progress
+Every entry below was re-verified against this commit. Four gaps recorded in the previous
+handoff are now closed and appear under *Recently closed* instead — do not re-report them.
 
-`561da4b` replaced the Tauri 2 / Rust shell with Electron and deleted `src-tauri/`. The
-documentation was not migrated with it. `docs/README.md` still opens with *"built on Tauri 2"*
-and still maps `src-tauri/    Rust backend, Tauri 2 configuration…` in its repository tree.
+### 1. Documentation still describes a backend that no longer exists
 
-**Verified:** `ls src-tauri` → no such directory.
+The Rust shell was replaced by Electron in `561da4b`; `src-tauri/` does not exist. Some files
+still discuss Tauri. Re-run the grep before acting — this has been shrinking steadily:
 
-**Do not trust a count here — run the check.** This was being fixed faster than it could be
-written down. The measured trajectory across this single session:
+```bash
+grep -ril "tauri" --include=*.md --include=*.js . | grep -v node_modules
+```
 
-| Observed at | `grep -rl "src-tauri\|Tauri 2" docs/ \| wc -l` |
+Note that two of the remaining hits are the Pages site's `.js`, not `.md`. Grepping only
+`.md` will look finished while the published site still says Tauri.
+
+### 2. The language mode reaches a minority of the interface
+
+Measured at this commit: **119** `CX.i18n.t()` call sites against roughly **292** hard-coded
+user-facing strings — 29 literal text nodes in the template and 263 hard-coded
+`label`/`title`/`placeholder`/`hint` values in the logic. The navigation rail, the Extend
+category list and most panel headings are hard-coded English, so switching to 廣東話 or
+bilingual leaves the app's primary surface untranslated. This is the largest remaining
+shipping-requirement gap.
+
+```bash
+grep -c "CX.i18n.t(" app/index.html
+```
+
+### 3. Levels 1 and 2 of the funny sliders are byte-identical for almost every key
+
+233 of the 237 existing keys have the same text at level 1 and level 2 in both languages, so
+moving either slider from 1 to 2 changes nothing the user can see. A slider step that does
+nothing is a broken control. Newly added keys in this session do differentiate the two.
+
+### 4. The colour translator is one-way
+
+The twelve rows are read-only output and the single text input accepts hex only, so
+`oklch(...)` or `rgb(...)` typed into it is rejected. The rules ask for bidirectional
+conversion among the listed spaces.
+
+### 5. The appearance editor's typography is eight properties deep
+
+Family, size, weight, italic, underline, strike, a letter-spacing toggle and colour. The rules
+describe a word-processor standard — variable axes, small caps, super/subscript, highlight,
+outline, shadow, baseline offset, direction and the rest — with unsupported properties staying
+visible and explained rather than absent.
+
+### 6. Appearance writes do not record a revision
+
+`patchAppear` (every font, size, weight, toggle and colour change) and both in-editor reset
+buttons write straight to the store without committing to the history, so those changes cannot
+be undone from the History panel even though sibling controls elsewhere can.
+
+### 7. MCP servers and hooks are outside the snapshot
+
+The snapshot covers what the app keeps in `localStorage`. Records that live in `config.toml`
+and are managed through the CLI — MCP servers, hooks — are not captured, so deleting one
+cannot be undone. `restore()` does now push the snapshot's `config` back into `config.toml`
+as a dotted diff, so the mechanism to fix this exists; the snapshot simply does not collect
+those sections yet.
+
+### 8. The installers are unsigned
+
+`electron-builder` signs with whatever certificate the host offers; there is no code-signing
+identity configured, so Windows SmartScreen will warn on first run.
+
+### 9. Content-Security-Policy is set but permissive
+
+`unsafe-eval` is required: the design-compiler runtime compiles the template with
+`new Function`. Removing it stops the app from starting. This is the source of the one console
+message every capture reports, and it is expected.
+
+### Recently closed — verified fixed at this commit, do not re-report
+
+| Was | Now |
 | --- | --- |
-| session start (`561da4b`) | **15** |
-| `713b498` | **11** |
-| `85e55d9` | **4** |
-
-The last four at `85e55d9` were `docs/build/building-locally.md`, `docs/build/packaging.md`,
-`docs/site/app.js` and `docs/site/articles.js` — note that two of them are the **Pages site
-scripts**, not Markdown, so a grep restricted to `*.md` will report done while the published
-site still says Tauri.
-
-Already migrated: `docs/architecture/tauri-bridge.md` → `docs/architecture/ipc-bridge.md`, plus
-`overview.md`, `packaging.md`, `features/tabs.md` and the three remaining feature pages.
-
-The gap is listed first because of what it costs, not what is left of it: documentation that is
-confidently wrong sends a newcomer hunting for Rust that was deleted, and discredits the many
-pages that are accurate. Verify the current count before starting — it may already be zero.
-
-### 2. `(a?a?)+` still gets past both regex guards and freezes the window
-
-`5ed6e5c` hardened both engines against nested quantifiers and duplicate alternation branches.
-A third shape still escapes: a group whose body is ambiguous through **optional** elements
-rather than through a repeat or a repeated branch.
-
-**Reproduction, measured on this tree:**
-
-```
-CX.evaluate("(a?a?)+$", "", "a".repeat(26) + "b")   →  refused = NONE, ran 154,285 ms
-```
-
-The guard's `hasUnbounded("a?a?")` is false (`?` is correctly not treated as unbounded) and
-`overlapping("a?a?")` is false (there is only one branch, so `branches()` returns a single
-element) — but `a?a?` can match `"a"` two different ways, which is the classic ambiguity that
-makes the outer `+` exponential.
-
-Raw cost curve through a plain `RegExp`, sample = *n* × `"a"` + `"b"`:
-
-| n | wall |
-| --- | --- |
-| 18 | 236 ms |
-| 20 | 1,346 ms |
-| 22 | 7,718 ms |
-| 24 | 44,011 ms |
-
-Both engines are affected. `CX.evaluate` (`app/codex-core.js`) returns `refused = NONE`, and
-`CX_CHANGELOG.filter` (`app/cx-changelog.js`) returns `mode = "regex"` rather than `"invalid"`.
-
-**Why it matters:** the regex builder panel calls `CX.evaluate` directly on the user's own
-sample text (`app/index.html:1635`), so a user typing this pattern into the builder hangs the
-renderer. A single `RegExp.exec` cannot be interrupted from JavaScript, so the 300 ms
-`LIMITS.ms` budget — which is only checked *between* matches — cannot reach it. Refusing the
-shape before it runs is the only defence, exactly as the existing guard already does for the
-other shapes.
-
-The eighteen shapes probed and their verdicts: `(a*)*`, `((a+))+`, `(?:a+)+`, `([a-z]+)+`,
-`(\d+|\d+)+`, `(x|xx)+y`, `(a|b|ab)+c`, `(a+|a+)+`, `((a|a)+)+`, `(.*a){20}`, `(a{1,3})+`,
-`([ab]+)+`, `(\w|\w)+`, `(a+b?)+`, `^(a+)+`, `(\s|\s)+` — **all refused in 0–1 ms**.
-`(a+)\1+` ran cheaply and is not a problem. `(a?a?)+` is the sole escape.
-
-### 3. History coverage is inconsistent across sibling controls
-
-`CX.vcs` (`app/codex-core.js`) is the local git-backed undo system. `vcs.commit()` snapshots
-every tracked key at once — `profiles`, `config`, `features`, `appearance`, `tabs`, `prices`,
-`cost`, `lang`, `funny`, `settings`, `yolo` — and `revert`/`checkout` write *new* commits
-rather than rewriting the log, so undo is itself undoable. That design is sound.
-
-The wiring is not uniform. These controls write a tracked key and never commit, so they
-produce **no labelled revision of their own**:
-
-| Location | Control | Writes |
-| --- | --- | --- |
-| `app/index.html:2984`, `:2986` | Both funny-level sliders | `funny` |
-| `app/index.html:3007` | Narrator language picker | `settings` |
-| `app/index.html:1652`, `:1661` | Title-bar language selectors | `lang` |
-| `app/index.html:2321`, `:2418` | Reset one element's appearance | `appearance` |
-| `app/index.html:2419` | `resetAllAppear` — reset **every** element | `appearance` |
-| `app/index.html:3082` | `patchAppear` — every typography/colour edit | `appearance` |
-| `app/index.html:2216` | Per-model price editor | `prices` |
-| `app/index.html:1211` | `setCost` | `cost` |
-| `app/index.html:1747` | Switch active profile | `activeProfile` |
-
-The sharpest case is a **matched pair with opposite behaviour**:
-
-- `app/index.html:3072–3073` — *"Reset every element"* in the Studio panel writes `appearance`
-  **and** commits. Its own on-screen description reads *"Clears all per-element appearance
-  overrides. Recorded in History, so it is undoable."*
-- `app/index.html:2419` — `resetAllAppear`, the identical destructive operation reached from
-  the appearance editor, writes `appearance` and commits **nothing**.
-
-Same effect, two entry points, only one undoable — and the app's own copy promises the
-undoability. The narrator pair has the same shape: the on/off toggle at `:2999` commits, the
-language picker beside it at `:3007` does not.
-
-**Nuance worth knowing before you fix it:** because `commit()` snapshots *all* tracked keys, a
-value written without a commit still rides into whichever commit happens next. So the failure
-mode is "no undo point of its own", not "data lost" — but that is still the difference between
-being able to undo a mistake and not.
-
-### 4. Template placeholders reach `<input type="number">` and log console errors
-
-`assets/screenshots/manifest.json` records four real console errors captured from the running
-app:
-
-```
-The specified value "{{ c.value }}" cannot be parsed, or is out of range.
-The specified value "{{ c.priceIn }}" cannot be parsed, or is out of range.
-The specified value "{{ c.priceCached }}" cannot be parsed, or is out of range.
-The specified value "{{ c.priceOut }}" cannot be parsed, or is out of range.
-```
-
-Sources: `app/index.html:352` (`value="{{ c.value }}"`) and `:386`, `:387`, `:388`. The raw
-template markup is live in the DOM long enough for the browser to parse the placeholder as a
-number before the `dc` runtime substitutes it. The value renders correctly afterwards, so this
-is console noise rather than a visible defect — but it is noise that hides real errors.
-
-### 5. A running `codex` process cannot be stopped
-
-`electron/commands.js:126` registers `codex_run`, which awaits `cli.stream(...)` and streams
-lines to the window. **No child-process handle is retained and no cancel command exists** —
-`grep` for `codex_stop` / `codex_cancel` / `abort` across `app/` and `electron/` returns
-nothing. Once a run starts, the only way to stop it is to close the app.
-
-### 6. The installers are unsigned
-
-`package.json` `build.win` sets no `certificateFile`, `certificateSubjectName` or signing hook,
-and no signing step exists in `.github/workflows/ci.yml`. The generated release notes state
-this honestly. Consequence: SmartScreen warns on first run of every published installer.
-
-### 7. Appearance presets are a stub
-
-`CX.vcs.snapshot()` reads `appearancePresets` (`app/codex-core.js:564`), but **nothing anywhere
-writes that key** — there is no named-preset surface. "Export appearance presets"
-(`app/index.html:3070–3071`) writes JSON to the **clipboard** via `navigator.clipboard.writeText`,
-not to a file, and there is **no import path at all** (no file input, no `readAsText`, no
-handler). The changelog viewer, by contrast, does export a real file
-(`app/index.html:2578–2583`, a blob download named `codex-studio-changelog.md`), so the
-mechanism exists and is simply not used here.
-
-### 8. Content-Security-Policy is set but permissive
-
-A CSP **is** present at `app/index.html:10`. It allows `script-src 'self' 'unsafe-inline'
-'unsafe-eval'`, which is why Electron's insecure-CSP warning appears in the captured console
-log. The `unsafe-eval` is required by the vendored `dc` template runtime (`app/support.js`);
-tightening it means changing how that runtime compiles templates, which is not a small change.
-Recorded so nobody reports it as "no CSP" — the warning is about permissiveness, not absence.
-
-### Recently closed — verified fixed, do not re-report
-
-Both were live earlier in this session and were re-tested after `5ed6e5c`:
-
-- **The bounded-repeat guard treated `{n,m}` as safe.** `(a+){1,20}$` used to pass while
-  `(a+)+$` was refused — and the refusal message actively recommended the bounded rewrite as
-  the safe alternative, so the advice was the defect. Now refused in 0 ms by both engines, and
-  the message no longer suggests it. Re-verified: `(a+)+`, `(a+){1,20}`, `(a+){2,}`, `(a|a)+`,
-  `(a+)*` and `(\w+\s?)*` all refuse in 0–1 ms.
-- **The dim sum toggle wrote its setting without committing.** Now commits at
-  `app/index.html:3016` (`"Enabled"/"Disabled" the dim sum surprise`), as does the narrator
-  on/off toggle. The narrator *language* picker still does not — see gap 3.
-
----
+| `(a?a?)+` got past both regex guards and froze the window for ~195 s | Refused. Verified: `CX.evaluate("(a?a?)+$", …).refused` is set. The guard is calibrated against measured engine timings, and no longer refuses `(\.\w+)+$` or `[A-Z][a-z]+(\s[A-Z][a-z]+)*`, which measure 0.0 ms |
+| Template placeholders reached `<input type="number">` and logged four console errors per launch | 0 parse errors in the capture manifest |
+| A running `codex` process could not be stopped | `codex_cancel` is registered and wired |
+| Appearance presets were a stub | Export and import are implemented and file-backed |
+| History's Undo and Restore silently did nothing after the first launch | Both resolve a git-sourced row to its local revision, and say so when a revision has no snapshot |
+| A restored snapshot never reached `config.toml` | `restore()` applies it as a dotted diff via `codex_config_restore` |
+| 228 unique UI-audit findings across 1646 occurrences | 17 / 124, all of them the deliberate-ellipsis note |
 
 ## Skipped by decision
 

@@ -114,6 +114,12 @@
       "file": "16-light-theme.png",
       "applied": true,
       "note": "Light theme — the same surface under the M3 light palette"
+    },
+    {
+      "id": "cantonese",
+      "file": "17-cantonese.png",
+      "applied": true,
+      "note": "Bilingual mode at funny level 5 — the navigation rail, headings and empty state all localised"
     }
   ],
   "consoleErrors": [

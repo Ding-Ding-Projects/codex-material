@@ -81,6 +81,19 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
+- **The language mode reaches the app's primary surface.** The navigation rail, the
+  Extend category list and several chrome labels were hard-coded English, so switching
+  to 廣東話 or bilingual translated the messages and left the furniture. Worse, the
+  string table already held nav entries — under key names that never matched the nav
+  ids (`nav.chats` against an id of `chat`, `nav.extend` against `ext`, `nav.config`
+  against `settings`), so they were unreachable dead data that nothing had ever looked
+  up. The keys are reconciled onto the real ids and the rail resolves them per render,
+  which is what lets a language change apply without a restart.
+- **The bilingual rail no longer wraps to three lines.** Concatenating both languages
+  into a 76 px rail at funny level 5 pushed every item to three lines. The rail shows
+  the primary language and moves the pair into the tooltip — the progressive disclosure
+  the bilingual rule asks for on constrained layouts.
+
 - **A restore restores all of it.** `theme`, `cacheRate` and `lifetime` were written by
   the app but absent from the snapshot, so an undo reverted some preferences and left
   others untouched. And `reloadFromStore()` refreshed six fields, so after an undo the
