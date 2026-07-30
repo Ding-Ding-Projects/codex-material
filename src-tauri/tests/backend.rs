@@ -69,11 +69,14 @@ impl TempHome {
         let _ = std::fs::remove_dir_all(&path);
         std::fs::create_dir_all(&path).expect("could not create the temporary CODEX_HOME");
 
-        let keys = ["CODEX_HOME", "CODEX_BIN", "GIT_CONFIG_GLOBAL", "GIT_CONFIG_SYSTEM"];
-        let previous: Vec<(&'static str, Option<String>)> = keys
-            .iter()
-            .map(|k| (*k, std::env::var(k).ok()))
-            .collect();
+        let keys = [
+            "CODEX_HOME",
+            "CODEX_BIN",
+            "GIT_CONFIG_GLOBAL",
+            "GIT_CONFIG_SYSTEM",
+        ];
+        let previous: Vec<(&'static str, Option<String>)> =
+            keys.iter().map(|k| (*k, std::env::var(k).ok())).collect();
 
         std::env::set_var("CODEX_HOME", &path);
         std::env::set_var("CODEX_BIN", MISSING_BIN);
@@ -414,7 +417,9 @@ fn read_toml_names_the_file_when_it_does_not_parse() {
 #[test]
 fn history_records_real_changes_and_never_rewrites_them() {
     if !git_available() {
-        eprintln!("skipping history_records_real_changes_and_never_rewrites_them: `git` is not on PATH");
+        eprintln!(
+            "skipping history_records_real_changes_and_never_rewrites_them: `git` is not on PATH"
+        );
         return;
     }
     let home = TempHome::new("history");
@@ -441,8 +446,12 @@ fn history_records_real_changes_and_never_rewrites_them() {
         "profiles": [{ "name": "default", "model": "gpt-5.1" }],
         "appearance": { "theme": "light", "seed": "#3366ff" }
     });
-    let changed = history::commit("Switched the default profile to gpt-5.1", "profile", &second)
-        .unwrap();
+    let changed = history::commit(
+        "Switched the default profile to gpt-5.1",
+        "profile",
+        &second,
+    )
+    .unwrap();
     assert_eq!(changed["committed"], json!(true));
     let second_id = changed["id"].as_str().unwrap().to_string();
     assert_ne!(first_id, second_id);
@@ -452,7 +461,11 @@ fn history_records_real_changes_and_never_rewrites_them() {
         .as_array()
         .expect("the log must be an array")
         .clone();
-    assert_eq!(commits.len(), 2, "the unchanged save must not appear: {commits:?}");
+    assert_eq!(
+        commits.len(),
+        2,
+        "the unchanged save must not appear: {commits:?}"
+    );
     assert_eq!(commits[0]["id"], json!(second_id));
     assert_eq!(commits[0]["kind"], json!("profile"));
     assert_eq!(
@@ -479,7 +492,9 @@ fn history_records_real_changes_and_never_rewrites_them() {
 #[test]
 fn history_log_is_empty_before_anything_is_committed() {
     if !git_available() {
-        eprintln!("skipping history_log_is_empty_before_anything_is_committed: `git` is not on PATH");
+        eprintln!(
+            "skipping history_log_is_empty_before_anything_is_committed: `git` is not on PATH"
+        );
         return;
     }
     let _home = TempHome::new("history-empty");
@@ -515,9 +530,7 @@ fn hook_at<'a>(hooks: &'a Json, event: &str, index: u64) -> &'a Json {
         .as_array()
         .expect("hook_list must return an array")
         .iter()
-        .find(|h| {
-            h["event"] == json!(event) && h["index"].as_u64() == Some(index)
-        })
+        .find(|h| h["event"] == json!(event) && h["index"].as_u64() == Some(index))
         .unwrap_or_else(|| panic!("no hook {event}#{index} in {hooks}"))
 }
 
@@ -646,10 +659,16 @@ fn skill_list_reads_user_and_project_skills_and_the_disabled_suffix() {
         "skills/release-notes/SKILL.md",
         "---\nname: release-notes\ndescription: Drafts release notes from the commit range since the last tag.\n---\n",
     );
-    home.write("skills/stale-check.disabled/SKILL.md", "---\nname: stale-check\n---\n");
+    home.write(
+        "skills/stale-check.disabled/SKILL.md",
+        "---\nname: stale-check\n---\n",
+    );
     // A directory with no manifest is not a skill and must not be listed.
     std::fs::create_dir_all(home.join("skills/not-a-skill")).unwrap();
-    home.write("project/.codex/skills/repo-triage/SKILL.md", "---\nname: repo-triage\n---\n");
+    home.write(
+        "project/.codex/skills/repo-triage/SKILL.md",
+        "---\nname: repo-triage\n---\n",
+    );
 
     let cwd = home.join("project").display().to_string();
     let list = catalog::skill_list(Some(&cwd));
@@ -685,7 +704,10 @@ fn skill_list_reads_user_and_project_skills_and_the_disabled_suffix() {
 #[test]
 fn skill_toggle_renames_the_directory_both_ways() {
     let home = TempHome::new("skill-toggle");
-    let manifest = home.write("skills/release-notes/SKILL.md", "---\nname: release-notes\n---\n");
+    let manifest = home.write(
+        "skills/release-notes/SKILL.md",
+        "---\nname: release-notes\n---\n",
+    );
     let dir = manifest.parent().unwrap().display().to_string();
 
     let off = catalog::skill_toggle(&dir).unwrap();
@@ -699,7 +721,13 @@ fn skill_toggle_renames_the_directory_both_ways() {
     assert_eq!(row_named(&rows, "release-notes")["enabled"], json!(false));
 
     let on = catalog::skill_toggle(&disabled).unwrap();
-    assert_eq!(on["to"], json!(dir), "toggling back must restore the exact name");
+    // Compared as paths, not as strings: the fixture joins with `/` and the
+    // rename joins with the platform separator.
+    assert_eq!(
+        PathBuf::from(on["to"].as_str().unwrap()),
+        PathBuf::from(&dir),
+        "toggling back must restore the exact directory"
+    );
     let list = catalog::skill_list(None);
     let rows = rows_under(&list, &home.path);
     assert_eq!(row_named(&rows, "release-notes")["enabled"], json!(true));
@@ -712,7 +740,10 @@ fn skill_toggle_refuses_a_directory_that_is_not_a_skill() {
     std::fs::create_dir_all(&dir).unwrap();
     let err = catalog::skill_toggle(&dir.display().to_string()).unwrap_err();
     assert!(err.contains("is not a skill directory"), "{err}");
-    assert!(dir.exists(), "a refused toggle must leave the directory alone");
+    assert!(
+        dir.exists(),
+        "a refused toggle must leave the directory alone"
+    );
 }
 
 /* ------------------------------------------------------- catalog: sessions */
@@ -729,7 +760,10 @@ fn session_list_reads_the_rollout_header_of_each_transcript() {
         "{\"type\":\"session_meta\",\"payload\":{\"id\":\"3aa61f88\",\"cwd\":\"/srv/ci\",\"originator\":\"codex_exec\"}}\n",
     );
     // No usable header: the id falls back to the tail of the file name.
-    home.write("sessions/session-rollout-ffeeddcc.jsonl", "not json at all\n");
+    home.write(
+        "sessions/session-rollout-ffeeddcc.jsonl",
+        "not json at all\n",
+    );
     // Not a transcript, and must be ignored rather than parsed.
     home.write("sessions/notes.txt", "ignore me\n");
 

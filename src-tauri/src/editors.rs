@@ -127,9 +127,8 @@ pub fn detect() -> Json {
     let found: Vec<Json> = CANDIDATES
         .iter()
         .filter_map(|c| {
-            resolve(c).map(|exe| {
-                json!({ "id": c.id, "label": c.label, "exe": exe, "args": c.args })
-            })
+            resolve(c)
+                .map(|exe| json!({ "id": c.id, "label": c.label, "exe": exe, "args": c.args }))
         })
         .collect();
     json!({ "editors": found })
@@ -163,8 +162,12 @@ pub fn open(path: &str, editor: Option<&str>, custom_exe: Option<&str>) -> Resul
             .find(|c| resolve(c).is_some())
             .ok_or("no supported editor was found on this machine")?,
     };
-    let exe = resolve(chosen)
-        .ok_or_else(|| format!("{} is configured but was not found on this machine", chosen.label))?;
+    let exe = resolve(chosen).ok_or_else(|| {
+        format!(
+            "{} is configured but was not found on this machine",
+            chosen.label
+        )
+    })?;
     let args: Vec<String> = chosen
         .args
         .iter()
@@ -174,7 +177,9 @@ pub fn open(path: &str, editor: Option<&str>, custom_exe: Option<&str>) -> Resul
         .args(&args)
         .spawn()
         .map_err(|e| format!("could not start {}: {e}", chosen.label))?;
-    Ok(json!({ "opened": target, "editor": chosen.id, "label": chosen.label, "exe": exe, "pid": child.id() }))
+    Ok(
+        json!({ "opened": target, "editor": chosen.id, "label": chosen.label, "exe": exe, "pid": child.id() }),
+    )
 }
 
 /// Reveal a path in File Explorer — the fallback when no editor is installed.

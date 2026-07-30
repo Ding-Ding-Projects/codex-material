@@ -773,7 +773,698 @@
       yue: ["已儲存至 {path}。", "已儲存至 {path}。", "save 咗去 {path}。",
         "save 咗 — 喺 {path} 度。", "save 咗 — 好地地坐喺 {path} 度。"]
     },
-/* MORE */
+
+    /* ---- errors. Every level carries every placeholder and the same remedy;
+       only the sentence around them moves. */
+    "err.binaryMissing": {
+      en: ["The Codex CLI was not found at {path}. Set the path in Config, or install the CLI and reopen Codex Studio.",
+        "No Codex CLI at {path}. Point Config at the right path, or install the CLI and reopen Codex Studio.",
+        "Nothing lives at {path} — the Codex CLI is not there. Fix the path in Config, or install the CLI and reopen Codex Studio.",
+        "Knocked on {path}, nobody home — no Codex CLI there. Set the real path in Config, or install the CLI and reopen Codex Studio.",
+        "{path} is an empty room with a Codex-shaped hole in it. Tell Config where the binary actually lives, or install the CLI and reopen Codex Studio."],
+      yue: ["喺 {path} 搵唔到 Codex CLI。請喺 Config 設定正確路徑，或者安裝好 CLI 再開返 Codex Studio。",
+        "{path} 度冇 Codex CLI。去 Config 改返個路徑，或者裝好 CLI 再開返 Codex Studio。",
+        "{path} 撲咗個空，冇 Codex CLI 喺度。去 Config 改路徑，或者裝好 CLI 再開返 Codex Studio。",
+        "去到 {path} 撳門鐘冇人應 — 冇 Codex CLI。去 Config 話返俾佢知條路，或者裝好 CLI 再開返 Codex Studio。",
+        "{path} 空空如也，得個 Codex 形狀嘅窿。快啲去 Config 指返條正路，或者裝好 CLI 再開返 Codex Studio。"]
+    },
+    "err.configParse": {
+      en: ["{path} could not be parsed: {message} at line {line}. Fix that line, or restore an earlier copy from History.",
+        "{path} will not parse: {message} at line {line}. Fix that line, or restore an earlier copy from History.",
+        "{path} is not valid TOML — {message} at line {line}. Fix that line, or pull an earlier copy from History.",
+        "{path} has TOML that refuses to parse: {message}, at line {line}. Fix that line, or pull an earlier copy from History.",
+        "{path} tripped over its own TOML: {message}, right at line {line}. Patch that line, or yank a working copy back from History."],
+      yue: ["{path} 解析唔到：第 {line} 行 {message}。請修正嗰行，或者喺 History 還原返舊版。",
+        "{path} 解析唔到：第 {line} 行 {message}。整返好嗰行，或者喺 History 還原返舊版。",
+        "{path} 唔係有效嘅 TOML — 第 {line} 行 {message}。整返好嗰行，或者去 History 攞返舊版。",
+        "{path} 有段 TOML 死都唔肯解析：第 {line} 行 {message}。整返好嗰行，或者去 History 攞返舊版。",
+        "{path} 畀自己嘅 TOML 絆親：第 {line} 行 {message}。整返好嗰行，或者去 History 撈返個好版本上嚟。"]
+    },
+    "err.mcpAdd": {
+      en: ["The MCP server {name} could not be added: {message}. Nothing was written to config.toml.",
+        "The MCP server {name} could not be added: {message}. Nothing was written to config.toml.",
+        "Adding the MCP server {name} failed: {message}. Nothing was written to config.toml.",
+        "The MCP server {name} would not go in: {message}. Nothing was written to config.toml, so nothing is broken.",
+        "The MCP server {name} refused to move in: {message}. Nothing was written to config.toml, so nothing is broken."],
+      yue: ["加唔到 MCP 伺服器 {name}：{message}。config.toml 冇寫入任何嘢。",
+        "加唔到 MCP 伺服器 {name}：{message}。config.toml 冇寫入任何嘢。",
+        "加 MCP 伺服器 {name} 失敗：{message}。config.toml 乜都冇寫。",
+        "MCP 伺服器 {name} 點都入唔到：{message}。config.toml 乜都冇寫，所以冇搞爛嘢。",
+        "MCP 伺服器 {name} 死都唔肯搬入嚟：{message}。config.toml 乜都冇寫，所以冇搞爛嘢。"]
+    },
+    "err.mcpUnreachable": {
+      en: ["The MCP server {name} did not answer at {url}. Check it is running, then enable it again here.",
+        "The MCP server {name} did not answer at {url}. Check it is running, then enable it again here.",
+        "No answer from the MCP server {name} at {url}. Check it is running, then enable it again here.",
+        "The MCP server {name} is not answering at {url}. Check it is running, then enable it again here.",
+        "Called {url} for the MCP server {name} and got dead air. Check it is running, then enable it again here."],
+      yue: ["MCP 伺服器 {name} 喺 {url} 冇回應。請確認佢行緊，然後喺呢度再啟用佢。",
+        "MCP 伺服器 {name} 喺 {url} 冇回應。請確認佢行緊，然後喺呢度再啟用佢。",
+        "喺 {url} 度撳唔到 MCP 伺服器 {name}。睇下佢行緊未，然後喺呢度再啟用佢。",
+        "MCP 伺服器 {name} 喺 {url} 度唔應機。睇下佢行緊未，然後喺呢度再啟用佢。",
+        "打 {url} 搵 MCP 伺服器 {name}，得把聲都冇。睇下佢行緊未，然後喺呢度再啟用佢。"]
+    },
+    "err.pluginInstall": {
+      en: ["The plugin {name} did not install: {message}. Nothing was changed.",
+        "The plugin {name} did not install: {message}. Nothing was changed.",
+        "Installing the plugin {name} failed: {message}. Nothing was changed.",
+        "The plugin {name} would not install: {message}. Nothing was changed, so you are exactly where you were.",
+        "The plugin {name} took one look and left: {message}. Nothing was changed, so you are exactly where you were."],
+      yue: ["外掛 {name} 裝唔到：{message}。冇改動過任何嘢。",
+        "外掛 {name} 裝唔到：{message}。冇改動過任何嘢。",
+        "裝外掛 {name} 失敗：{message}。乜都冇改到。",
+        "外掛 {name} 死都唔肯裝：{message}。乜都冇改到，你仲喺原地。",
+        "外掛 {name} 望一望就走咗：{message}。乜都冇改到，你仲喺原地。"]
+    },
+    "err.pluginUninstall": {
+      en: ["The plugin {name} could not be removed: {message}. It is still installed.",
+        "The plugin {name} could not be removed: {message}. It is still installed.",
+        "Removing the plugin {name} failed: {message}. It is still installed.",
+        "The plugin {name} would not budge: {message}. It is still installed.",
+        "The plugin {name} is clinging on: {message}. It is still installed."],
+      yue: ["移除唔到外掛 {name}：{message}。佢仲裝住喺度。",
+        "移除唔到外掛 {name}：{message}。佢仲裝住喺度。",
+        "拆外掛 {name} 失敗：{message}。佢仲喺度。",
+        "外掛 {name} 郁都唔郁：{message}。佢仲裝住喺度。",
+        "外掛 {name} 揸到實一實：{message}。佢仲裝住喺度。"]
+    },
+    "err.wslMissing": {
+      en: ["WSL is not installed, so the distro {distro} cannot start. Run wsl --install in an elevated terminal, then reopen Runtime.",
+        "WSL is not installed, so the distro {distro} cannot start. Run wsl --install in an elevated terminal, then reopen Runtime.",
+        "There is no WSL here, so the distro {distro} cannot start. Run wsl --install in an elevated terminal, then reopen Runtime.",
+        "No WSL on this machine, so the distro {distro} has nowhere to start. Run wsl --install in an elevated terminal, then reopen Runtime.",
+        "No WSL on this machine at all, so the distro {distro} has nowhere to live. Run wsl --install in an elevated terminal, then reopen Runtime."],
+      yue: ["未安裝 WSL，所以 {distro} 開唔到。請喺管理員終端機行 wsl --install，然後再開返 Runtime。",
+        "未安裝 WSL，所以 {distro} 開唔到。請喺管理員終端機行 wsl --install，然後再開返 Runtime。",
+        "部機冇 WSL，所以 {distro} 開唔到。喺管理員終端機行 wsl --install，然後再開返 Runtime。",
+        "部機根本冇 WSL，{distro} 冇地方開。喺管理員終端機行 wsl --install，然後再開返 Runtime。",
+        "部機根本冇 WSL，{distro} 連間屋都冇。喺管理員終端機行 wsl --install，然後再開返 Runtime。"]
+    },
+    "err.wslExec": {
+      en: ["The command in {distro} exited with code {code}. Its output is in the Runtime log.",
+        "The command in {distro} exited with code {code}. Its output is in the Runtime log.",
+        "The command in {distro} came back with code {code}. Its output is in the Runtime log.",
+        "The command in {distro} bailed out with code {code}. Its output is in the Runtime log.",
+        "The command in {distro} stormed off with code {code}. Its output is in the Runtime log."],
+      yue: ["{distro} 入面嘅指令以代碼 {code} 結束。輸出喺 Runtime 記錄度。",
+        "{distro} 入面嘅指令以代碼 {code} 結束。輸出喺 Runtime 記錄度。",
+        "{distro} 入面嗰條指令回咗代碼 {code}。輸出喺 Runtime 記錄度。",
+        "{distro} 入面嗰條指令劈炮，代碼 {code}。輸出喺 Runtime 記錄度。",
+        "{distro} 入面嗰條指令發脾氣走咗，代碼 {code}。輸出喺 Runtime 記錄度。"]
+    },
+    "err.editorMissing": {
+      en: ["{editor} was not found, so {path} was not opened. Pick another editor in Config.",
+        "{editor} was not found, so {path} was not opened. Pick another editor in Config.",
+        "{editor} is not on this machine, so {path} was not opened. Pick another editor in Config.",
+        "{editor} is nowhere on this machine, so {path} stayed shut. Pick another editor in Config.",
+        "{editor} is nowhere on this machine, so {path} stayed firmly shut. Pick another editor in Config."],
+      yue: ["搵唔到 {editor}，所以冇開到 {path}。請喺 Config 揀第個編輯器。",
+        "搵唔到 {editor}，所以冇開到 {path}。請喺 Config 揀第個編輯器。",
+        "部機冇 {editor}，所以 {path} 開唔到。喺 Config 揀第個編輯器。",
+        "成部機都搵唔到 {editor}，{path} 冇開到。喺 Config 揀第個編輯器。",
+        "成部機都搵唔到 {editor}，{path} 咪繼續閂實囉。喺 Config 揀第個編輯器。"]
+    },
+    "err.historyWrite": {
+      en: ["The version history could not be written: {message}. Your change was still applied — only the snapshot is missing.",
+        "The version history could not be written: {message}. Your change was still applied — only the snapshot is missing.",
+        "The version history did not save: {message}. Your change was still applied; only the snapshot is missing.",
+        "The version history did not save: {message}. Your change went through anyway — only the snapshot is missing.",
+        "The version history dropped the pen: {message}. Your change went through anyway — only the snapshot is missing."],
+      yue: ["版本歷史寫唔到：{message}。你嘅改動照樣生效 — 淨係少咗個快照。",
+        "版本歷史寫唔到：{message}。你嘅改動照樣生效 — 淨係少咗個快照。",
+        "版本歷史 save 唔到：{message}。你嘅改動照樣生效；淨係少咗個快照。",
+        "版本歷史 save 唔到：{message}。你嘅改動照過 — 淨係少咗個快照。",
+        "版本歷史寫寫下甩咗支筆：{message}。你嘅改動照過 — 淨係少咗個快照。"]
+    },
+    "err.regexTimeout": {
+      en: ["Evaluating {pattern} was stopped after {ms} ms — it may backtrack catastrophically. Simplify the pattern, or shorten the sample.",
+        "Evaluating {pattern} was stopped after {ms} ms — it may backtrack catastrophically. Simplify the pattern, or shorten the sample.",
+        "{pattern} was cut off after {ms} ms — it looks like catastrophic backtracking. Simplify the pattern, or shorten the sample.",
+        "{pattern} was still chewing after {ms} ms, so it was stopped — that smells like catastrophic backtracking. Simplify the pattern, or shorten the sample.",
+        "{pattern} was still chewing after {ms} ms and got sent home — classic catastrophic backtracking. Simplify the pattern, or shorten the sample."],
+      yue: ["{pattern} 行咗 {ms} 毫秒之後被中止 — 可能出現災難性回溯。請簡化樣式，或者縮短樣本。",
+        "{pattern} 行咗 {ms} 毫秒之後被中止 — 可能出現災難性回溯。請簡化樣式，或者縮短樣本。",
+        "{pattern} 行到 {ms} 毫秒就 cut 咗 — 睇落係災難性回溯。簡化個樣式，或者縮短樣本。",
+        "{pattern} 嚼咗 {ms} 毫秒都未完，唯有截停佢 — 好似災難性回溯。簡化個樣式，或者縮短樣本。",
+        "{pattern} 嚼咗 {ms} 毫秒都未肯收工，勸咗佢返屋企 — 典型災難性回溯。簡化個樣式，或者縮短樣本。"]
+    },
+    "err.tomlWriteRefused": {
+      en: ["{path} was not written: {reason}. The file on disk is unchanged.",
+        "{path} was not written: {reason}. The file on disk is unchanged.",
+        "{path} was left alone: {reason}. The file on disk is unchanged.",
+        "{path} was left well alone: {reason}. The file on disk is unchanged.",
+        "{path} was left well alone: {reason}. The file on disk has not moved a byte."],
+      yue: ["冇寫入 {path}：{reason}。硬碟上嗰個檔案原封不動。",
+        "冇寫入 {path}：{reason}。硬碟上嗰個檔案原封不動。",
+        "{path} 冇郁過：{reason}。硬碟上嗰個檔案原封不動。",
+        "{path} 一隻手指都冇掂過：{reason}。硬碟上嗰個檔案原封不動。",
+        "{path} 一隻手指都冇掂過：{reason}。硬碟上嗰個檔案一個 byte 都冇郁。"]
+    },
+    "err.sessionMissing": {
+      en: ["The session {id} is no longer on disk. Start a new chat, or resume another session.",
+        "The session {id} is no longer on disk. Start a new chat, or resume another session.",
+        "The session {id} is gone from disk. Start a new chat, or resume another session.",
+        "The session {id} has vanished from disk — probably pruned. Start a new chat, or resume another session.",
+        "The session {id} has vanished from disk, probably pruned by a tidy hand. Start a new chat, or resume another session."],
+      yue: ["對話 {id} 已經唔喺硬碟度。開個新對話，或者續返另一個對話。",
+        "對話 {id} 已經唔喺硬碟度。開個新對話，或者續返另一個對話。",
+        "對話 {id} 喺硬碟度冇咗。開個新對話，或者續返另一個對話。",
+        "對話 {id} 喺硬碟度消失咗 — 好可能俾人清咗。開個新對話，或者續返另一個對話。",
+        "對話 {id} 喺硬碟度人間蒸發，多數俾人手快清咗。開個新對話，或者續返另一個對話。"]
+    },
+    "err.permissionDenied": {
+      en: ["Windows refused access to {path}. Grant access, or choose a folder Codex Studio can write to.",
+        "Windows refused access to {path}. Grant access, or choose a folder Codex Studio can write to.",
+        "Windows said no to {path}. Grant access, or choose a folder Codex Studio can write to.",
+        "Windows slammed the door on {path}. Grant access, or choose a folder Codex Studio can write to.",
+        "Windows slammed the door on {path} and locked it. Grant access, or choose a folder Codex Studio can write to."],
+      yue: ["Windows 拒絕存取 {path}。請開放權限，或者揀個 Codex Studio 寫得入嘅資料夾。",
+        "Windows 拒絕存取 {path}。請開放權限，或者揀個 Codex Studio 寫得入嘅資料夾。",
+        "Windows 唔畀掂 {path}。開返權限，或者揀個 Codex Studio 寫得入嘅資料夾。",
+        "Windows 喺 {path} 度大力閂埋度門。開返權限，或者揀個 Codex Studio 寫得入嘅資料夾。",
+        "Windows 喺 {path} 度閂埋度門仲落埋鎖。開返權限，或者揀個 Codex Studio 寫得入嘅資料夾。"]
+    },
+    "err.commandFailed": {
+      en: ["{command} exited with code {code}. The full output is in the console.",
+        "{command} exited with code {code}. The full output is in the console.",
+        "{command} came back with code {code}. The full output is in the console.",
+        "{command} bailed out with code {code}. The full output is in the console.",
+        "{command} threw its hands up with code {code}. The full output is in the console."],
+      yue: ["{command} 以代碼 {code} 結束。完整輸出喺主控台度。",
+        "{command} 以代碼 {code} 結束。完整輸出喺主控台度。",
+        "{command} 回咗代碼 {code}。完整輸出喺主控台度。",
+        "{command} 劈炮走咗，代碼 {code}。完整輸出喺主控台度。",
+        "{command} 攤大手掌唔做，代碼 {code}。完整輸出喺主控台度。"]
+    },
+    "err.profileMissing": {
+      en: ["The profile {name} no longer exists. Pick another profile, or create {name} again in Config.",
+        "The profile {name} no longer exists. Pick another profile, or create {name} again in Config.",
+        "The profile {name} is gone. Pick another profile, or create {name} again in Config.",
+        "The profile {name} has left the building. Pick another profile, or create {name} again in Config.",
+        "The profile {name} has left the building without a note. Pick another profile, or create {name} again in Config."],
+      yue: ["設定檔 {name} 已經唔存在。揀第個設定檔，或者喺 Config 度重新建立 {name}。",
+        "設定檔 {name} 已經唔存在。揀第個設定檔，或者喺 Config 度重新建立 {name}。",
+        "設定檔 {name} 冇咗。揀第個設定檔，或者喺 Config 度起返個 {name}。",
+        "設定檔 {name} 走咗佬。揀第個設定檔，或者喺 Config 度起返個 {name}。",
+        "設定檔 {name} 走咗佬，仲要連張字條都冇。揀第個設定檔，或者喺 Config 度起返個 {name}。"]
+    },
+    "err.importInvalid": {
+      en: ["{file} is not a Codex Studio theme: {message}. Nothing was imported and your current appearance is untouched.",
+        "{file} is not a Codex Studio theme: {message}. Nothing was imported and your current appearance is untouched.",
+        "{file} is not a Codex Studio theme — {message}. Nothing was imported; your current appearance is untouched.",
+        "{file} is not a Codex Studio theme, whatever it thinks it is: {message}. Nothing was imported; your current appearance is untouched.",
+        "{file} is not a Codex Studio theme, whatever it thinks it is: {message}. Nothing was imported, and your current look is exactly as you left it."],
+      yue: ["{file} 唔係 Codex Studio 主題檔：{message}。冇匯入任何嘢，你而家嘅外觀原封不動。",
+        "{file} 唔係 Codex Studio 主題檔：{message}。冇匯入任何嘢，你而家嘅外觀原封不動。",
+        "{file} 唔係 Codex Studio 主題檔 — {message}。乜都冇 import 到；你而家嘅外觀原封不動。",
+        "{file} 唔理佢自認係乜，總之唔係 Codex Studio 主題檔：{message}。乜都冇 import 到；你而家嘅外觀原封不動。",
+        "{file} 唔理佢自認係乜，總之唔係 Codex Studio 主題檔：{message}。乜都冇 import 到，你個樣同你走嗰陣一模一樣。"]
+    },
+    "err.fontMissing": {
+      en: ["The font {font} is not installed, so a fallback face is being drawn. Install {font}, or pick another family in Appearance.",
+        "The font {font} is not installed, so a fallback face is being drawn. Install {font}, or pick another family in Appearance.",
+        "The font {font} is not on this machine, so a fallback face is being drawn. Install {font}, or pick another family in Appearance.",
+        "The font {font} is nowhere on this machine, so a fallback face is standing in. Install {font}, or pick another family in Appearance.",
+        "The font {font} is nowhere on this machine, so a stunt double is standing in. Install {font}, or pick another family in Appearance."],
+      yue: ["字型 {font} 未安裝，所以而家用緊後備字型。請安裝 {font}，或者喺 Appearance 揀第隻字型。",
+        "字型 {font} 未安裝，所以而家用緊後備字型。請安裝 {font}，或者喺 Appearance 揀第隻字型。",
+        "部機冇 {font} 呢隻字型，而家用緊後備嗰隻。裝返 {font}，或者喺 Appearance 揀第隻。",
+        "成部機都搵唔到 {font}，而家搵咗個替工頂住。裝返 {font}，或者喺 Appearance 揀第隻。",
+        "成部機都搵唔到 {font}，而家搵咗個替身頂住檔。裝返 {font}，或者喺 Appearance 揀第隻。"]
+    },
+    "err.exportFailed": {
+      en: ["The export to {path} failed: {message}. Nothing was written.",
+        "The export to {path} failed: {message}. Nothing was written.",
+        "Exporting to {path} failed: {message}. Nothing was written.",
+        "The export to {path} fell over: {message}. Nothing was written.",
+        "The export to {path} fell over on the doorstep: {message}. Nothing was written."],
+      yue: ["匯出去 {path} 失敗：{message}。乜都冇寫到。",
+        "匯出去 {path} 失敗：{message}。乜都冇寫到。",
+        "export 去 {path} 失敗：{message}。乜都冇寫到。",
+        "export 去 {path} 仆咗街：{message}。乜都冇寫到。",
+        "export 去 {path} 喺門口位仆咗街：{message}。乜都冇寫到。"]
+    },
+    "err.authExpired": {
+      en: ["The credentials for {account} expired on {date}. Sign in again from Health.",
+        "The credentials for {account} expired on {date}. Sign in again from Health.",
+        "The credentials for {account} ran out on {date}. Sign in again from Health.",
+        "The credentials for {account} ran out on {date} and Codex noticed. Sign in again from Health.",
+        "The credentials for {account} ran out on {date}, and Codex noticed immediately. Sign in again from Health."],
+      yue: ["{account} 嘅憑證喺 {date} 過期。請喺 Health 度重新登入。",
+        "{account} 嘅憑證喺 {date} 過期。請喺 Health 度重新登入。",
+        "{account} 嘅憑證喺 {date} 到期咗。喺 Health 度重新登入。",
+        "{account} 嘅憑證喺 {date} 到期，Codex 一眼就睇穿。喺 Health 度重新登入。",
+        "{account} 嘅憑證喺 {date} 到期，Codex 即刻就發現咗。喺 Health 度重新登入。"]
+    },
+    "err.diskFull": {
+      en: ["There is not enough free space to write {path}. Free some space on that drive, then try again.",
+        "There is not enough free space to write {path}. Free some space on that drive, then try again.",
+        "There is no room left to write {path}. Free some space on that drive, then try again.",
+        "There is no room left to write {path} — the drive is full. Free some space, then try again.",
+        "There is no room left to write {path}; that drive is stuffed. Free some space, then try again."],
+      yue: ["空間唔夠，寫唔到 {path}。請喺嗰隻碟清返啲空間，然後再試。",
+        "空間唔夠，寫唔到 {path}。請喺嗰隻碟清返啲空間，然後再試。",
+        "冇位寫 {path}。喺嗰隻碟清返啲空間，然後再試。",
+        "冇位寫 {path} — 隻碟爆咗。清返啲空間，然後再試。",
+        "冇位寫 {path}；隻碟塞到滿瀉。清返啲空間，然後再試。"]
+    },
+    "err.unknown": {
+      en: ["Something failed and only said: {message}. The details are in the notification centre.",
+        "Something failed and only said: {message}. The details are in the notification centre.",
+        "Something failed with nothing but: {message}. The details are in the notification centre.",
+        "Something failed and would only mutter: {message}. The details are in the notification centre.",
+        "Something failed and would only mutter {message} before wandering off. The details are in the notification centre."],
+      yue: ["有嘢出錯，佢淨係講咗一句：{message}。詳情喺通知中心度。",
+        "有嘢出錯，佢淨係講咗一句：{message}。詳情喺通知中心度。",
+        "有嘢出錯，得返一句：{message}。詳情喺通知中心度。",
+        "有嘢出錯，佢細細聲咕嚕咗句：{message}。詳情喺通知中心度。",
+        "有嘢出錯，咕嚕咗句 {message} 就行開咗。詳情喺通知中心度。"]
+    },
+    /* ---- errors: the voice moves, the fact never does. Every level below names
+       the same path, the same count and the same failure text, because a warning
+       nobody can act on is a broken warning rather than a funny one. ---- */
+    "err.state": {
+      en: ["Could not read the Codex state: {detail}", "Could not read the Codex state: {detail}",
+        "Could not read the Codex state — {detail}", "Could not read the Codex state. It said: {detail}",
+        "Could not read the Codex state. Its exact words: {detail}"],
+      yue: ["讀唔到 Codex 嘅狀態：{detail}", "讀唔到 Codex 嘅狀態：{detail}",
+        "讀唔到 Codex 狀態 — {detail}", "讀唔到 Codex 狀態，佢話：{detail}",
+        "讀唔到 Codex 狀態，佢原句咁講：{detail}"]
+    },
+    "err.version": {
+      en: ["Could not run the codex binary: {detail}", "Could not run the codex binary: {detail}",
+        "Could not run `codex` — {detail}", "Could not run `codex`. It said: {detail}",
+        "Could not run `codex`. Is it installed? It said: {detail}"],
+      yue: ["行唔到 codex：{detail}", "行唔到 codex：{detail}", "行唔到 `codex` — {detail}",
+        "行唔到 `codex`，佢話：{detail}", "行唔到 `codex`，裝咗未呀？佢話：{detail}"]
+    },
+    "err.section": {
+      en: ["The {section} list could not be read.", "The {section} list could not be read.",
+        "Could not read the {section} list.", "Could not read the {section} list — so it is empty here, not on your machine.",
+        "Could not read the {section} list. It looks empty here, but that is this panel failing, not your machine being tidy."],
+      yue: ["讀唔到 {section} 個清單。", "讀唔到 {section} 個清單。", "讀唔到 {section} 清單。",
+        "讀唔到 {section} 清單 — 所以呢度空咗，唔係你部機真係冇。",
+        "讀唔到 {section} 清單。呢度睇落空空如也，但係呢版壞咗嗻，唔係你部機咁乾淨。"]
+    },
+    "err.history": {
+      en: ["The history could not be written: {detail}", "The history could not be written: {detail}",
+        "Could not write the history — {detail}", "Could not write the history. Your change stands; the undo entry does not: {detail}",
+        "Could not write the history. Your change went through fine — it just will not have an undo entry: {detail}"],
+      yue: ["寫唔到歷史紀錄：{detail}", "寫唔到歷史紀錄：{detail}", "寫唔到歷史紀錄 — {detail}",
+        "寫唔到歷史紀錄。你改嘅嘢照生效，但係冇得 undo：{detail}",
+        "寫唔到歷史紀錄。你改嗰下係成功咗嘅，只係冇留低個 undo 位：{detail}"]
+    },
+    "err.wsl": {
+      en: ["WSL could not be reached: {detail}", "WSL could not be reached: {detail}",
+        "Could not reach WSL — {detail}", "Could not reach WSL. Installed? It said: {detail}",
+        "Could not reach WSL. Either it is not installed or it is sulking: {detail}"],
+      yue: ["搵唔到 WSL：{detail}", "搵唔到 WSL：{detail}", "搵唔到 WSL — {detail}",
+        "搵唔到 WSL，裝咗未？佢話：{detail}", "搵唔到 WSL。可能未裝，可能佢扭計：{detail}"]
+    },
+    "err.editor": {
+      en: ["The editor could not be opened: {detail}", "The editor could not be opened: {detail}",
+        "Could not open the editor — {detail}", "Could not open the editor. It said: {detail}",
+        "Could not open the editor. It said, and I quote: {detail}"],
+      yue: ["開唔到編輯器：{detail}", "開唔到編輯器：{detail}", "開唔到編輯器 — {detail}",
+        "開唔到編輯器，佢話：{detail}", "開唔到編輯器，佢原句係咁：{detail}"]
+    },
+    "err.bulkclose": {
+      en: ["No tabs were closed: {detail}", "No tabs were closed: {detail}",
+        "Nothing was closed — {detail}", "Nothing was closed. Reason: {detail}",
+        "Nothing was closed, which is the safe outcome. Reason: {detail}"],
+      yue: ["冇閂到任何 tab：{detail}", "冇閂到任何 tab：{detail}", "咩都冇閂到 — {detail}",
+        "咩都冇閂到，原因：{detail}", "咩都冇閂到 — 咁樣至安全。原因：{detail}"]
+    },
+    "err.config": {
+      en: ["{path} does not parse: {detail}", "{path} does not parse: {detail}",
+        "{path} does not parse — {detail}", "{path} will not parse. Nothing was written. It said: {detail}",
+        "{path} will not parse, so nothing was written and your old file is untouched. It said: {detail}"],
+      yue: ["{path} 解析唔到：{detail}", "{path} 解析唔到：{detail}", "{path} 解析唔到 — {detail}",
+        "{path} 解析唔到，所以乜都冇寫入。佢話：{detail}",
+        "{path} 解析唔到，所以乜都冇寫入，你原本份檔一條毛都冇郁。佢話：{detail}"]
+    },
+    "err.notFound": {
+      en: ["{path} does not exist.", "{path} does not exist.", "{path} does not exist.",
+        "{path} is not there.", "{path} is not there — nothing at that path at all."],
+      yue: ["{path} 唔存在。", "{path} 唔存在。", "{path} 唔存在。",
+        "{path} 搵唔到。", "{path} 搵唔到 — 嗰個位置乜都冇。"]
+    },
+
+    /* ---- warnings ---- */
+    "warn.yolo": {
+      en: ["YOLO mode is on: approvals and the sandbox are disabled for {profile}, and it survives a restart.",
+        "YOLO mode is on: approvals and the sandbox are disabled for {profile}, and it survives a restart.",
+        "YOLO is on — approvals off, sandbox off on {profile}. It survives a restart.",
+        "YOLO is on. Approvals off, sandbox off on {profile}, and it survives a restart.",
+        "YOLO is on. No approvals, no sandbox, on {profile} — and it survives a restart, so it is on until you say otherwise."],
+      yue: ["YOLO 開咗：{profile} 冇審批、冇沙盒，重開都仲係咁。",
+        "YOLO 開咗：{profile} 冇審批、冇沙盒，重開都仲係咁。",
+        "YOLO 開咗 — {profile} 冇審批冇沙盒，重開都仲係咁。",
+        "YOLO 開咗。{profile} 冇審批冇沙盒，重開機都照舊。",
+        "YOLO 開咗。{profile} 冇審批、冇沙盒，重開機都仲係咁 — 你唔閂佢就一路開住。"]
+    },
+    "warn.untrustedHook": {
+      en: ["{name} is untrusted and never runs. Trust it in config.toml first.",
+        "{name} is untrusted and never runs. Trust it in config.toml first.",
+        "{name} is untrusted, so it never runs. Trust it in config.toml first.",
+        "{name} is untrusted, so it never runs — trust it in config.toml first.",
+        "{name} is untrusted, so it never runs no matter what this switch says. Trust it in config.toml first."],
+      yue: ["{name} 未信任，永遠唔會行。要先喺 config.toml 信任佢。",
+        "{name} 未信任，永遠唔會行。要先喺 config.toml 信任佢。",
+        "{name} 未信任，所以點都唔會行。要先喺 config.toml 信任佢。",
+        "{name} 未信任，所以點都唔會行 — 去 config.toml 信任咗佢先。",
+        "{name} 未信任，你撳幾多下呢個掣都唔會行。去 config.toml 信任咗佢先啦。"]
+    },
+    "warn.bulkClose": {
+      en: ["This will close {count} tabs.", "This will close {count} tabs.",
+        "This closes {count} tabs.", "This closes {count} tabs — check the list below first.",
+        "This closes {count} tabs. Have a look at the list below before you commit."],
+      yue: ["咁樣會閂 {count} 個 tab。", "咁樣會閂 {count} 個 tab。",
+        "咁樣會閂 {count} 個 tab。", "咁樣會閂 {count} 個 tab — 撳之前睇下下面個清單。",
+        "咁樣會閂 {count} 個 tab。撳落去之前，望多眼下面個清單啦。"]
+    },
+    "warn.restore": {
+      en: ["Restoring {label} replaces the current state. It is recorded as a new revision, so it is undoable.",
+        "Restoring {label} replaces the current state. It is recorded as a new revision, so it is undoable.",
+        "Restoring {label} replaces what you have now — recorded as a new revision, so it is undoable.",
+        "Restoring {label} replaces what you have now. It becomes a new revision, so you can undo the undo.",
+        "Restoring {label} replaces what you have now — but it lands as a new revision, so you can undo the undo, and the undo of that."],
+      yue: ["還原 {label} 會蓋咗而家嘅狀態。佢會記做新一版，所以仲 undo 得返。",
+        "還原 {label} 會蓋咗而家嘅狀態。佢會記做新一版，所以仲 undo 得返。",
+        "還原 {label} 會蓋咗你而家嘅嘢 — 記做新一版，所以 undo 得返。",
+        "還原 {label} 會蓋咗你而家嘅嘢，但會記做新一版，所以 undo 完仲可以 undo 返。",
+        "還原 {label} 會蓋咗你而家嘅嘢，不過佢會記做新一版 — undo 完可以再 undo，再 undo 都得。"]
+    },
+
+    /* ---- confirmations: the only copy that gets a blocking dialog ---- */
+    "confirm.deleteSession": {
+      en: ["Delete the session {name}?", "Delete the session {name}?", "Delete the session {name}?",
+        "Delete {name}? It goes from disk, not just from this list.",
+        "Delete {name}? It leaves the disk, not just this list — though History keeps an undo."],
+      yue: ["刪除 {name} 呢個 session？", "刪除 {name} 呢個 session？", "刪咗 {name} 呢個 session？",
+        "刪咗 {name}？佢會由硬碟度消失，唔淨止喺呢個清單度。",
+        "刪咗 {name}？佢係真係走出硬碟，唔淨止喺呢個清單度 — 不過 History 度仲有得 undo。"]
+    },
+    "confirm.removeMcp": {
+      en: ["Remove the MCP server {name} from config.toml?", "Remove the MCP server {name} from config.toml?",
+        "Remove the MCP server {name} from config.toml?", "Remove {name} from config.toml? The file is backed up first.",
+        "Remove {name} from config.toml? Your old file is copied beside it first, so this is recoverable."],
+      yue: ["由 config.toml 移除 MCP server {name}？", "由 config.toml 移除 MCP server {name}？",
+        "由 config.toml 剷走 MCP server {name}？", "剷走 {name}？寫入前會先備份份 config.toml。",
+        "剷走 {name}？寫入前會喺隔籬 copy 一份舊 config.toml，救得返嘅。"]
+    },
+    "confirm.uninstall": {
+      en: ["Uninstall the plugin {name}?", "Uninstall the plugin {name}?", "Uninstall the plugin {name}?",
+        "Uninstall {name}? You can reinstall it from the marketplace.",
+        "Uninstall {name}? The marketplace will still have it if you change your mind."],
+      yue: ["解除安裝外掛 {name}？", "解除安裝外掛 {name}？", "移除外掛 {name}？",
+        "移除 {name}？想要返可以去 marketplace 再裝。",
+        "移除 {name}？後悔嘅話 marketplace 度仲有得再裝返。"]
+    },
+    "confirm.prune": {
+      en: ["Prune the history to the newest {keep} revisions?", "Prune the history to the newest {keep} revisions?",
+        "Prune the history down to the newest {keep} revisions?",
+        "Prune down to the newest {keep} revisions? Older ones are gone for good.",
+        "Prune down to the newest {keep} revisions? Everything older is gone for good — this one really is not undoable."],
+      yue: ["淨係保留最新 {keep} 版歷史？", "淨係保留最新 {keep} 版歷史？",
+        "剪到淨返最新 {keep} 版歷史？", "剪到淨返最新 {keep} 版？舊過嗰啲永久消失。",
+        "剪到淨返最新 {keep} 版？舊過嗰啲永久消失 — 呢單真係 undo 唔到。"]
+    },
+
+    /* ---- tab strip ---- */
+    "tab.strip": {
+      en: ["Open tabs", "Open tabs", "Open tabs", "Your open tabs", "Every tab you have going"],
+      yue: ["開咗嘅 tab", "開咗嘅 tab", "你開緊嘅 tab", "你開緊嘅 tab", "你而家開晒嘅 tab"]
+    },
+    "tab.untitled": {
+      en: ["New tab", "New tab", "New tab", "A fresh tab", "A brand new empty tab"],
+      yue: ["新 tab", "新 tab", "新 tab", "開個新 tab", "全新一個吉 tab"]
+    },
+    "tab.overflow": {
+      en: ["{count} tabs do not fit on the strip", "{count} tabs do not fit on the strip",
+        "{count} tabs do not fit — they are in here", "{count} tabs did not fit — they are hiding in here",
+        "{count} tabs did not fit on the strip and are hiding in here"],
+      yue: ["有 {count} 個 tab 塞唔落條 strip", "有 {count} 個 tab 塞唔落條 strip",
+        "有 {count} 個 tab 塞唔落 — 收埋咗喺呢度", "有 {count} 個 tab 塞唔落，匿埋咗喺呢度",
+        "有 {count} 個 tab 塞唔落條 strip，匿晒喺呢度等你"]
+    },
+    "tab.noOverflow": {
+      en: ["Every tab fits on the strip.", "Every tab fits on the strip.", "Every tab fits.",
+        "Everything fits — nothing hidden.", "Everything fits. Nothing hiding anywhere."],
+      yue: ["全部 tab 都放得落。", "全部 tab 都放得落。", "全部都放得落。",
+        "全部放得落 — 冇嘢匿埋。", "全部放得落，冇一個匿埋。"]
+    },
+    "tab.searchHint": {
+      en: ["Find a tab, a group, or every tab everywhere", "Find a tab, a group, or every tab everywhere",
+        "Find a tab, a group, or every tab everywhere", "Find a tab, a group, or sweep every workspace",
+        "Find a tab, find a group, or sweep every workspace at once"],
+      yue: ["搵 tab、搵 group，或者搵勻所有地方", "搵 tab、搵 group，或者搵勻所有地方",
+        "搵 tab、搵 group，或者全部一次過搵", "搵 tab、搵 group，或者掃勻晒所有 workspace",
+        "搵 tab、搵 group，定係一次過掃勻晒所有 workspace"]
+    },
+    "tab.noGroups": {
+      en: ["There are no tab groups yet.", "There are no tab groups yet.", "No tab groups yet.",
+        "No groups yet — right-click a tab to make one.", "No groups yet. Right-click any tab and make one."],
+      yue: ["仲未有任何 tab group。", "仲未有任何 tab group。", "未有 group。",
+        "未有 group — 右 click 個 tab 就可以開。", "未有 group。右 click 個 tab 就開到㗎喇。"]
+    },
+    "tab.closed": {
+      en: ["Closed {name}", "Closed {name}", "Closed {name}", "Closed {name}", "Closed {name} — undo below if that was a mistake"],
+      yue: ["閂咗 {name}", "閂咗 {name}", "閂咗 {name}", "閂咗 {name}", "閂咗 {name} — 撳錯咗就撳下面 undo"]
+    },
+    "tab.closeContaining": {
+      en: ["Close tabs containing text", "Close tabs containing text", "Close tabs containing text",
+        "Close every tab containing text", "Close every tab whose name contains your text"],
+      yue: ["閂晒名有呢啲字嘅 tab", "閂晒名有呢啲字嘅 tab", "閂晒名有呢啲字嘅 tab",
+        "閂晒所有名入面有呢啲字嘅 tab", "見到名有呢啲字嘅 tab，一次過閂晒"]
+    },
+    "tab.closeNotContaining": {
+      en: ["Close tabs NOT containing text", "Close tabs NOT containing text", "Close tabs NOT containing text",
+        "Close every tab that does not contain your text", "Keep the matches, close everything else"],
+      yue: ["閂晒名冇呢啲字嘅 tab", "閂晒名冇呢啲字嘅 tab", "閂晒名冇呢啲字嘅 tab",
+        "閂晒所有名入面冇呢啲字嘅 tab", "夾到嘅留低，其餘全部閂晒"]
+    },
+    "tab.bulkSummary": {
+      en: ["{count} of {total} tabs match, using {mode} matching.", "{count} of {total} tabs match, using {mode} matching.",
+        "{count} of {total} tabs match ({mode}).", "{count} of {total} tabs match — {mode} matching, names only.",
+        "{count} of {total} tabs match with {mode} matching. Names only — nothing reads inside a tab."],
+      yue: ["{total} 個 tab 之中夾到 {count} 個，用緊 {mode} 比對。",
+        "{total} 個 tab 之中夾到 {count} 個，用緊 {mode} 比對。",
+        "{total} 個入面夾到 {count} 個（{mode}）。",
+        "{total} 個入面夾到 {count} 個 — {mode} 比對，淨係睇個名。",
+        "{total} 個入面夾到 {count} 個，用 {mode} 比對。淨係睇個名 — 唔會偷睇 tab 入面啲嘢。"]
+    },
+    "tab.bulkNeedsQuery": {
+      en: ["Enter text to match. An empty query closes nothing.", "Enter text to match. An empty query closes nothing.",
+        "Type something to match — an empty query closes nothing.",
+        "Type something first. An empty query closes nothing, on purpose.",
+        "Type something first. An empty query closes nothing, and that is deliberate."],
+      yue: ["打啲字先。空白嘅話咩都唔會閂。", "打啲字先。空白嘅話咩都唔會閂。",
+        "打啲字先 — 空白嘅話咩都唔會閂。", "打啲字先啦。空白就咩都唔閂，特登咁設計。",
+        "打啲字先啦。空白就咩都唔閂 — 特登咁設計，唔係壞咗。"]
+    },
+    "tab.bulkPlaceholder": {
+      en: ["Text to match against tab names", "Text to match against tab names", "Text to match against tab names",
+        "What should the tab name contain?", "What should the tab name contain?"],
+      yue: ["用嚟夾 tab 名嘅字", "用嚟夾 tab 名嘅字", "用嚟夾 tab 名嘅字",
+        "個 tab 名要有咩字？", "個 tab 名要有咩字？"]
+    },
+    "tab.matchNormal": {
+      en: ["Matching: contains", "Matching: contains", "Matching: contains",
+        "Matching: names that contain it", "Matching: names that contain it"],
+      yue: ["比對：包含", "比對：包含", "比對：包含", "比對：個名有呢啲字", "比對：個名有呢啲字"]
+    },
+    "tab.matchInverted": {
+      en: ["Matching: does NOT contain", "Matching: does NOT contain", "Matching: does NOT contain",
+        "Matching: names that do NOT contain it", "Matching: names that do NOT contain it"],
+      yue: ["比對：唔包含", "比對：唔包含", "比對：唔包含", "比對：個名冇呢啲字", "比對：個名冇呢啲字"]
+    },
+    "tab.pinnedProtected": {
+      en: ["Pinned tabs are protected", "Pinned tabs are protected", "Pinned tabs are protected",
+        "Pinned tabs are protected from this", "Pinned tabs sit this one out"],
+      yue: ["釘住嘅 tab 受保護", "釘住嘅 tab 受保護", "釘住嘅 tab 受保護",
+        "釘住嘅 tab 唔會受影響", "釘住嘅 tab 今次唔關佢事"]
+    },
+    "tab.pinnedIncluded": {
+      en: ["Pinned tabs WILL be closed", "Pinned tabs WILL be closed", "Pinned tabs WILL be closed",
+        "Pinned tabs will be closed too", "Pinned tabs are going too — you asked for it"],
+      yue: ["連釘住嘅 tab 都會閂", "連釘住嘅 tab 都會閂", "連釘住嘅 tab 都會閂",
+        "釘住嗰啲都會一齊閂", "釘住嗰啲都照閂 — 你話要嘅"]
+    },
+    "tab.protected": {
+      en: ["pinned — kept", "pinned — kept", "pinned — kept", "pinned, so it stays", "pinned, so it stays put"],
+      yue: ["釘住 — 留低", "釘住 — 留低", "釘住 — 留低", "釘住咗，唔郁佢", "釘住咗，穩陣留低"]
+    },
+    "tab.unsaved": {
+      en: ["unsaved work", "unsaved work", "unsaved work", "has unsaved work", "has unsaved work in it"],
+      yue: ["有嘢未存", "有嘢未存", "有嘢未存", "入面有嘢未 save", "入面有嘢未 save 㗎"]
+    },
+    "tab.bulkApply": {
+      en: ["Close {count} tabs", "Close {count} tabs", "Close {count} tabs", "Close {count} tabs", "Close all {count} of them"],
+      yue: ["閂 {count} 個 tab", "閂 {count} 個 tab", "閂 {count} 個 tab", "閂 {count} 個 tab", "全部 {count} 個閂晒佢"]
+    },
+    "tab.bulkNothing": {
+      en: ["Nothing to close", "Nothing to close", "Nothing to close", "Nothing to close", "Nothing to close"],
+      yue: ["冇嘢可以閂", "冇嘢可以閂", "冇嘢可以閂", "冇嘢可以閂", "冇嘢可以閂"]
+    },
+    "tab.bulkClosed": {
+      en: ["Closed {count} tabs", "Closed {count} tabs", "Closed {count} tabs",
+        "Closed {count} tabs", "Closed {count} tabs — undo below if that was a mistake"],
+      yue: ["閂咗 {count} 個 tab", "閂咗 {count} 個 tab", "閂咗 {count} 個 tab",
+        "閂咗 {count} 個 tab", "閂咗 {count} 個 tab — 手快撳錯就撳下面 undo"]
+    },
+    "tab.bulkSkipped": {
+      en: ["{count} pinned tabs were kept: {names}", "{count} pinned tabs were kept: {names}",
+        "{count} pinned tabs were kept: {names}", "{count} pinned tabs stayed put: {names}",
+        "{count} pinned tabs stayed exactly where they were: {names}"],
+      yue: ["有 {count} 個釘住嘅 tab 留低咗：{names}", "有 {count} 個釘住嘅 tab 留低咗：{names}",
+        "有 {count} 個釘住嘅 tab 留低咗：{names}", "有 {count} 個釘住嘅 tab 冇郁過：{names}",
+        "有 {count} 個釘住嘅 tab 原封不動咁留喺度：{names}"]
+    },
+
+    /* ---- notification centre ---- */
+    "notify.dismiss": {
+      en: ["Dismiss", "Dismiss", "Dismiss", "Dismiss this", "Shoo it away"],
+      yue: ["關閉", "關閉", "收皮", "收咗佢", "揈走佢"]
+    },
+    "notify.clear": {
+      en: ["Clear", "Clear", "Clear", "Clear the list", "Wipe the list"],
+      yue: ["清除", "清除", "清走", "清走個清單", "全部清走佢"]
+    },
+    "notify.empty": {
+      en: ["Nothing has been notified yet.", "Nothing has been notified yet.", "Nothing here yet.",
+        "Nothing here yet — a quiet session.", "Nothing here yet. Suspiciously quiet, honestly."],
+      yue: ["未有任何通知。", "未有任何通知。", "呢度未有嘢。",
+        "呢度未有嘢 — 今次好靜。", "呢度未有嘢，靜到有啲可疑。"]
+    },
+
+    /* ---- search ---- */
+    "search.builder": {
+      en: ["Open the regex builder for this search", "Open the regex builder for this search",
+        "Open the regex builder for this search", "Build a pattern for this search",
+        "Build a proper pattern for this search"],
+      yue: ["開呢個搜尋嘅 regex 產生器", "開呢個搜尋嘅 regex 產生器", "開呢個搜尋嘅 regex 產生器",
+        "幫呢個搜尋砌個 pattern", "幫呢個搜尋砌條靚 pattern"]
+    },
+
+    /* ---- settings ---- */
+    "settings.search": {
+      en: ["Search every setting on this page", "Search every setting on this page",
+        "Search every setting here", "Search every setting here", "Type a setting name — it is in here somewhere"],
+      yue: ["搵呢版所有設定", "搵呢版所有設定", "搵呢度所有設定", "搵呢度所有設定", "打個設定名 — 一定喺度嘅"]
+    },
+    "settings.noMatch": {
+      en: ["No setting matches {query}.", "No setting matches {query}.", "No setting matches {query}.",
+        "Nothing matches {query} on this page.", "Nothing on this page matches {query}."],
+      yue: ["冇設定夾到 {query}。", "冇設定夾到 {query}。", "冇設定夾到 {query}。",
+        "呢版度冇嘢夾到 {query}。", "呢版度搵唔到夾 {query} 嘅嘢。"]
+    },
+
+    /* ---- changelog viewer ---- */
+    "changelog.search": {
+      en: ["Search the changelog", "Search the changelog", "Search the changelog",
+        "Search every release note", "Search every release note ever written"],
+      yue: ["搵 changelog", "搵 changelog", "搵 changelog", "搵勻所有版本紀錄", "搵勻由頭到尾所有版本紀錄"]
+    },
+    "changelog.from": {
+      en: ["From (yyyy-mm-dd)", "From (yyyy-mm-dd)", "From (yyyy-mm-dd)", "From — yyyy-mm-dd", "From — yyyy-mm-dd"],
+      yue: ["由 (yyyy-mm-dd)", "由 (yyyy-mm-dd)", "由 (yyyy-mm-dd)", "由邊日 — yyyy-mm-dd", "由邊日開始 — yyyy-mm-dd"]
+    },
+    "changelog.to": {
+      en: ["To (yyyy-mm-dd)", "To (yyyy-mm-dd)", "To (yyyy-mm-dd)", "To — yyyy-mm-dd", "To — yyyy-mm-dd"],
+      yue: ["到 (yyyy-mm-dd)", "到 (yyyy-mm-dd)", "到 (yyyy-mm-dd)", "到邊日 — yyyy-mm-dd", "去到邊日 — yyyy-mm-dd"]
+    },
+    "changelog.badDate": {
+      en: ["{value} is not a date yet. Your text is kept.", "{value} is not a date yet. Your text is kept.",
+        "{value} is not a date yet — your text is kept.", "{value} is not a date yet. Nothing was thrown away.",
+        "{value} is not a date yet. Keep typing — nothing was thrown away."],
+      yue: ["{value} 仲未係一個日期。你打嘅字冇被刪。", "{value} 仲未係一個日期。你打嘅字冇被刪。",
+        "{value} 仲未係日期 — 你打嘅字冇被刪。", "{value} 仲未係日期，你打嗰啲一個字都冇冇咗。",
+        "{value} 仲未係日期，慢慢打 — 你打嗰啲一個字都冇冇咗。"]
+    },
+    "changelog.status": {
+      en: ["{versions} versions, {matches} matching entries.", "{versions} versions, {matches} matching entries.",
+        "{versions} versions · {matches} matching entries.", "{versions} versions, {matches} entries matched.",
+        "{versions} versions and {matches} entries made the cut."],
+      yue: ["{versions} 個版本，{matches} 條夾到。", "{versions} 個版本，{matches} 條夾到。",
+        "{versions} 個版本 · {matches} 條夾到。", "{versions} 個版本，夾到 {matches} 條。",
+        "{versions} 個版本，夾到 {matches} 條入圍。"]
+    },
+    "changelog.entries": {
+      en: ["{count} entries", "{count} entries", "{count} entries", "{count} entries", "{count} entries"],
+      yue: ["{count} 條", "{count} 條", "{count} 條", "{count} 條", "{count} 條"]
+    },
+    "changelog.noDate": {
+      en: ["no date recorded", "no date recorded", "no date recorded", "no date recorded", "no date recorded"],
+      yue: ["冇記低日期", "冇記低日期", "冇記低日期", "冇記低日期", "冇記低日期"]
+    },
+    "changelog.export": {
+      en: ["Export", "Export", "Export", "Export what I see", "Export exactly what I see"],
+      yue: ["匯出", "匯出", "匯出", "匯出我睇緊嗰啲", "睇到咩就匯出咩"]
+    },
+    "changelog.exported": {
+      en: ["Exported the filtered view.", "Exported the filtered view.", "Exported the filtered view.",
+        "Exported — the file matches what is on screen.", "Exported. The file says exactly what the screen says."],
+      yue: ["已匯出篩選後嘅內容。", "已匯出篩選後嘅內容。", "匯出咗篩選後嘅內容。",
+        "匯出咗 — 份檔同你螢幕見到嘅一模一樣。", "匯出咗。份檔同你螢幕見到嘅一個字都唔差。"]
+    },
+    "changelog.copied": {
+      en: ["Copied the filtered view.", "Copied the filtered view.", "Copied the filtered view.",
+        "Copied — it matches what is on screen.", "Copied. It matches the screen exactly."],
+      yue: ["已複製篩選後嘅內容。", "已複製篩選後嘅內容。", "copy 咗篩選後嘅內容。",
+        "copy 咗 — 同螢幕見到嘅一樣。", "copy 咗，同螢幕見到嘅一個字都唔差。"]
+    },
+    "changelog.empty": {
+      en: ["No release matches this filter.", "No release matches this filter.", "No release matches this filter.",
+        "No release matches — try widening the dates.", "No release matches. Try widening the dates or clearing the search."],
+      yue: ["冇版本夾到呢個篩選。", "冇版本夾到呢個篩選。", "冇版本夾到呢個篩選。",
+        "冇版本夾到 — 試下放寬個日期。", "冇版本夾到。試下放寬個日期，或者清走個搜尋。"]
+    },
+    "changelog.loading": {
+      en: ["Reading CHANGELOG.md…", "Reading CHANGELOG.md…", "Reading CHANGELOG.md…",
+        "Reading CHANGELOG.md…", "Reading CHANGELOG.md…"],
+      yue: ["讀緊 CHANGELOG.md…", "讀緊 CHANGELOG.md…", "讀緊 CHANGELOG.md…",
+        "讀緊 CHANGELOG.md…", "讀緊 CHANGELOG.md…"]
+    },
+    "changelog.unavailable": {
+      en: ["The changelog engine is not loaded.", "The changelog engine is not loaded.",
+        "The changelog engine is not loaded.", "The changelog engine did not load.",
+        "The changelog engine did not load — cx-changelog.js is missing from this build."],
+      yue: ["Changelog 引擎未載入。", "Changelog 引擎未載入。", "Changelog 引擎未載入。",
+        "Changelog 引擎載入唔到。", "Changelog 引擎載入唔到 — 呢個 build 冇咗 cx-changelog.js。"]
+    },
+
+    /* ---- dim sum surprise: the dish's own name is a fact and never changes ---- */
+    "dimsum.greeting": {
+      en: ["Today's dim sum: {dish}.", "Today's dim sum: {dish}.", "A little dim sum for you: {dish}.",
+        "Have some {dish} while the agent thinks.", "Yum cha break — {dish}, on the house."],
+      yue: ["今日嘅點心：{dish}。", "今日嘅點心：{dish}。", "請你食件點心：{dish}。",
+        "agent 諗嘢，你食住件 {dish} 先。", "飲啖茶食件 {dish}，唔使畀錢嗰隻。"]
+    },
+
+    /* ---- local history ---- */
+    "history.pruned": {
+      en: ["Pruned {count} revisions, kept {kept}.", "Pruned {count} revisions, kept {kept}.",
+        "Pruned {count} revisions, kept {kept}.", "Pruned {count} revisions and kept the newest {kept}.",
+        "Pruned {count} revisions and kept the newest {kept}. That one is not undoable."],
+      yue: ["剪走咗 {count} 版，保留 {kept} 版。", "剪走咗 {count} 版，保留 {kept} 版。",
+        "剪走咗 {count} 版，留返 {kept} 版。", "剪走咗 {count} 版，留返最新嘅 {kept} 版。",
+        "剪走咗 {count} 版，留返最新嘅 {kept} 版。呢單係 undo 唔到㗎。"]
+    },
+
+    /* ---- external editor & appearance ---- */
+    "editor.opened": {
+      en: ["Opened {path}", "Opened {path}", "Opened {path}", "Opened {path} in your editor", "Opened {path} — go look at your editor"],
+      yue: ["開咗 {path}", "開咗 {path}", "開咗 {path}", "喺你個編輯器開咗 {path}", "開咗 {path} — 望下你個編輯器啦"]
+    },
+    "appearance.exported": {
+      en: ["Appearance presets copied to the clipboard.", "Appearance presets copied to the clipboard.",
+        "Appearance presets copied.", "Appearance presets copied — paste them somewhere safe.",
+        "Appearance presets copied. Paste them somewhere safe and they survive a reinstall."],
+      yue: ["外觀設定已複製到剪貼簿。", "外觀設定已複製到剪貼簿。", "外觀設定 copy 咗。",
+        "外觀設定 copy 咗 — 搵個安全位 paste 低佢。",
+        "外觀設定 copy 咗。搵個安全位 paste 低，重灌都唔怕冇咗。"]
+    }
   };
 
   function resolve(key, mode, funny) {

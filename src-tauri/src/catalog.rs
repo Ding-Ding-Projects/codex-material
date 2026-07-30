@@ -10,7 +10,10 @@ use std::path::Path;
 use std::path::PathBuf;
 
 fn str_of(v: &Json, key: &str) -> String {
-    v.get(key).and_then(|x| x.as_str()).unwrap_or("").to_string()
+    v.get(key)
+        .and_then(|x| x.as_str())
+        .unwrap_or("")
+        .to_string()
 }
 
 /* ------------------------------------------------------------------ MCP */
@@ -105,7 +108,7 @@ pub fn plugin_catalog() -> Result<Json, String> {
             rows.extend(list.iter().map(plugin_row));
         }
     }
-    rows.sort_by(|a, b| str_of(a, "id").cmp(&str_of(b, "id")));
+    rows.sort_by_key(|a| str_of(a, "id"));
     rows.dedup_by(|a, b| str_of(a, "id") == str_of(b, "id"));
     Ok(Json::Array(rows))
 }
@@ -179,7 +182,7 @@ pub fn skill_list(project_cwd: Option<&str>) -> Json {
             &mut out,
         );
     }
-    out.sort_by(|a, b| str_of(a, "name").cmp(&str_of(b, "name")));
+    out.sort_by_key(|a| str_of(a, "name"));
     Json::Array(out)
 }
 
@@ -219,12 +222,7 @@ pub fn hook_list() -> Result<Json, String> {
             };
             for (i, entry) in entries.iter().enumerate() {
                 let t = entry.as_table().cloned().unwrap_or_default();
-                let get = |k: &str| {
-                    t.get(k)
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("")
-                        .to_string()
-                };
+                let get = |k: &str| t.get(k).and_then(|v| v.as_str()).unwrap_or("").to_string();
                 let trusted = t.get("trusted").and_then(|v| v.as_bool()).unwrap_or(false);
                 out.push(json!({
                     "event": event,
@@ -430,10 +428,7 @@ pub fn session_action(id: &str, action: &str) -> Result<Json, String> {
     };
     let out = cli::run(&[verb, id])?;
     if !out.ok() {
-        return Err(format!(
-            "`codex {verb} {id}` failed: {}",
-            out.stderr.trim()
-        ));
+        return Err(format!("`codex {verb} {id}` failed: {}", out.stderr.trim()));
     }
     Ok(session_list(300))
 }

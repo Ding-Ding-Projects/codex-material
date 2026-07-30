@@ -92,12 +92,7 @@ pub fn commit(message: &str, kind: &str, snapshot: &Json) -> Result<Json, String
 pub fn log(limit: usize) -> Result<Json, String> {
     ensure_repo()?;
     let n = limit.to_string();
-    let out = git(&[
-        "log",
-        "--pretty=format:%h\u{1f}%at\u{1f}%s",
-        "-n",
-        &n,
-    ])?;
+    let out = git(&["log", "--pretty=format:%h\u{1f}%at\u{1f}%s", "-n", &n])?;
     if !out.status.success() {
         // A repository with no commits yet is an empty history, not an error.
         return Ok(json!({ "commits": [] }));

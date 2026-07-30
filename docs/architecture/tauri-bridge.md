@@ -37,10 +37,11 @@ A command whose parameter is a struct named `args` therefore needs its payload *
 `invalid args \`args\` for command …: command argument missing`, and because most call sites end
 in `.catch(…)` the failure can look like "nothing happened" rather than an error.
 
-> When this page was written, at least one frontend call site (`codex_history_commit`, in the
-> `vcs` section of `app/codex-core.js`) passed `{ message, kind, snapshot }` flat instead of
-> `{ args: { … } }`. Do not assume either side is currently right — run the audit under
-> [Verification](#verification) and fix whichever end is wrong.
+> When this page was written, more than one frontend call site passed its payload flat rather than
+> nested — `codex_history_commit` in the `vcs` section of `app/codex-core.js`, and
+> `codex_read_text` in `loadChangelog()` in `app/index.html`. Both are wrapped in `.catch(…)`, so
+> the rejection is invisible in the UI. Do not assume either end is currently right: run the audit
+> under [Verification](#verification) and fix whichever one is wrong.
 
 `tauri::State` parameters (`state: tauri::State<Runs>`, `tauri::State<wsl::Runtimes>`) and
 `app: tauri::AppHandle` are injected by Tauri and are **not** part of the JS payload.

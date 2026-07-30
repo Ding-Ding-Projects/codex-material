@@ -59,7 +59,9 @@ fn now() -> u64 {
 /// `wsl -l -q` emits UTF-16LE; decode it rather than lossily reading UTF-8, which
 /// would turn every distro name into NUL-separated garbage.
 fn decode_wsl(bytes: &[u8]) -> String {
-    if bytes.len() >= 2 && bytes.iter().skip(1).step_by(2).filter(|b| **b == 0).count() > bytes.len() / 4 {
+    if bytes.len() >= 2
+        && bytes.iter().skip(1).step_by(2).filter(|b| **b == 0).count() > bytes.len() / 4
+    {
         let units: Vec<u16> = bytes
             .chunks_exact(2)
             .map(|c| u16::from_le_bytes([c[0], c[1]]))
@@ -113,7 +115,16 @@ pub fn spawn(state: &Runtimes, args: &WslArgs) -> Result<Json, String> {
     // `sleep infinity` under a login shell keeps the namespace and the mounted
     // drives alive for the tab without holding a pty open.
     let child = command("wsl.exe")
-        .args(["-d", &distro, "--cd", &cwd, "--", "bash", "-lc", "sleep infinity"])
+        .args([
+            "-d",
+            &distro,
+            "--cd",
+            &cwd,
+            "--",
+            "bash",
+            "-lc",
+            "sleep infinity",
+        ])
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -203,7 +214,9 @@ pub fn exec(state: &Runtimes, args: &WslArgs) -> Result<Json, String> {
         .args(["-d", &distro, "--cd", &cwd, "--", "bash", "-lc", &cmd_text])
         .output()
         .map_err(|e| format!("could not run in `{distro}`: {e}"))?;
-    let mut lines = vec![json!({ "level": "cmd", "text": format!("wsl -d {distro} --cd {cwd} -- {cmd_text}") })];
+    let mut lines = vec![
+        json!({ "level": "cmd", "text": format!("wsl -d {distro} --cd {cwd} -- {cmd_text}") }),
+    ];
     for line in String::from_utf8_lossy(&out.stdout).lines() {
         lines.push(json!({ "level": "out", "text": line }));
     }

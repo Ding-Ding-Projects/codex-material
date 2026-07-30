@@ -9,7 +9,7 @@ loaded in order by `app/index.html` and each attaches exactly one global.
 
 | File | Global | Responsibility |
 | --- | --- | --- |
-| `app/vendor/react.production.min.js`, `react-dom.production.min.js` | `React`, `ReactDOM` | Vendored React 18 build. Loaded first, before `support.js`, which throws if `window.React` is missing. |
+| `app/vendor/react.production.min.js`, `react-dom.production.min.js` | `React`, `ReactDOM` | Vendored React 18.3.1 production build. Loaded first, before `support.js`, which throws if `window.React` is missing. |
 | `app/support.js` | `window.DC` runtime internals | Generated `dc-runtime`. Compiles the `<x-dc>` template into React elements and drives the logic class. **Do not hand-edit** — its header says it is generated from `dc-runtime/src/*.ts`. |
 | `app/codex-data.js` | `window.CODEX` | Static catalog of the CLI surface: `ENUMS`, `MODELS`, `SUBCOMMANDS`, `GLOBAL_FLAGS`, `SLASH`, `SETTINGS`, `FEATURES`, `HOOK_EVENTS`. This is data, not behaviour — it drives the Console and Config panels. |
 | `app/codex-core.js` | `window.CX` | The runtime core: `bridge`, `store`, `toToml`, `evaluate` (regex), `CONSTRUCTS`, `FLAGS`, `LIMITS`, `color`, `i18n`, `narrator`, `vcs`, `notify`, `tabs`, `settings`, `dimsum`, `live`, `sim`. |

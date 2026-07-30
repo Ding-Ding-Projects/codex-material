@@ -569,8 +569,8 @@ fn codex_read_text(app: tauri::AppHandle, args: PathArgs) -> Result<Json, String
             .map_err(|e| e.to_string())?
             .join(&args.path)
     };
-    let text = std::fs::read_to_string(&candidate)
-        .map_err(|e| format!("{}: {e}", candidate.display()))?;
+    let text =
+        std::fs::read_to_string(&candidate).map_err(|e| format!("{}: {e}", candidate.display()))?;
     Ok(json!({ "path": candidate.display().to_string(), "text": text }))
 }
 

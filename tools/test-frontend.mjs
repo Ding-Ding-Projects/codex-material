@@ -548,10 +548,14 @@ suite("app/cx-i18n.js", (ctx, file) => {
   });
 
   unit(file, "error and warning placeholders survive every funny level", () => {
-    const risky = keys.filter((k) => /^(err|error|warn|warning|danger|destructive|confirm|security)\./.test(k));
+    // Matched anywhere in the key, because these categories are named both as a
+    // prefix (`err.mcpAddFailed`) and as a segment (`notify.error`).
+    const risky = keys.filter((k) =>
+      /(^|\.)(err|error|warn|warning|danger|destructive|confirm|security|fail|failed)(\.|$)/.test(k)
+    );
     assert.ok(
       risky.length > 0,
-      `the table has no err.*/warn.* keys at all — the categories that must never lose a fact are unwritten (${keys.length} keys present)`
+      `the table has no error or warning keys at all — the categories that must never lose a fact are unwritten (${keys.length} keys present)`
     );
     for (const key of risky) {
       for (const lang of ["en", "yue"]) {
@@ -662,20 +666,35 @@ suite("app/cx-dimsum.js", (ctx, file) => {
     }
   });
 
-  unit(file, "the art is inline SVG that fetches nothing", () => {
+  unit(file, "the art is a bundled local asset that fetches nothing", () => {
     for (const dish of dishes) {
-      const art = dishField(dish, ["art", "svg", "image", "icon"]);
+      const art = dishField(dish, ["art", "svg", "image", "icon", "src"]);
       assert.ok(art, `${dish.id} has no art`);
       const trimmed = art.trim();
-      assert.ok(trimmed.startsWith("<svg"), `${dish.id}'s art is not an inline <svg>: ${trimmed.slice(0, 40)}`);
-      assert.ok(trimmed.includes("</svg>"), `${dish.id}'s art is not closed`);
-      // The SVG namespace URL is an identifier, never fetched, so it is stripped
-      // before the check; anything else beginning with http would be a network
-      // asset, which the bundled-assets rule forbids.
-      const withoutNamespace = trimmed.replace(/xmlns(:\w+)?="http[^"]*"/g, "");
-      assert.ok(!/http/i.test(withoutNamespace), `${dish.id}'s art reaches out to the network`);
-      assert.ok(!/data:image/i.test(withoutNamespace), `${dish.id}'s art embeds a raster image instead of drawing one`);
-      assert.ok(!/<script/i.test(withoutNamespace), `${dish.id}'s art carries a script`);
+
+      if (trimmed.startsWith("<svg")) {
+        assert.ok(trimmed.includes("</svg>"), `${dish.id}'s inline art is not closed`);
+        // The SVG namespace URL is an identifier, never fetched, so it is stripped
+        // before the check; anything else beginning with http would be a network
+        // asset, which the bundled-assets rule forbids.
+        const bare = trimmed.replace(/xmlns(:\w+)?="http[^"]*"/g, "");
+        assert.ok(!/http/i.test(bare), `${dish.id}'s art reaches out to the network`);
+        assert.ok(!/data:image/i.test(bare), `${dish.id}'s art embeds a raster image`);
+        assert.ok(!/<script/i.test(bare), `${dish.id}'s art carries a script`);
+        continue;
+      }
+
+      // A file reference instead: it has to resolve inside the app directory and
+      // actually be on disk, or the surprise renders as a broken image.
+      assert.ok(!/^[a-z][a-z0-9+.-]*:/i.test(trimmed), `${dish.id}'s art carries a URL scheme: ${trimmed}`);
+      assert.ok(!trimmed.startsWith("//"), `${dish.id}'s art is a protocol-relative URL: ${trimmed}`);
+      assert.ok(!trimmed.startsWith("/"), `${dish.id}'s art is an absolute path, not a bundled one: ${trimmed}`);
+      assert.ok(!trimmed.includes(".."), `${dish.id}'s art escapes the app directory: ${trimmed}`);
+      const onDisk = path.join(ROOT, "app", trimmed);
+      assert.ok(
+        fs.existsSync(onDisk),
+        `${dish.id}'s art is not bundled — ${path.relative(ROOT, onDisk)} is missing from the repository`
+      );
     }
   });
 

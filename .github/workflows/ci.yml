@@ -60,6 +60,9 @@ jobs:
       - name: Frontend tests
         run: node tools/test-frontend.mjs
 
+      - name: The bundled changelog matches the root copy
+        run: node tools/sync-changelog.mjs --check
+
   release:
     name: Build and release
     needs: test

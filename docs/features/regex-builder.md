@@ -106,9 +106,13 @@ Mechanically, in `app/index.html`:
 5. **Apply** stores `{ pattern, flags }` as `<target>Regex` in state; `matcher(query, spec)` then
    filters with the compiled pattern instead of the plain-text substring test.
 
-Existing anchors: the sidebar list (`list`), the Extend filter (`ext`), the Config filter (`set`),
-the slash-command catalog (`slash`), the dropdown filter (`dd`) and the command palette
-(`palette`).
+Existing anchors, one `data-anchor` per search field: the sidebar list (`list`), the Extend filter
+(`ext`), the Config filter (`set`), the slash-command catalog (`slash`), the dropdown filter
+(`dd`, which is what the four tab searches ride on), the command palette (`palette`), the Studio
+settings search (`studio`), the changelog search (`clog`) and the bulk-close query (`bulk`).
+
+Each owns its own `<target>Query` and `<target>Regex` state, so no two fields share hidden state
+and applying a pattern in one never changes another.
 
 **Plain text is the default.** Typing in the field clears any applied pattern
 (`setListQuery` sets `listRegex: null`); regex applies only when the user opens the builder and
@@ -117,11 +121,13 @@ the placeholder becomes `/<pattern>/` so the mode is never ambiguous.
 
 ### Where a builder is still missing
 
-Every collection search in the shipped template has one. The rule also requires an anchored
-builder on **every settings, preferences and properties surface**, including each tab within
-them. The Config panel's search covers the current section's fields; a search that spans all
-sections and reports "this match is on another tab" is **not implemented yet**. Treat that as
-outstanding work rather than a documented behaviour.
+Every collection search in the shipped template has one, and so do both settings surfaces (the
+Codex **Config** panel and the **Studio** preferences panel).
+
+One part of the rule is **not implemented yet**: the Config panel's search filters the fields of
+the *currently selected section only* (`section.fields.filter(setMatch)`), so a setting whose name
+the user knows but whose section they do not is not found, and there is no "this match is on
+another tab" affordance. Treat that as outstanding work rather than as documented behaviour.
 
 ## Configuration
 

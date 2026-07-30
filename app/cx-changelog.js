@@ -42,6 +42,10 @@
       en: ["The changelog file is empty — there is nothing to show.", "The changelog file is empty, so there is nothing to list here.", "The changelog file is completely empty. Nothing to show, nothing to hide."],
       yue: ["個 changelog 檔係空嘅 — 無嘢可以睇。", "個 changelog 檔空空如也，無嘢可以列出嚟。", "個 changelog 檔乾淨到連一個字都無，真係無嘢好睇。"]
     },
+    "parse.unreadable": {
+      en: ["The changelog could not be read as text, so nothing could be parsed.", "The changelog could not be read as text at all, so nothing could be parsed.", "The changelog refused to become text, so there was nothing to parse."],
+      yue: ["個 changelog 讀唔到做文字，所以解析唔到任何嘢。", "個 changelog 完全讀唔到做文字，所以乜都解析唔到。", "個 changelog 死都唔肯變做文字，咁就真係無嘢好解析。"]
+    },
     "parse.noVersions": {
       en: ["No `## [version]` heading was found — this file is not in Keep a Changelog format.", "No `## [version]` heading anywhere, so this file is not in Keep a Changelog format.", "Not one `## [version]` heading in the whole file — whatever this is, it is not Keep a Changelog."],
       yue: ["搵唔到 `## [版本]` 標題 — 呢個檔唔係 Keep a Changelog 格式。", "成個檔都無 `## [版本]` 標題，即係唔係 Keep a Changelog 格式。", "由頭搵到尾都無一個 `## [版本]` 標題，呢個檔點睇都唔係 Keep a Changelog。"]
@@ -139,8 +143,8 @@
     "exp.searchText": { en: ["plain text \"{text}\"", "plain text \"{text}\"", "plain text \"{text}\" — no regex involved"], yue: ["純文字「{text}」", "純文字「{text}」", "純文字「{text}」，無用 regex"] },
     "exp.searchRegex": { en: ["regex /{pattern}/{flags}", "regex /{pattern}/{flags}", "regex /{pattern}/{flags} — you opted in"], yue: ["regex /{pattern}/{flags}", "regex /{pattern}/{flags}", "regex /{pattern}/{flags}，你自己㩒落去嘅"] },
     "exp.searchBad": { en: ["regex /{pattern}/ — invalid, so no text filter was applied", "regex /{pattern}/ — invalid, so no text filter was applied", "regex /{pattern}/ — would not compile, so no text filter was applied"], yue: ["regex /{pattern}/ — 唔啱，所以無做文字篩選", "regex /{pattern}/ — 唔啱，所以無做文字篩選", "regex /{pattern}/ — 編譯唔到，所以文字篩選無做過"] },
-    "exp.counted": { en: ["{entries} entries across {versions} versions", "{entries} entries across {versions} versions", "{entries} entries spread across {versions} versions"], yue: ["{versions} 個版本、合共 {entries} 條項目", "{versions} 個版本、合共 {entries} 條項目", "{versions} 個版本入面，一共 {entries} 條項目"] },
-    "exp.undated": { en: ["{n} versions have no usable date and fall outside this range", "{n} versions have no usable date, so they fall outside this range", "{n} versions turned up without a usable date, so this range cannot hold them"], yue: ["有 {n} 個版本無可用日期，跌咗出呢個範圍之外", "有 {n} 個版本無可用日期，所以唔喺呢個範圍入面", "有 {n} 個版本連個可用日期都無，呢個範圍收唔到佢哋"] },
+    "exp.counted": { en: ["{entries} {eLabel} across {versions} {vLabel}", "{entries} {eLabel} across {versions} {vLabel}", "{entries} {eLabel} spread across {versions} {vLabel}"], yue: ["{versions} 個版本、合共 {entries} 條項目", "{versions} 個版本、合共 {entries} 條項目", "{versions} 個版本入面，一共 {entries} 條項目"] },
+    "exp.undated": { en: ["Outside this range: {n} {vLabel} with no usable date", "Outside this range: {n} {vLabel} carrying no usable date", "Outside this range: {n} {vLabel} that turned up with no usable date at all"], yue: ["喺呢個範圍以外：有 {n} 個版本無可用日期", "喺呢個範圍以外：有 {n} 個版本無可用日期", "喺呢個範圍以外：有 {n} 個版本連個可用日期都無"] },
     "exp.stamp": { en: ["Exported: {at}", "Exported at: {at}", "Exported at: {at}"], yue: ["匯出時間：{at}", "匯出時間：{at}", "匯出時間：{at}"] },
     "exp.empty": {
       en: ["Nothing matched this range and this search, so no entries were exported.", "Nothing matched this range and this search — no entries were exported.", "Nothing matched this range and this search. Zero entries exported, and the file says so rather than pretending otherwise."],
@@ -205,7 +209,10 @@
     const out = [];
     const warnings = [];
     out.warnings = warnings;
-    const src = markdown == null ? "" : String(markdown);
+    let src;
+    // Even the conversion can throw: an object with a hostile toString reaches this far.
+    try { src = markdown == null ? "" : String(markdown); }
+    catch (e) { warnings.push(say("parse.unreadable")); return out; }
     if (!src.trim()) { warnings.push(say("parse.empty")); return out; }
 
     try {
@@ -307,7 +314,8 @@
     let y, m, d;
     if (parts[1].length === 4) { y = a; m = b; d = c; }        // yyyy-mm-dd wins whatever the separator is
     else if (parts[3].length === 4) { y = c; m = mdy ? a : b; d = mdy ? b : a; }
-    else { r.partial = true; r.error = say("date.shortYear", { year: parts[3] }); return r; }
+    else if (parts[3].length === 2) { r.partial = true; r.error = say("date.shortYear", { year: parts[3] }); return r; }
+    else { r.error = say("date.unknown", { typed: s, shape: shape }); return r; }   // "1.2.3" is a version, not a year
 
     if (m < 1 || m > 12) {
       const swapped = parts[1].length === 4 ? null : validDate(y, mdy ? b : a, m);
@@ -566,8 +574,12 @@
     const note = (s) => (md ? "- " + s : "  " + s);
     L.push(note(say("exp.range", { range: rangeText(range, view) })));
     L.push(note(say("exp.search", { search: queryText(query, view) })));
-    L.push(note(say("exp.counted", { entries: view.matchCount, versions: view.releases.length })));
-    if (view.undated) L.push(note(say("exp.undated", { n: view.undated })));
+    const many = (n, one, more) => (n === 1 ? one : more);
+    L.push(note(say("exp.counted", {
+      entries: view.matchCount, eLabel: many(view.matchCount, "entry", "entries"),
+      versions: view.releases.length, vLabel: many(view.releases.length, "version", "versions")
+    })));
+    if (view.undated) L.push(note(say("exp.undated", { n: view.undated, vLabel: many(view.undated, "version", "versions") })));
     if (view.error) L.push(note(view.error));
     L.push(note(say("exp.stamp", { at: stamp(new Date()) })));
     L.push("");
