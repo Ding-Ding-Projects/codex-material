@@ -1,0 +1,228 @@
+{
+  "generatedFrom": "C:\\Users\\cntow\\Documents\\GitHub\\agent-global-memory\\dim-sum",
+  "catalogStatus": "in-progress",
+  "catalogTotal": 72,
+  "bundledSize": 256,
+  "dishes": [
+    {
+      "id": "hk-dish-0001",
+      "slug": "classic-har-gow",
+      "en": "Classic Har Gow",
+      "yue": "蝦餃",
+      "jyutping": "haa1 gaau2",
+      "image": "dimsum/classic-har-gow.png",
+      "altEn": "Warm tea-house photograph of Classic Har Gow",
+      "altYue": "港式茶樓木枱上嘅蝦餃",
+      "source": "images/hk-dish-0001-classic-har-gow.png"
+    },
+    {
+      "id": "hk-dish-0004",
+      "slug": "crab-roe-har-gow",
+      "en": "Crab Roe Har Gow",
+      "yue": "蟹籽蝦餃",
+      "jyutping": "haai5 zi2 haa1 gaau2",
+      "image": "dimsum/crab-roe-har-gow.png",
+      "altEn": "Warm tea-house photograph of Crab Roe Har Gow",
+      "altYue": "港式茶樓木枱上嘅蟹籽蝦餃",
+      "source": "images/hk-dish-0004-crab-roe-har-gow.png"
+    },
+    {
+      "id": "hk-dish-0007",
+      "slug": "pea-shoot-shrimp-dumpling",
+      "en": "Pea Shoot Shrimp Dumpling",
+      "yue": "豆苗蝦餃",
+      "jyutping": "dau6 miu4 haa1 gaau2",
+      "image": "dimsum/pea-shoot-shrimp-dumpling.png",
+      "altEn": "Warm tea-house photograph of Pea Shoot Shrimp Dumpling",
+      "altYue": "港式茶樓木枱上嘅豆苗蝦餃",
+      "source": "images/hk-dish-0007-pea-shoot-shrimp-dumpling.png"
+    },
+    {
+      "id": "hk-dish-0010",
+      "slug": "cuttlefish-shrimp-dumpling",
+      "en": "Cuttlefish Shrimp Dumpling",
+      "yue": "墨魚蝦餃",
+      "jyutping": "mak6 jyu4 haa1 gaau2",
+      "image": "dimsum/cuttlefish-shrimp-dumpling.png",
+      "altEn": "Warm tea-house photograph of Cuttlefish Shrimp Dumpling",
+      "altYue": "港式茶樓木枱上嘅墨魚蝦餃",
+      "source": "images/hk-dish-0010-cuttlefish-shrimp-dumpling.png"
+    },
+    {
+      "id": "hk-dish-0013",
+      "slug": "quail-egg-siu-mai",
+      "en": "Quail Egg Siu Mai",
+      "yue": "鵪鶉蛋燒賣",
+      "jyutping": "am1 seon4 daan6 siu1 maai6",
+      "image": "dimsum/quail-egg-siu-mai.png",
+      "altEn": "Warm tea-house photograph of Quail Egg Siu Mai",
+      "altYue": "港式茶樓木枱上嘅鵪鶉蛋燒賣",
+      "source": "images/hk-dish-0013-quail-egg-siu-mai.png"
+    },
+    {
+      "id": "hk-dish-0016",
+      "slug": "chicken-siu-mai",
+      "en": "Chicken Siu Mai",
+      "yue": "雞肉燒賣",
+      "jyutping": "gai1 juk6 siu1 maai6",
+      "image": "dimsum/chicken-siu-mai.png",
+      "altEn": "Warm tea-house photograph of Chicken Siu Mai",
+      "altYue": "港式茶樓木枱上嘅雞肉燒賣",
+      "source": "images/hk-dish-0016-chicken-siu-mai.png"
+    },
+    {
+      "id": "hk-dish-0251",
+      "slug": "roast-goose",
+      "en": "Roast Goose",
+      "yue": "燒鵝",
+      "jyutping": "siu1 ngo4",
+      "image": "dimsum/roast-goose.png",
+      "altEn": "Close catalog photograph of Roast Goose served on Hong Kong restaurant tableware.",
+      "altYue": "港式「燒鵝」用餐廳器皿上枱嘅近鏡菜式相。",
+      "source": "images/hk-dish-0251-roast-goose.png"
+    },
+    {
+      "id": "hk-dish-0254",
+      "slug": "lean-char-siu",
+      "en": "Lean Char Siu",
+      "yue": "瘦叉燒",
+      "jyutping": "sau3 caa1 siu1",
+      "image": "dimsum/lean-char-siu.png",
+      "altEn": "Close catalog photograph of Lean Char Siu served on Hong Kong restaurant tableware.",
+      "altYue": "港式「瘦叉燒」用餐廳器皿上枱嘅近鏡菜式相。",
+      "source": "images/hk-dish-0254-lean-char-siu.png"
+    },
+    {
+      "id": "hk-dish-0257",
+      "slug": "suckling-pig-platter",
+      "en": "Suckling Pig Platter",
+      "yue": "乳豬拼盤",
+      "jyutping": "jyu5 zyu1 ping3 pun4",
+      "image": "dimsum/suckling-pig-platter.png",
+      "altEn": "Close catalog photograph of Suckling Pig Platter served on Hong Kong restaurant tableware.",
+      "altYue": "港式「乳豬拼盤」用餐廳器皿上枱嘅近鏡菜式相。",
+      "source": "images/hk-dish-0257-suckling-pig-platter.png"
+    },
+    {
+      "id": "hk-dish-0261",
+      "slug": "red-fermented-bean-curd-roast-duck",
+      "en": "Red Fermented Bean Curd Roast Duck",
+      "yue": "南乳燒鴨",
+      "jyutping": "naam4 jyu5 siu1 aap3",
+      "image": "dimsum/red-fermented-bean-curd-roast-duck.png",
+      "altEn": "Close catalog photograph of Red Fermented Bean Curd Roast Duck served on Hong Kong restaurant tableware.",
+      "altYue": "港式「南乳燒鴨」用餐廳器皿上枱嘅近鏡菜式相。",
+      "source": "images/hk-dish-0261-red-fermented-bean-curd-roast-duck.png"
+    },
+    {
+      "id": "hk-dish-0264",
+      "slug": "five-spice-beef-shin",
+      "en": "Five-Spice Beef Shin",
+      "yue": "五香牛𦟌",
+      "jyutping": "ng5 hoeng1 ngau4 zin2",
+      "image": "dimsum/five-spice-beef-shin.png",
+      "altEn": "Close catalog photograph of Five-Spice Beef Shin served on Hong Kong restaurant tableware.",
+      "altYue": "港式「五香牛𦟌」用餐廳器皿上枱嘅近鏡菜式相。",
+      "source": "images/hk-dish-0264-five-spice-beef-shin.png"
+    },
+    {
+      "id": "hk-dish-0267",
+      "slug": "soy-braised-goose-wing",
+      "en": "Soy-Braised Goose Wing",
+      "yue": "滷水鵝翼",
+      "jyutping": "lou5 seoi2 ngo4 jik6",
+      "image": "dimsum/soy-braised-goose-wing.png",
+      "altEn": "Close catalog photograph of Soy-Braised Goose Wing served on Hong Kong restaurant tableware.",
+      "altYue": "港式「滷水鵝翼」用餐廳器皿上枱嘅近鏡菜式相。",
+      "source": "images/hk-dish-0267-soy-braised-goose-wing.png"
+    },
+    {
+      "id": "hk-dish-0503",
+      "slug": "soy-braised-cuttlefish",
+      "en": "Soy-Braised Cuttlefish",
+      "yue": "豉油滷水墨魚",
+      "jyutping": "si6 jau4 lou5 seoi2 mak6 jyu4",
+      "image": "dimsum/soy-braised-cuttlefish.png",
+      "altEn": "A single serving of Soy-Braised Cuttlefish, glossy sliced cuttlefish tentacles in dark aromatic master stock.",
+      "altYue": "一份擺喺a stainless-steel Hong Kong street-food counter嘅豉油滷水墨魚。",
+      "source": "images/hk-dish-0503-soy-braised-cuttlefish.png"
+    },
+    {
+      "id": "hk-dish-0506",
+      "slug": "curry-squid",
+      "en": "Curry Squid",
+      "yue": "咖喱魷魚",
+      "jyutping": "gaa3 lei1 jau4 jyu2",
+      "image": "dimsum/curry-squid.png",
+      "altEn": "A single serving of Curry Squid, scored squid pieces and radish bathed in fragrant yellow curry.",
+      "altYue": "一份擺喺a stainless-steel Hong Kong street-food counter嘅咖喱魷魚。",
+      "source": "images/hk-dish-0506-curry-squid.png"
+    },
+    {
+      "id": "hk-dish-0509",
+      "slug": "classic-egg-waffles",
+      "en": "Classic Egg Waffles",
+      "yue": "原味雞蛋仔",
+      "jyutping": "jyun4 mei6 gai1 daan6 zai2",
+      "image": "dimsum/classic-egg-waffles.png",
+      "altEn": "A single serving of Classic Egg Waffles, a freshly baked bubble waffle with crisp round shells and a tender centre.",
+      "altYue": "一份擺喺a compact Hong Kong egg-waffle stall嘅原味雞蛋仔。",
+      "source": "images/hk-dish-0509-classic-egg-waffles.png"
+    },
+    {
+      "id": "hk-dish-0512",
+      "slug": "matcha-egg-waffles",
+      "en": "Matcha Egg Waffles",
+      "yue": "抹茶雞蛋仔",
+      "jyutping": "mut3 caa4 gai1 daan6 zai2",
+      "image": "dimsum/matcha-egg-waffles.png",
+      "altEn": "A single serving of Matcha Egg Waffles, a pale green matcha bubble waffle with crisp rounded cells.",
+      "altYue": "一份擺喺a compact Hong Kong egg-waffle stall嘅抹茶雞蛋仔。",
+      "source": "images/hk-dish-0512-matcha-egg-waffles.png"
+    },
+    {
+      "id": "hk-dish-0752",
+      "slug": "black-truffle-crystal-chive-and-water-chestnut-dumpling",
+      "en": "Black Truffle Crystal Chive and Water Chestnut Dumpling",
+      "yue": "黑松露水晶韭菜馬蹄餃",
+      "jyutping": "hak1 sung1 lou6 seoi2 zing1 gau2 coi3 maa5 tai4 gaau2",
+      "image": "dimsum/black-truffle-crystal-chive-and-water-chestnut-dumpling.png",
+      "altEn": "Black Truffle Crystal Chive and Water Chestnut Dumpling presented as one freshly prepared Hong Kong dish on a ceramic plate.",
+      "altYue": "一碟新鮮整好嘅黑松露水晶韭菜馬蹄餃，用陶瓷碟上枱。",
+      "source": "images/hk-dish-0752-black-truffle-crystal-chive-and-water-chestnut-dumpling.png"
+    },
+    {
+      "id": "hk-dish-0755",
+      "slug": "white-pepper-crystal-chive-and-water-chestnut-dumpling",
+      "en": "White Pepper Crystal Chive and Water Chestnut Dumpling",
+      "yue": "白胡椒水晶韭菜馬蹄餃",
+      "jyutping": "baak6 wu4 ziu1 seoi2 zing1 gau2 coi3 maa5 tai4 gaau2",
+      "image": "dimsum/white-pepper-crystal-chive-and-water-chestnut-dumpling.png",
+      "altEn": "White Pepper Crystal Chive and Water Chestnut Dumpling presented as one freshly prepared Hong Kong dish on a ceramic plate.",
+      "altYue": "一碟新鮮整好嘅白胡椒水晶韭菜馬蹄餃，用陶瓷碟上枱。",
+      "source": "images/hk-dish-0755-white-pepper-crystal-chive-and-water-chestnut-dumpling.png"
+    },
+    {
+      "id": "hk-dish-0758",
+      "slug": "ginger-sesame-crystal-spinach-and-bamboo-shoot-dumpling",
+      "en": "Ginger Sesame Crystal Spinach and Bamboo Shoot Dumpling",
+      "yue": "薑香芝麻水晶菠菜竹筍餃",
+      "jyutping": "goeng1 hoeng1 zi1 maa4 seoi2 zing1 bo1 coi3 zuk1 seon2 gaau2",
+      "image": "dimsum/ginger-sesame-crystal-spinach-and-bamboo-shoot-dumpling.png",
+      "altEn": "Ginger Sesame Crystal Spinach and Bamboo Shoot Dumpling presented as one freshly prepared Hong Kong dish on a ceramic plate.",
+      "altYue": "一碟新鮮整好嘅薑香芝麻水晶菠菜竹筍餃，用陶瓷碟上枱。",
+      "source": "images/hk-dish-0758-ginger-sesame-crystal-spinach-and-bamboo-shoot-dumpling.png"
+    },
+    {
+      "id": "hk-dish-0761",
+      "slug": "classic-crystal-pumpkin-and-pine-nut-dumpling",
+      "en": "Classic Crystal Pumpkin and Pine Nut Dumpling",
+      "yue": "水晶南瓜松子餃",
+      "jyutping": "seoi2 zing1 naam4 gwaa1 cung4 zi2 gaau2",
+      "image": "dimsum/classic-crystal-pumpkin-and-pine-nut-dumpling.png",
+      "altEn": "Classic Crystal Pumpkin and Pine Nut Dumpling presented as one freshly prepared Hong Kong dish on a ceramic plate.",
+      "altYue": "一碟新鮮整好嘅水晶南瓜松子餃，用陶瓷碟上枱。",
+      "source": "images/hk-dish-0761-classic-crystal-pumpkin-and-pine-nut-dumpling.png"
+    }
+  ]
+}

@@ -43,6 +43,11 @@ jobs:
       - name: The bundled changelog matches the root copy
         run: node tools/sync-changelog.mjs --check
 
+      - name: The landing page carries its own assets
+        # GitHub Pages serves /docs and nothing above it, so a site asset that climbs
+        # out of that tree works locally and 404s once published.
+        run: node tools/sync-site-assets.mjs --check
+
       - name: Every file parses
         shell: pwsh
         run: |

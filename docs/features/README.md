@@ -3,28 +3,52 @@
 One page per feature. Each documents behaviour, configuration, failure modes, security
 considerations and how to verify it.
 
+Codex Studio is a **Windows-only Electron 40** application. The renderer talks to the main
+process through `window.CODEX_BRIDGE.invoke(name, args)` — a fixed allow-list declared in
+`electron/preload.js` — and every name on that list is registered with `ipcMain.handle` in
+`electron/commands.js`. There is no Rust, no `window.__TAURI__` and no generic invoke.
+
 | Feature | Owner file(s) | One line |
 | --- | --- | --- |
-| [Regex builder](regex-builder.md) | `app/codex-core.js` (`evaluate`, `CONSTRUCTS`, `FLAGS`, `LIMITS`), `app/index.html` | Every search bar has a full, anchored, bounded regex builder beside it |
-| [Tabs](tabs.md) | `app/cx-tabs.js` (`window.CX_TABS`) | Browser-style strip: pin, group, overflow, four searches, bulk close by text |
-| [Appearance](appearance.md) | `app/index.html` (editor), `app/codex-core.js` (`color`), `app/cx-appearance.js` | Per-element editor, Word-depth typography, infinite colour picker and translator |
-| [Notifications](notifications.md) | `app/cx-notify.js` (`window.CX_NOTIFY`) | Non-blocking toasts, a reviewable centre, and the narrow case where a modal is correct |
-| [Local version control](local-version-control.md) | `src-tauri/src/history.rs`, `app/codex-core.js` (`vcs`) | Append-only git history in `$CODEX_HOME/studio`; restoring is a new revision |
-| [External editor](external-editor.md) | `src-tauri/src/editors.rs` | Detect what is installed, open a file or folder, degrade honestly when nothing is |
-| [WSL runtimes](wsl-runtimes.md) | `src-tauri/src/wsl.rs` | One long-lived Linux shell per tab, so `cd` and env survive between runs |
+| [Chats and runs](chats-and-runs.md) | `app/index.html` (`sendChat`, `profileArgv`, `buildArgv`, `startRun`), `electron/lib/cli.js` | How a prompt becomes an argv, and how its output streams back line by line |
+| [Regex builder](regex-builder.md) | `app/codex-core.js` (`evaluate`, `nestedQuantifier`, `CONSTRUCTS`, `FLAGS`, `LIMITS`), `app/index.html` | Every search bar has a full, anchored, bounded regex builder beside it — and refuses the shapes a time budget cannot save it from |
+| [Tabs](tabs.md) | `app/cx-tabs.js` (`window.CX_TABS`), `app/index.html` | Browser-style strip: pin, group, overflow, four searches, bulk close from one shared predicate |
+| [Appearance](appearance.md) | `app/index.html` (the editor), `app/codex-core.js` (`color`) | Per-element editor, a twelve-space colour translator and a contrast readout |
+| [Notifications](notifications.md) | `app/cx-notify.js` (`window.CX_NOTIFY`), `app/index.html` | Non-blocking toasts, a reviewable centre, and the one place a modal is correct |
+| [Local version control](local-version-control.md) | `electron/lib/history.js`, `app/codex-core.js` (`vcs`) | Append-only git history in `$CODEX_HOME/studio`; restoring is a new revision |
+| [External editor](external-editor.md) | `electron/lib/editors.js` | Detect what is installed, open a folder or file, fall back to Explorer |
+| [WSL runtimes](wsl-runtimes.md) | `electron/lib/wsl.js` | One long-lived Linux shell per tab, so `cd` and env survive between commands |
+
+Experience-level behaviour — the three language modes, the two funny sliders, accessibility, the
+changelog viewer and the dim sum surprise — lives in [../experience/](../experience/README.md).
 
 ## Rules that apply to every feature here
 
 - **Every search bar gets the full anchored regex builder.** Not a reduced toggle, not a link
-  elsewhere. Plain text stays the default; regex is an explicit opt-in.
+  elsewhere. Plain text stays the default; regex is an explicit opt-in. Nine fields carry a
+  `data-anchor` today: `list`, `ext`, `set`, `clog`, `studio`, `slash`, `palette`, `dd` and
+  `bulk`.
 - **Every rendered element is an appearance target.** Give it `data-appear="<name>"` and end its
-  context menu with `this.appearItem(e)`.
+  context menu with `this.appearItem(e)`. There are 37 named targets in the shipped template.
 - **Informational messages are notifications, never modals.** A modal is for a decision that must
-  be made before anything else can continue.
+  be made before anything else can continue. Exactly one exists: the bulk-close gate.
 - **Anything the user could regret is committed to History**, with a message naming what changed
   rather than that something did.
 - **All copy goes through `CX.i18n.t()`**, so all three language modes and both funny sliders
   apply — including to errors and destructive confirmations. See
   [../experience/language-modes.md](../experience/language-modes.md).
-- **Keyboard and screen-reader operation is a completion blocker**, not polish. See
+- **Keyboard and screen-reader operation is a completion blocker**, not polish. The honest audit
+  of what is and is not implemented is in
   [../experience/accessibility.md](../experience/accessibility.md).
+
+## Verifying anything on these pages
+
+```
+node tools/test-frontend.mjs     23 tests over app/codex-core.js, cx-i18n.js, cx-dimsum.js, cx-changelog.js
+node tools/test-backend.mjs      22 tests over electron/lib/*.js and the preload/commands contract
+node tools/capture.mjs           drives the real app and writes assets/screenshots/*.png
+npm test                         both suites plus the bundled-changelog check
+```
+
+Both suites are dependency-free and need neither Electron nor a `codex` binary on PATH. The
+counts above are the current pass counts, not targets.

@@ -16,12 +16,12 @@
 /* ------------------------------------------------------------------- fonts
    Same files the app bundles. `font-display: swap` and a real fallback stack mean a
    missing file degrades to the system UI font rather than to invisible text. */
-@font-face { font-family: Roboto; font-style: normal; font-weight: 400; font-display: swap; src: url("../../app/fonts/roboto-latin-400-normal.woff2") format("woff2"); }
-@font-face { font-family: Roboto; font-style: italic; font-weight: 400; font-display: swap; src: url("../../app/fonts/roboto-latin-400-italic.woff2") format("woff2"); }
-@font-face { font-family: Roboto; font-style: normal; font-weight: 500; font-display: swap; src: url("../../app/fonts/roboto-latin-500-normal.woff2") format("woff2"); }
-@font-face { font-family: Roboto; font-style: normal; font-weight: 700; font-display: swap; src: url("../../app/fonts/roboto-latin-700-normal.woff2") format("woff2"); }
-@font-face { font-family: "Roboto Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("../../app/fonts/roboto-mono-latin-400-normal.woff2") format("woff2"); }
-@font-face { font-family: "Roboto Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url("../../app/fonts/roboto-mono-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: Roboto; font-style: normal; font-weight: 400; font-display: swap; src: url("assets/fonts/roboto-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: Roboto; font-style: italic; font-weight: 400; font-display: swap; src: url("assets/fonts/roboto-latin-400-italic.woff2") format("woff2"); }
+@font-face { font-family: Roboto; font-style: normal; font-weight: 500; font-display: swap; src: url("assets/fonts/roboto-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: Roboto; font-style: normal; font-weight: 700; font-display: swap; src: url("assets/fonts/roboto-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Roboto Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("assets/fonts/roboto-mono-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Roboto Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url("assets/fonts/roboto-mono-latin-500-normal.woff2") format("woff2"); }
 
 /* ------------------------------------------------------------------ tokens */
 :root {
