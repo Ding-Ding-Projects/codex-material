@@ -59,7 +59,8 @@ return (a.order || 0) - (b.order || 0);
 Consequences, all of them deliberate:
 
 - `move(id, index)` reorders a tab **within its own region**. Moving a pinned tab can never drop it
-  among the ordinary ones and vice versa, so pinning is not silently undone by a reorder.
+  among the ordinary ones and vice versa, so pinning is not silently undone by a reorder. See
+  [Reordering](#reordering) for how it is reached — for a long time it was not reached at all.
 - `overflow(capacity)` computes `room = Math.max(pinnedCount, capacity)` before slicing, so
   **pinned tabs stay visible when ordinary tabs overflow**. That is the point of pinning.
 - Pinned tabs are excluded from `closeOthers`, `closeToRight` and both text-based bulk closes
@@ -89,6 +90,45 @@ Group colour is currently chosen from a six-swatch dropdown that also accepts fr
 editor uses. The `icon` and `appearance` fields exist on the group record and persist, but no
 control writes them yet — see [appearance.md](appearance.md) for the current reach of the
 per-element editor.
+
+## Reordering
+
+| Route | Binding |
+| --- | --- |
+| Keyboard | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>←</kbd> / <kbd>→</kbd> on the focused tab |
+| Context menu | **Move left** and **Move right**, which show the same shortcut |
+
+Both call `moveTabBy(tab, delta)`, which resolves the tab's position **within its own
+pinned/unpinned region** and refuses a move past either end. One mover, two routes, so they
+cannot drift apart. Focus stays on the tab that moved, so holding the shortcut walks a single tab
+along the strip rather than shuffling whatever slides into the gap behind it.
+
+> [!NOTE]
+> `CX.tabs.move()` was written correctly, handled the two regions, renumbered and emitted — and
+> **nothing in the application ever called it**. Not one call site. Reordering, a first-class
+> requirement of the tab rules, was a function waiting in a file for a caller that never arrived,
+> while this document described it as though it were reachable. If you are documenting a
+> capability, grep for a call site before believing the function is the feature.
+
+## Accessibility
+
+A `tablist` exposes **exactly one tab stop**. <kbd>Tab</kbd> enters the strip, arrows move within
+it, <kbd>Tab</kbd> leaves. Each tab carries `role="tab"`, `aria-selected`, a live
+`aria-controls="tabpanel-main"`, and `tabindex="0"` only when it is the selected one — every
+other tab is `-1`.
+
+| Key | Effect |
+| --- | --- |
+| <kbd>←</kbd> / <kbd>→</kbd> | Move between tabs; focus follows selection |
+| <kbd>Home</kbd> / <kbd>End</kbd> | First / last tab |
+| <kbd>Delete</kbd> or <kbd>Ctrl</kbd>+<kbd>W</kbd> | Close the focused tab |
+| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>←</kbd> / <kbd>→</kbd> | Move the focused tab |
+
+The close **✕** inside each tab keeps its `role="button"` and its accessible name but is
+`tabindex="-1"`, so it is not a second tab stop. It previously shared the tab's own `tabindex`
+expression, which meant a selected tab contributed **two** stops and put a `role="button"` inside
+a `role="tab"` — a nesting ARIA has no answer for. It is still operable from the keyboard through
+<kbd>Delete</kbd>.
 
 ## Overflow
 
