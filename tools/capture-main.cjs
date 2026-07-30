@@ -18,59 +18,155 @@ const ROOT = path.join(__dirname, "..");
 const OUT = process.env.CODEX_STUDIO_CAPTURE_DIR || path.join(ROOT, "assets", "screenshots");
 const ONLY = process.env.CODEX_STUDIO_CAPTURE_ONLY || "";
 
-/** Each shot names the surface, the state it needs, and what a reader should look at. */
+/** Each shot names the surface, the state it needs, and what a reader should look at.
+ *
+ *  These deliberately show each feature IN USE rather than at rest. A screenshot of a
+ *  filter with nothing filtered, or a search with nothing searched, documents that the
+ *  control exists and nothing else — the reader still cannot tell whether it works.
+ *  Where a shot needs data, it is committed through the app's own code paths in
+ *  `before`, so what appears is what the app actually produces. */
 const SHOTS = [
-  { id: "chats", file: "01-chats.png", nav: "chat", note: "Chats — session list, transcript, composer" },
-  { id: "console", file: "02-console.png", nav: "console", note: "Console — every CLI subcommand and flag" },
-  { id: "extend", file: "03-extend.png", nav: "ext", note: "Extend — MCP, plugins, skills, hooks, feature flags" },
-  { id: "config", file: "04-config.png", nav: "settings", note: "Config — config.toml settings with live TOML preview" },
-  { id: "cost", file: "05-cost.png", nav: "cost", note: "Cost — API-equivalent calculator" },
-  { id: "runtime", file: "06-runtime.png", nav: "runtime", note: "Runtime — per-tab WSL instances" },
-  { id: "health", file: "07-health.png", nav: "health", note: "Health — doctor, account, usage" },
-  { id: "usage", file: "07b-usage.png", nav: "health", note: "Health ▸ Usage — real token counts read from the newest session's last token_count event", state: { healthView: "usage" } },
-  { id: "cloud", file: "07c-cloud.png", nav: "health", note: "Health ▸ Cloud tasks — what `codex cloud list` actually reported", state: { healthView: "cloud" } },
-  { id: "history", file: "08-history.png", nav: "history", note: "History — local git-backed, append-only" },
-  { id: "changelog", file: "09-changelog.png", nav: "changelog", note: "Changelog viewer — date filter + regex search" },
+  {
+    id: "chats",
+    file: "01-chats.png",
+    nav: "chat",
+    note: "Chats — the session list read from the rollout files, and the composer's exact codex invocation",
+  },
+  {
+    id: "console",
+    file: "02-console.png",
+    nav: "console",
+    note: "Console — codex exec with its flags as Material controls and the composed argv beneath them",
+    state: { consoleSub: "exec" },
+  },
+  {
+    id: "extend",
+    file: "03-extend.png",
+    nav: "ext",
+    note: "Extend — the MCP servers read from config.toml, each with the command it runs",
+  },
+  {
+    id: "features",
+    file: "03b-features.png",
+    nav: "ext",
+    note: "Extend ▸ Feature flags — every key the CLI exposes, filtered live",
+    state: { extCat: "features", extQuery: "web" },
+  },
+  {
+    id: "config",
+    file: "04-config.png",
+    nav: "settings",
+    /* The shortest section, deliberately: the TOML preview sits below the fields, and
+       a 16-field section pushes it off the bottom — which is how the previous shot
+       came to be captioned "with live TOML preview" while showing no preview. */
+    note: "Config — a config.toml section with the live preview of the TOML it will write",
+    state: { setSection: "shellenv" },
+  },
+  {
+    id: "cost",
+    file: "05-cost.png",
+    nav: "cost",
+    note: "Cost — the same workload priced against every model, with the sidebar marking the ones it has no price for",
+  },
+  {
+    id: "runtime",
+    file: "06-runtime.png",
+    nav: "runtime",
+    note: "Runtime — one WSL instance per tab, each with the wsl.exe command that tab would run",
+  },
+  {
+    id: "health",
+    file: "07-health.png",
+    nav: "health",
+    note: "Health ▸ Doctor — what `codex doctor --json` reported, with ok, warning and failing states distinguished",
+  },
+  {
+    id: "usage",
+    file: "07b-usage.png",
+    nav: "health",
+    note: "Health ▸ Usage — real token counts read from the newest session's last token_count event",
+    state: { healthView: "usage" },
+  },
+  {
+    id: "cloud",
+    file: "07c-cloud.png",
+    nav: "health",
+    note: "Health ▸ Cloud tasks — what `codex cloud list` actually reported",
+    state: { healthView: "cloud" },
+  },
+  {
+    id: "history",
+    file: "08-history.png",
+    nav: "history",
+    /* Seeded through CX.vcs.commit, so these are revisions the app itself wrote —
+       a history panel photographed with one row proves nothing about filtering. */
+    before: `
+      (function () {
+        var v = window.CX.vcs;
+        if (v.log.length > 4) return;
+        v.commit("Set model gpt-5.1-codex-max on Personal", "profile");
+        v.commit("Wrote 6 config keys for Personal", "config");
+        v.commit("Enable feature web_search_request", "change");
+        v.commit("Restyled the Composer", "appearance");
+        v.commit("Set approval policy on-request", "profile");
+        v.commit("Wrote 2 config keys for Review", "config");
+      })()
+    `,
+    note: "History — every change the app made, filterable by date, by action and by text at once",
+  },
+  {
+    id: "historyfilter",
+    file: "08b-history-filter.png",
+    nav: "history",
+    note: "History ▸ filtered — the action chips are derived from the log itself, with a count beside each",
+    before: `
+      (function () {
+        var v = window.CX.vcs;
+        if (v.log.length > 4) return;
+        v.commit("Set model gpt-5.1-codex-max on Personal", "profile");
+        v.commit("Wrote 6 config keys for Personal", "config");
+        v.commit("Enable feature web_search_request", "change");
+        v.commit("Restyled the Composer", "appearance");
+        v.commit("Set approval policy on-request", "profile");
+      })()
+    `,
+    state: { histActions: ["profile", "config"] },
+  },
+  {
+    id: "changelog",
+    file: "09-changelog.png",
+    nav: "changelog",
+    note: "Changelog viewer — every released version, with bold and code spans rendered rather than printed",
+  },
   {
     id: "calendar",
     file: "09b-calendar.png",
     nav: "changelog",
-    note: "Changelog date filter — the calendar picker, with month/year jump and range highlighting",
+    note: "Changelog date filter — the anchored calendar, with the range highlighted and presets beside it",
     after: "__setState({ clogFrom: '2026-07-01', clogTo: '2026-07-31', calOpen: 'from', calMonth: Date.now(), calAt: { x: 700, y: 300 } })",
   },
-  { id: "studio", file: "10-studio.png", nav: "studio", note: "Studio settings — language, funny sliders, narrator, dim sum, editor" },
   {
-    id: "cantonese",
-    file: "17-cantonese.png",
-    nav: "chat",
-    note: "Bilingual mode at funny level 5 — the navigation rail, headings and empty state all localised",
-    before: `CX.i18n.mode = "bi"; CX.i18n.funny = { en: 5, yue: 5 }; CX.i18n.save && CX.i18n.save();`,
-    state: { lang: "bi" },
+    id: "studio",
+    file: "10-studio.png",
+    nav: "studio",
+    note: "Studio settings — language mode, the two independent funny sliders, narrator, dim sum, editor",
   },
   {
     id: "regex",
     file: "11-regex-builder.png",
     nav: "ext",
-    note: "Regex builder anchored beside the search bar that opened it",
-    /* The pattern has to match something. "^(mcp|plugin)" matched none of the three
-       real server names, so the shot showed a live-match panel reading "0 matches" —
-       a screenshot of the feature not doing the thing it is there to do. */
-    after: `window.__cxRoot.openRegexFor("ext", ""); window.__cxRoot.setState({ regexPattern: "^\w+[-_]\w+" });`,
+    note: "Regex builder anchored beside the search bar that opened it, matching the values that field filters",
+    after: `window.__cxRoot.openRegexFor("ext", ""); window.__cxRoot.setState({ regexPattern: "^\\\\w+[-_]\\\\w+" });`,
   },
   {
     id: "appearance",
     file: "12-appearance.png",
     nav: "chat",
-    note: "Per-element appearance editor with the colour translator",
+    note: "Per-element appearance editor — the two-dimensional colour field and the twelve-space translator",
     after: `
       (() => {
         const host = document.querySelector('[data-appear="Composer"]') || document.querySelector('[data-appear]');
-        const r = host.getBoundingClientRect();
-        window.__cxRoot.setState({
-          appearOpen: true,
-          appearTarget: host.getAttribute("data-appear"),
-          appearAt: { x: Math.min(r.left, window.innerWidth - 350), y: Math.max(8, Math.min(r.top, window.innerHeight - 470)) },
-        });
+        window.__cxRoot.openAppearFor(host);
       })()
     `,
   },
@@ -78,7 +174,7 @@ const SHOTS = [
     id: "notifications",
     file: "13-notifications.png",
     nav: "chat",
-    note: "Corner notification stack and the reviewable centre",
+    note: "Corner notification stack and the reviewable centre — both visible at once, neither covering the other",
     after: `
       CX.notify.error("MCP server could not be added", "codex mcp add postgres — exit 1: name already exists");
       CX.notify.warn("YOLO mode is on", "approvals off, sandbox off on Personal — it survives a restart");
@@ -90,14 +186,21 @@ const SHOTS = [
     id: "bulkclose",
     file: "14-bulk-close.png",
     nav: "chat",
-    note: "Bulk close preview — the one place a blocking dialog is correct",
+    note: "Bulk close preview — the one place a blocking dialog is correct, with the affected tabs listed first",
     state: { bulkOpen: true, bulkQuery: "a", bulkInvert: false, bulkPinned: false, bulkScope: { kind: "strip" } },
+  },
+  {
+    id: "palette",
+    file: "14b-palette.png",
+    nav: "chat",
+    note: "Command palette — every screen, profile, session, setting and flag, searchable with its own regex builder",
+    state: { paletteOpen: true, paletteQuery: "", paletteRegex: null },
   },
   {
     id: "dimsum",
     file: "15-dim-sum.png",
     nav: "chat",
-    note: "Dim sum surprise — bundled catalog photo, non-blocking, auto-dismissing",
+    note: "Dim sum surprise — a bundled catalog photo, non-blocking and auto-dismissing, drawn 1% of launches",
     after: `CX.dimsum.drawn = false; const d = window.CX_DIMSUM.draw(1); __setState({ dimSum: d });`,
   },
   {
@@ -107,6 +210,22 @@ const SHOTS = [
     note: "Light theme — the same surface under the M3 light palette",
     before: `document.documentElement.setAttribute("data-theme","light");`,
     state: { theme: "light" },
+  },
+  {
+    id: "cantonese",
+    file: "17-cantonese.png",
+    nav: "chat",
+    note: "Bilingual mode at funny level 5 — the rail, the headings and the empty state all localised",
+    before: `CX.i18n.mode = "bi"; CX.i18n.funny = { en: 5, yue: 5 }; CX.i18n.save && CX.i18n.save();`,
+    state: { lang: "bi" },
+  },
+  {
+    id: "cantonesestudio",
+    file: "17b-cantonese-studio.png",
+    nav: "studio",
+    note: "The two funny sliders in 廣東話 — one per language, each independently persisted",
+    before: `CX.i18n.mode = "yue"; CX.i18n.funny = { en: 1, yue: 5 }; CX.i18n.save && CX.i18n.save();`,
+    state: { lang: "yue" },
   },
 ];
 
@@ -193,11 +312,15 @@ async function main() {
     studioQuery: "", studioRegex: null, listQuery: "", listRegex: null,
     extQuery: "", extRegex: null, setQuery: "", setRegex: null,
     healthView: "doctor", thinking: false,
+    histActions: [], histFrom: "", histTo: "", histQuery: "", histRegex: null,
+    consoleSub: "exec", extCat: "mcp", lang: "en",
   };
 
   for (const shot of list) {
     await win.webContents
-      .executeJavaScript(`document.documentElement.setAttribute("data-theme","dark"); window.CX && window.CX.notify && window.CX.notify.dismissAll(); window.__setState ? window.__setState(${JSON.stringify(RESET)}) : false`)
+      /* The language shots mutate CX.i18n directly, which is outside React state, so
+         resetting the component alone would leave the next shot in 廣東話. */
+      .executeJavaScript(`document.documentElement.setAttribute("data-theme","dark"); if (window.CX) { if (window.CX.notify) window.CX.notify.dismissAll(); if (window.CX.i18n) { window.CX.i18n.mode = "en"; window.CX.i18n.funny = { en: 3, yue: 3 }; } } window.__setState ? window.__setState(${JSON.stringify(RESET)}) : false`)
       .catch(() => {});
     await wait(150);
     if (shot.before) await win.webContents.executeJavaScript(shot.before).catch(() => {});

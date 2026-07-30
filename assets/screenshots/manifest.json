@@ -5,43 +5,49 @@
       "id": "chats",
       "file": "01-chats.png",
       "applied": true,
-      "note": "Chats — session list, transcript, composer"
+      "note": "Chats — the session list read from the rollout files, and the composer's exact codex invocation"
     },
     {
       "id": "console",
       "file": "02-console.png",
       "applied": true,
-      "note": "Console — every CLI subcommand and flag"
+      "note": "Console — codex exec with its flags as Material controls and the composed argv beneath them"
     },
     {
       "id": "extend",
       "file": "03-extend.png",
       "applied": true,
-      "note": "Extend — MCP, plugins, skills, hooks, feature flags"
+      "note": "Extend — the MCP servers read from config.toml, each with the command it runs"
+    },
+    {
+      "id": "features",
+      "file": "03b-features.png",
+      "applied": true,
+      "note": "Extend ▸ Feature flags — every key the CLI exposes, filtered live"
     },
     {
       "id": "config",
       "file": "04-config.png",
       "applied": true,
-      "note": "Config — config.toml settings with live TOML preview"
+      "note": "Config — a config.toml section with the live preview of the TOML it will write"
     },
     {
       "id": "cost",
       "file": "05-cost.png",
       "applied": true,
-      "note": "Cost — API-equivalent calculator"
+      "note": "Cost — the same workload priced against every model, with the sidebar marking the ones it has no price for"
     },
     {
       "id": "runtime",
       "file": "06-runtime.png",
       "applied": true,
-      "note": "Runtime — per-tab WSL instances"
+      "note": "Runtime — one WSL instance per tab, each with the wsl.exe command that tab would run"
     },
     {
       "id": "health",
       "file": "07-health.png",
       "applied": true,
-      "note": "Health — doctor, account, usage"
+      "note": "Health ▸ Doctor — what `codex doctor --json` reported, with ok, warning and failing states distinguished"
     },
     {
       "id": "usage",
@@ -59,55 +65,67 @@
       "id": "history",
       "file": "08-history.png",
       "applied": true,
-      "note": "History — local git-backed, append-only"
+      "note": "History — every change the app made, filterable by date, by action and by text at once"
+    },
+    {
+      "id": "historyfilter",
+      "file": "08b-history-filter.png",
+      "applied": true,
+      "note": "History ▸ filtered — the action chips are derived from the log itself, with a count beside each"
     },
     {
       "id": "changelog",
       "file": "09-changelog.png",
       "applied": true,
-      "note": "Changelog viewer — date filter + regex search"
+      "note": "Changelog viewer — every released version, with bold and code spans rendered rather than printed"
     },
     {
       "id": "calendar",
       "file": "09b-calendar.png",
       "applied": true,
-      "note": "Changelog date filter — the calendar picker, with month/year jump and range highlighting"
+      "note": "Changelog date filter — the anchored calendar, with the range highlighted and presets beside it"
     },
     {
       "id": "studio",
       "file": "10-studio.png",
       "applied": true,
-      "note": "Studio settings — language, funny sliders, narrator, dim sum, editor"
+      "note": "Studio settings — language mode, the two independent funny sliders, narrator, dim sum, editor"
     },
     {
       "id": "regex",
       "file": "11-regex-builder.png",
       "applied": true,
-      "note": "Regex builder anchored beside the search bar that opened it"
+      "note": "Regex builder anchored beside the search bar that opened it, matching the values that field filters"
     },
     {
       "id": "appearance",
       "file": "12-appearance.png",
       "applied": true,
-      "note": "Per-element appearance editor with the colour translator"
+      "note": "Per-element appearance editor — the two-dimensional colour field and the twelve-space translator"
     },
     {
       "id": "notifications",
       "file": "13-notifications.png",
       "applied": true,
-      "note": "Corner notification stack and the reviewable centre"
+      "note": "Corner notification stack and the reviewable centre — both visible at once, neither covering the other"
     },
     {
       "id": "bulkclose",
       "file": "14-bulk-close.png",
       "applied": true,
-      "note": "Bulk close preview — the one place a blocking dialog is correct"
+      "note": "Bulk close preview — the one place a blocking dialog is correct, with the affected tabs listed first"
+    },
+    {
+      "id": "palette",
+      "file": "14b-palette.png",
+      "applied": true,
+      "note": "Command palette — every screen, profile, session, setting and flag, searchable with its own regex builder"
     },
     {
       "id": "dimsum",
       "file": "15-dim-sum.png",
       "applied": true,
-      "note": "Dim sum surprise — bundled catalog photo, non-blocking, auto-dismissing"
+      "note": "Dim sum surprise — a bundled catalog photo, non-blocking and auto-dismissing, drawn 1% of launches"
     },
     {
       "id": "light",
@@ -119,7 +137,13 @@
       "id": "cantonese",
       "file": "17-cantonese.png",
       "applied": true,
-      "note": "Bilingual mode at funny level 5 — the navigation rail, headings and empty state all localised"
+      "note": "Bilingual mode at funny level 5 — the rail, the headings and the empty state all localised"
+    },
+    {
+      "id": "cantonesestudio",
+      "file": "17b-cantonese-studio.png",
+      "applied": true,
+      "note": "The two funny sliders in 廣東話 — one per language, each independently persisted"
     }
   ],
   "consoleErrors": [

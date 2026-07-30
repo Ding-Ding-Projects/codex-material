@@ -15,19 +15,31 @@
  *
  *   node tools/make-capture-home.mjs [--out DIR]
  *
- * Writes to `.capture-home/` at the repository root by default. The directory is
- * disposable and git-ignored; delete it and this rebuilds it.
+ * Writes to a username-free directory OUTSIDE the checkout by default (see DEFAULT_OUT):
+ * the Config panel prints the absolute path of the file it will write, so a fixture
+ * under the repository puts the operator name straight back into a screenshot. The
+ * directory is disposable; delete it and this rebuilds it.
  */
 
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
+/* NOT inside the repository. The Config panel prints the absolute path of the
+   config.toml it will write, so a fixture under the checkout renders as
+   C:\Users\<name>\...\.capture-home\config.toml in the screenshot, which
+   reintroduces the exact leak the authored fixture exists to prevent.
+   C:\Users\Public is world-writable on Windows without elevation and contains
+   no username. */
+const DEFAULT_OUT = process.platform === "win32"
+  ? "C:\\Users\\Public\\codex-studio-capture"
+  : path.join(os.tmpdir(), "codex-studio-capture");
 const OUT = args.includes("--out")
   ? path.resolve(args[args.indexOf("--out") + 1])
-  : path.join(ROOT, ".capture-home");
+  : DEFAULT_OUT;
 
 /* A neutral operator. Not a real person, and not the person running the capture. */
 const HOME = "C:\\Users\\dev";

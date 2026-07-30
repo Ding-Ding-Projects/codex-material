@@ -12,6 +12,7 @@
 import { spawn, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join, resolve } from "node:path";
+import { tmpdir } from "node:os";
 import { mkdirSync } from "node:fs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -30,7 +31,9 @@ if (args.includes("--list")) {
 /* Build (or rebuild) the fixture home before launching. It is cheap, disposable and
    git-ignored, so it is regenerated every run rather than trusted to still be there
    and still be current. */
-const captureHome = join(root, ".capture-home");
+const captureHome = process.platform === "win32"
+  ? "C:\\Users\\Public\\codex-studio-capture"
+  : join(tmpdir(), "codex-studio-capture");
 spawnSync(process.execPath, [join(root, "tools", "make-capture-home.mjs")], { cwd: root, stdio: "inherit" });
 
 const electron = process.platform === "win32" ? "electron.cmd" : "electron";

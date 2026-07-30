@@ -171,11 +171,26 @@ async function main() {
   out("CLI\n");
   try {
     const bin = cli.codexBin();
+    const src = cli.codexSource ? cli.codexSource() : null;
     const v = await cli.run(["--version"], { timeout: 30000 });
-    report.cli = { binary: bin, ok: !!(v && v.ok), optional: cliOptional, stdout: ((v && v.stdout) || "").trim().slice(0, 80) };
+    /* The committed report records WHERE THE BINARY CAME FROM, never where it is on
+       this disk. An absolute path publishes the operator's account name, which is the
+       same leak the authored CODEX_HOME exists to prevent — arriving through a JSON
+       artifact instead of a screenshot. The full path is still printed to the console
+       for whoever is running it. */
+    report.cli = {
+      resolvedFrom: (src && src.source) || "unknown",
+      bundled: !!(src && src.bundled),
+      name: path.basename(bin),
+      ok: !!(v && v.ok),
+      optional: cliOptional,
+      stdout: ((v && v.stdout) || "").trim().slice(0, 80),
+    };
     out("  " + (report.cli.ok ? "ok  " : "FAIL") + " " + bin + "\n       " + report.cli.stdout + "\n\n");
   } catch (e) {
-    report.cli = { ok: false, optional: cliOptional, error: String((e && e.message) || e) };
+    /* Redacted the same way: a resolution error routinely quotes the path it tried. */
+    const msg = String((e && e.message) || e).replace(/[A-Za-z]:\\[^\s"']+|\/(?:home|Users)\/[^\s"']+/g, "<path>");
+    report.cli = { ok: false, optional: cliOptional, error: msg };
     out("  " + (cliOptional ? "warn" : "FAIL") + " " + report.cli.error + "\n" +
         (cliOptional ? "       no CLI was staged, and this build does not require one\n" : "") + "\n");
   }
@@ -394,8 +409,22 @@ async function main() {
     consoleErrors: fatalConsole.length,
   };
   report.summary = s;
+  /* Redact before writing, not at each site that might produce a path. This file is
+     committed and mirrored, and error strings from the CLI, the filesystem and the
+     WSL layer all quote absolute paths freely — any one of which publishes the
+     operator's account name. Doing it once here means a new phase cannot forget.
+     The console output above is unredacted, because that is for the person running
+     it and never leaves the machine. */
+  /* Written as a literal, not built from a string: the double-escaping needed to
+     express a Windows path inside a string passed to `new RegExp` is exactly the kind
+     of thing that silently produces a pattern matching nothing.
+     `Public` and `dev` are allowed through — the first is where the fixture lives and
+     the second is the fixture's authored operator name, both of which are meant to be
+     visible. Everything else under a home directory is replaced. */
+  const HOMEISH = /[A-Za-z]:\\+Users\\+(?!Public|dev)[^"',\s]*|\/(?:home|Users)\/(?!dev)[^"',\s]*/g;
+  const redacted = JSON.stringify(report, null, 2).replace(HOMEISH, "<redacted-home-path>");
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
-  fs.writeFileSync(OUT, JSON.stringify(report, null, 2));
+  fs.writeFileSync(OUT, redacted);
 
   out("\nSUMMARY\n");
   out("  CLI      " + (s.cliOk ? "the real binary answered" : cliOptional ? "absent, and this build does not require one" : "DID NOT ANSWER") + "\n");

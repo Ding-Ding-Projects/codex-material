@@ -16,6 +16,7 @@
 import { spawn, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { tmpdir } from "node:os";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -32,7 +33,9 @@ const child = spawn(bin, [join(root, "tools", "smoke-main.cjs")], {
   stdio: "inherit",
   env: {
     ...process.env,
-    CODEX_HOME: join(root, ".capture-home"),
+    CODEX_HOME: process.platform === "win32"
+      ? "C:\\Users\\Public\\codex-studio-capture"
+      : join(tmpdir(), "codex-studio-capture"),
     CODEX_STUDIO_HEADLESS: "1",
   },
   shell: process.platform === "win32",

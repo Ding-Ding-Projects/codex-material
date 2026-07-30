@@ -16,10 +16,20 @@ on:
       - "**"
   workflow_dispatch:
 
-# One run at a time per branch. A queue of runs racing to claim the next build number
-# is how two releases end up with the same dim sum code name.
+# Every push gets its own run, and no run is ever stopped by a later one.
+#
+# The group was per-branch with cancel-in-progress: false, which sounds safe and is
+# not: GitHub keeps at most ONE pending run per group, so a third push evicts the
+# second while the first is still going. That is how build fa7975e was cancelled
+# without anyone asking for it. The group is per-run now, which means it never
+# matches another run and therefore never queues, evicts or cancels.
+#
+# The serialisation was protecting the dim sum code name, which was derived from a
+# count of existing releases — two overlapping runs would read the same count and
+# claim the same dish. The index comes from the run number instead: monotonic, unique
+# per run, and unaffected by what any other run is doing.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.run_id }}
   cancel-in-progress: false
 
 permissions:
@@ -135,25 +145,20 @@ jobs:
         id: dish
         shell: pwsh
         run: |
-          # Derived from the monotonic build number, never claimed by writing a file
-          # back to the branch — a release job that pushes to its own trigger is an
-          # infinite loop. The tag reproduces the choice, so it stays auditable.
-          # Index by how many releases have actually CONSUMED a dish, not by the run
-          # number and not by the raw release count. The run number jumps whenever a
-          # run is cancelled or re-run; the release count is polluted by the ~520
-          # releases a trigger loop produced before it was caught. Counting the
-          # releases that carry a `codex-studio-*.png` asset is dense in the only
-          # thing that matters — dishes used — and is auditable from the releases
-          # themselves without a ledger this job would have to push back to the branch.
-          $withDish = 0
-          $releases = gh release list --limit 1000 --json tagName | ConvertFrom-Json
-          foreach ($r in $releases) {
-            $names = gh release view $r.tagName --json assets | ConvertFrom-Json |
-              Select-Object -ExpandProperty assets | Select-Object -ExpandProperty name
-            if ($names | Where-Object { $_ -like 'codex-studio-*.png' }) { $withDish++ }
-          }
-          $index = $withDish + 1
-          Write-Host "$withDish release(s) already carry a dish; this build takes #$index."
+          # Derived from the monotonic run number, never claimed by writing a file back
+          # to the branch — a release job that pushes to its own trigger is an infinite
+          # loop. The tag reproduces the choice, so it stays auditable.
+          #
+          # This used to count the releases already carrying a `codex-studio-*.png`,
+          # which is denser in the catalogue but reads shared state: two runs in flight
+          # at once both see the same count and claim the same dish. That was only safe
+          # while the concurrency group serialised runs — and that group was also
+          # cancelling runs nobody asked it to cancel. The run number is unique per run
+          # by construction, so overlapping builds cannot collide. The cost is that a
+          # cancelled or re-run build skips a dish, which is a gap in a decorative
+          # sequence rather than a fault.
+          $index = [int]$env:GITHUB_RUN_NUMBER
+          Write-Host "Build $index takes dish #$index."
           $json = node tools/release-codename.mjs --derive $index | ConvertFrom-Json
           $blank = @('assigned=false', 'codeName=', 'slug=', 'asset=', 'alt=')
           if (-not $json.assigned) {

@@ -39,60 +39,69 @@ A Material 3 Windows desktop app that drives the OpenAI Codex CLI. Every action 
 
 ## Screenshots
 
-Every image below was captured from the real application — the same main process, preload and frontend the installer ships — through the project's own headless harness (`npm run capture`, [`tools/capture.mjs`](tools/capture.mjs)). None of them is a mockup.
 
-The app is pointed at an **authored `CODEX_HOME`** ([`tools/make-capture-home.mjs`](tools/make-capture-home.mjs)) rather than the machine's own. A screenshot is a publication, and an earlier set had a real Windows username legible in seven images. The `config.toml` and rollout files in that directory are written by hand, but they are real files in the real format, read by the real parsers — so the `C:\Users\dev\Projects\…` paths throughout are a fixture, and everything the app does with them is not.
+Every image below was captured from the real application — the same main process, preload and frontend the installer ships — through the project's own headless harness (`npm run capture`, [`tools/capture.mjs`](tools/capture.mjs)). None of them is a mockup, and each shows its feature **in use**: a filter with something filtered, a search with something searched. A screenshot of a control at rest documents that the control exists and nothing else.
 
-**Chats** — the session list read from the rollout files, the transcript pane, and the composer.
+The app is pointed at an **authored `CODEX_HOME`** ([`tools/make-capture-home.mjs`](tools/make-capture-home.mjs)) that lives outside the checkout, never the machine's own. A screenshot is a publication, and an earlier set had a real Windows username legible in seven images. The `config.toml` and rollout files in that directory are written by hand, but they are real files in the real format read by the real parsers — so the fixture's project paths throughout belong to an authored operator, and everything the app does with them is not.
 
-![Chats screen: five sessions in the left sidebar, each with a project name and working directory; an empty-state card in the centre reading "Nothing here yet" above the exact codex command the composer will run; the message composer along the bottom](assets/screenshots/01-chats.png)
+**Chats** — the session list read from the rollout files on disk.
+
+![Chats screen: five sessions in the left sidebar, each with a project name and its working directory; an empty-state card in the centre reading “Nothing here yet” above the exact codex command the composer will run; the message composer along the bottom](assets/screenshots/01-chats.png)
 
 *The centre pane is a freshly opened session, so it shows the empty state rather than a conversation: what the pane is, which profile and model will run, and the exact `codex` invocation the composer will execute — including the `-c approval_policy=…` override that stops a run from mutating saved config.*
 
-**Console** — every CLI subcommand and flag, composed into an argv preview before it runs.
+**History** — filtering by date, by action and by text, all composing.
 
-![Console: a subcommand list, its flags as Material controls, and the composed command preview](assets/screenshots/02-console.png)
+![History panel: a header reading 7 commits, a filter bar with a search field, From and To date fields with calendar buttons, and action chips reading config 2, profile 2, appearance 1, change 1, init 1 — config and profile selected — above the line “Showing 4 of 7 revisions” and four matching rows](assets/screenshots/08b-history-filter.png)
 
-**Regex builder** — anchored beside the search bar that opened it, never in a distant dialog.
+*The action chips are derived from the log itself with a count beside each, so they cannot drift from what the app records. The sidebar and the chips drive the same selection. An end date covers the whole of that day, because a filter that hides what happened on the day you asked for is a filter nobody trusts twice.*
 
-![The regex builder open as a popover attached to a search field, showing constructs, flags, a sample box and live matches](assets/screenshots/11-regex-builder.png)
+**Command palette** — <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> from anywhere.
 
-**Per-element appearance editor** — with the colour translator and a contrast readout.
+![The command palette open over the app: a search field reading “Search commands, settings, sessions, plugins, flags…” with 297 results, then GO TO rows for each screen with its description, PROFILE rows showing each profile's model, approval policy and sandbox, and SESSION rows beneath](assets/screenshots/14b-palette.png)
 
-![The appearance editor anchored to an element, showing typography controls, a continuous colour picker and a list of colour-space translations](assets/screenshots/12-appearance.png)
+*Every screen, profile, session, setting and feature flag in one list — 297 entries here — with its own regex builder on the search field like every other search surface in the app.*
+
+**Per-element appearance editor** — anchored beside the element, never on top of it.
+
+![The per-element appearance editor open beside the composer: a font picker, size and weight sliders, style toggles, a draggable two-dimensional saturation and brightness field with a hue strip beneath it, a colour value field, and a scrolling list of colour-space translations](assets/screenshots/12-appearance.png)
+
+*The colour section is a continuous two-dimensional field with the thumb on the current colour, not a swatch grid. The value field reads back every one of the twelve representations the translator writes — hex, rgb, hsl, hwb, lab, lch, oklab, oklch, cmyk and the named colours.*
 
 **Bilingual mode** — English and playful Hong Kong Cantonese together, at funny level 5.
 
-![Codex Studio in bilingual mode: the navigation rail shows one label per item, the transcript empty state reads "Beautifully, completely empty · 空空如也，靚到有啲淒涼", and the composer placeholder reads "Message Codex · 打 / 開指令目錄"](assets/screenshots/17-cantonese.png)
+![Codex Studio in bilingual mode at funny level 5: the navigation rail shows one label per item, the transcript empty state reads “Beautifully, completely empty · 空空如也，靓到有啲淒涼”, and the composer placeholder reads “Message Codex · 打 / 開指令目錄”](assets/screenshots/17-cantonese.png)
 
-*Both languages reach the interface, not just the messages. The rail shows the primary language only — it is 76px wide, and concatenating both wrapped every item to three lines — with the full pair in each item's tooltip. The two funny-level sliders are independent, so English can sit at 1 while Cantonese sits at 5.*
+*Both languages reach the interface, not just the messages. The rail shows the primary language only — it is 76px wide, and concatenating both wrapped every item to three lines — with the full pair in each item's tooltip. The two funny sliders are independent, so English can sit at 1 while Cantonese sits at 5.*
 
 <details>
-<summary><b>The rest of the gallery</b> — Extend, Config, Cost, Runtime, Health, usage, cloud tasks, History, Changelog, the calendar picker, Studio settings, notifications, bulk close, dim sum, light theme</summary>
+<summary><b>The rest of the gallery</b> — 19 more surfaces</summary>
 
-Descriptions come from [`assets/screenshots/manifest.json`](assets/screenshots/manifest.json), written by the capture harness.
+Descriptions come from [`assets/screenshots/manifest.json`](assets/screenshots/manifest.json), written by the capture harness at the moment each image was taken.
 
 | Shot | What it shows |
 | --- | --- |
-| [`03-extend.png`](assets/screenshots/03-extend.png) | Extend — MCP, plugins, skills, hooks, feature flags |
-| [`04-config.png`](assets/screenshots/04-config.png) | Config — `config.toml` settings with live TOML preview |
-| [`05-cost.png`](assets/screenshots/05-cost.png) | Cost — API-equivalent calculator |
-| [`06-runtime.png`](assets/screenshots/06-runtime.png) | Runtime — per-tab WSL instances |
-| [`07-health.png`](assets/screenshots/07-health.png) | Health — doctor, account, usage |
+| [`02-console.png`](assets/screenshots/02-console.png) | Console — codex exec with its flags as Material controls and the composed argv beneath them |
+| [`03-extend.png`](assets/screenshots/03-extend.png) | Extend — the MCP servers read from config.toml, each with the command it runs |
+| [`03b-features.png`](assets/screenshots/03b-features.png) | Extend ▸ Feature flags — every key the CLI exposes, filtered live |
+| [`04-config.png`](assets/screenshots/04-config.png) | Config — a config.toml section with the live preview of the TOML it will write |
+| [`05-cost.png`](assets/screenshots/05-cost.png) | Cost — the same workload priced against every model, with the sidebar marking the ones it has no price for |
+| [`06-runtime.png`](assets/screenshots/06-runtime.png) | Runtime — one WSL instance per tab, each with the wsl.exe command that tab would run |
+| [`07-health.png`](assets/screenshots/07-health.png) | Health ▸ Doctor — what `codex doctor --json` reported, with ok, warning and failing states distinguished |
 | [`07b-usage.png`](assets/screenshots/07b-usage.png) | Health ▸ Usage — real token counts read from the newest session's last token_count event |
 | [`07c-cloud.png`](assets/screenshots/07c-cloud.png) | Health ▸ Cloud tasks — what `codex cloud list` actually reported |
-| [`08-history.png`](assets/screenshots/08-history.png) | History — local git-backed, append-only |
-| [`09-changelog.png`](assets/screenshots/09-changelog.png) | Changelog viewer — date filter + regex search |
-| [`09b-calendar.png`](assets/screenshots/09b-calendar.png) | Changelog date filter — the calendar picker, with month/year jump and range highlighting |
-| [`10-studio.png`](assets/screenshots/10-studio.png) | Studio settings — language, funny sliders, narrator, dim sum, editor |
-| [`13-notifications.png`](assets/screenshots/13-notifications.png) | Corner notification stack and the reviewable centre |
-| [`14-bulk-close.png`](assets/screenshots/14-bulk-close.png) | Bulk close preview — the one place a blocking dialog is correct |
-| [`15-dim-sum.png`](assets/screenshots/15-dim-sum.png) | Dim sum surprise — bundled catalog photo, non-blocking, auto-dismissing |
+| [`08-history.png`](assets/screenshots/08-history.png) | History — every change the app made, filterable by date, by action and by text at once |
+| [`09-changelog.png`](assets/screenshots/09-changelog.png) | Changelog viewer — every released version, with bold and code spans rendered rather than printed |
+| [`09b-calendar.png`](assets/screenshots/09b-calendar.png) | Changelog date filter — the anchored calendar, with the range highlighted and presets beside it |
+| [`10-studio.png`](assets/screenshots/10-studio.png) | Studio settings — language mode, the two independent funny sliders, narrator, dim sum, editor |
+| [`11-regex-builder.png`](assets/screenshots/11-regex-builder.png) | Regex builder anchored beside the search bar that opened it, matching the values that field filters |
+| [`13-notifications.png`](assets/screenshots/13-notifications.png) | Corner notification stack and the reviewable centre — both visible at once, neither covering the other |
+| [`14-bulk-close.png`](assets/screenshots/14-bulk-close.png) | Bulk close preview — the one place a blocking dialog is correct, with the affected tabs listed first |
+| [`15-dim-sum.png`](assets/screenshots/15-dim-sum.png) | Dim sum surprise — a bundled catalog photo, non-blocking and auto-dismissing, drawn 1% of launches |
 | [`16-light-theme.png`](assets/screenshots/16-light-theme.png) | Light theme — the same surface under the M3 light palette |
-| [`17-cantonese.png`](assets/screenshots/17-cantonese.png) | Bilingual mode at funny level 5 — the navigation rail, headings and empty state all localised |
+| [`17b-cantonese-studio.png`](assets/screenshots/17b-cantonese-studio.png) | The two funny sliders in 廣東話 — one per language, each independently persisted |
 
 </details>
-
 ---
 
 ## What it is, and what it is not
