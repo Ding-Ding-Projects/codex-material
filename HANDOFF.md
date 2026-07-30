@@ -18,7 +18,7 @@ Nothing here is predicted, and nothing is claimed green that was not observed gr
 Run these four. Every figure in this document came from them.
 
 ```bash
-node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/capture.mjs && node tools/audit-ui.mjs
+node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/capture.mjs && node tools/audit-ui.mjs && node tools/smoke.mjs
 ```
 
 | Command | Observed at `c9c2763` |
@@ -26,7 +26,8 @@ node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/captur
 | `node tools/test-frontend.mjs` | **24 passed, 0 failed** |
 | `node tools/test-backend.mjs` | **28 passed, 0 failed** |
 | `node tools/capture.mjs` | **exit 0** — 19 shots written, 1 console message (the expected CSP notice) |
-| `node tools/audit-ui.mjs` | **17 findings across 240 cells, 0 severity high** |
+| `node tools/audit-ui.mjs` | **23 findings across 240 cells, 0 severity high** |
+| `node tools/smoke.mjs` | **PASSED** — CLI answered, 40 IPC ok / 7 refused as designed / 8 skipped / 0 failed, 10 panels ok, 0 console errors |
 
 > [!NOTE]
 > **All 17 remaining audit findings are the harness noting a deliberately ellipsised label.**
@@ -43,6 +44,34 @@ node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/captur
 > removing `unsafe-eval`; the app will not start. Do not ignore a non-zero exit: it has caught
 > three real regressions, including one where every binding in the window was empty and the
 > harness still wrote nineteen screenshots of a black rectangle.
+
+## The smoke test is the one that matters
+
+`node tools/smoke.mjs` (or `npm run smoke`) is the check that answers "does the
+application work", as opposed to "do the modules pass". Three phases, any of which
+fails the run:
+
+| Phase | What it proves |
+| --- | --- |
+| **CLI** | The real binary is located and answers. If `codex --version` does not come back, the app is a shell around nothing and every other check is theatre. |
+| **IPC** | Every command on the preload allow-list, invoked **through the renderer's own bridge** — so the contextBridge, the named allow-list and the real `ipcRenderer` channel are all in the path. Calling the handler module directly would prove the handlers work while saying nothing about whether the page can reach them. |
+| **PANELS** | All ten navigation panels opened, each checked for unresolved bindings, a thrown render, and a minimum of real content. |
+
+It runs against the authored `CODEX_HOME`, so the destructive commands mutate a fixture.
+
+> [!WARNING]
+> **`codex_skill_toggle` is deliberately skipped, and the reason generalises.** Skills
+> are not under `CODEX_HOME`: `skillList()` enumerates the machine's real
+> `~/.agents/skills` and `skillToggle()` renames a directory there. Pointing
+> `CODEX_HOME` at a fixture does **not** isolate it. Before adding a command to the
+> exercised set, check what it actually touches — the fixture is not a sandbox, it is
+> one directory.
+
+Every skip is listed with its reason in the report (`assets/smoke.json`) rather than
+being quietly absent. An untested command that looks tested is worse than an obvious
+gap. CI runs this in the **release** job, before `electron-builder`, so a broken app
+cannot be packaged — the test job installs with `--ignore-scripts` and never downloads
+the Electron binary, so it cannot run there.
 
 ## What is genuinely done
 
