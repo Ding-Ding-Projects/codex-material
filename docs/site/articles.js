@@ -1112,10 +1112,11 @@
       },
       [
         { h: "Behaviour", blocks: [
-          p("An element opts in by carrying `data-appear=\"<name>\"` and ending its context menu with `this.appearItem(e)`. The menu entry reads `Edit appearance — <name>`, and the editor opens non-modally at the click position with the element's current overrides loaded."),
+          p("An element opts in by carrying `data-appear=\"<name>\"` and ending its context menu with `this.appearItem(e)`. The menu entry reads `Edit appearance — <name>`, and the editor opens non-modally **beside the element**, measured from its own rectangle — not at the click position, which put the panel directly on top of whatever was being edited. <kbd>Shift</kbd>+right-click skips the menu, and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> opens it for whatever has focus."),
+          p("The editor carries **23 typography properties**: family from every installed face, size as both a slider and an exact-percent field, weight, slant, capitalization including small caps, five underline styles with their own colour, single and double strikethrough, overline, superscript and subscript, baseline offset, character and word spacing, line height, text direction, alignment, and six separate colours — text, underline, highlight, outline, shadow and glow — sharing one continuous picker. Each is turned into CSS by a single function, `CX_APPEARANCE.styleFor()`, shared with the exporter; the two used to keep separate lists, which is how one property came to apply in the running app and appear in no exported document."),
           p("The app currently names 37 targets, including Title bar, Tab strip, Tab, Tab group header, Navigation rail, Message bubble, Composer, Command palette, Command preview, Flag panel, Settings panel, TOML preview, Cost headline, Runtime card, Health card, Commit row, Release entry, Notification, Notification centre, Regex builder, Bulk close dialog, Dropdown, Sidebar search, Studio search and Yolo card."),
           p("Colour work goes through `CX.color`, which converts between HEX/HEX8, RGB, HSL, HSV, HWB, LAB, LCH, OKLab, OKLCH and CMYK, and computes a WCAG contrast ratio from relative luminance. Every representation is copyable, so a colour chosen here can be pasted into a stylesheet or a design tool without a round trip through a converter."),
-          p("Overrides persist under the `appearance` key and can be exported to the clipboard so a customised appearance survives a reinstall.")
+          p("Overrides persist under the `appearance` key and export to a **file**, so a customised appearance survives a reinstall and can be handed to someone else. Import never silently drops a value it cannot represent: every rejection lands in `dropped` with the dotted key from the user's own file and the reason. Documents written by the first build still import — `italic`, `underline`, `strike` and `wide` were booleans then, and `normalise()` still reads them.")
         ]},
         { h: "Configuration", blocks: [
           p("Theme is a document attribute: `data-theme=\"light\"` on `<html>` switches the whole token set. The dark palette is the `:root` block in `app/index.html`; the light palette is the `[data-theme=\"light\"]` block directly beneath it. This site reuses those exact values."),
@@ -1125,12 +1126,13 @@
           ul([
             "**Neither font directory is readable.** The scan skips it and returns whatever the other yielded; an empty list is a list, not an error.",
             "**A colour string that does not parse.** `hexToRgb` returns `null` and `translate` returns an empty list rather than rendering `NaN` in ten formats.",
-            "**A property the platform cannot render.** It stays visible with an explanation instead of disappearing or silently dropping the saved value.",
+            "**A property the platform cannot render.** It stays visible with an explanation instead of disappearing or silently dropping the saved value. Three are listed in the editor under *What this build cannot do*: variable-font axes past weight, because a browser cannot enumerate the axes a locally installed font exposes; a wavy underline together with a double strike, because `text-decoration-style` is one property for every line; and a baseline offset together with superscript, for the same reason with `vertical-align`.",
             "**An element with no `data-appear`.** Its context menu shows `Edit appearance…` without a target and the editor does not open — the app does not guess which element was meant."
           ])
         ]},
         { h: "Security considerations", blocks: [
-          p("Appearance overrides are style values in local storage. They are applied as CSS custom properties, not injected as markup."),
+          p("Appearance overrides are style values in local storage, assigned to named properties on the element's own `style` object. They are never injected as markup and never written into a `style` attribute as text, so a value cannot close the attribute and become a tag. An imported document is untrusted input on the same grounds: a value carrying `<`, `javascript:` or `expression(` is refused and reported by name rather than sanitised, because a value that had to be rewritten is not the value its author meant."),
+          p("Only the properties this system set on the previous pass are cleared. Blanking every property it knows about would erase the inline styles the template itself writes — which it briefly did, and the UI audit went from 23 findings to 251 while the smoke test stayed green, because there is nothing incorrect about rendering an unreadable app."),
           p("Font enumeration reads file *names* from two directories. No font file is read, parsed or uploaded.")
         ]},
         { h: "How to verify it", blocks: [
