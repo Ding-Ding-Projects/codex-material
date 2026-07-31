@@ -9,10 +9,23 @@
 `contrastLabel` keys of `renderVals`); the colour mathematics in `CX.color` in
 `app/codex-core.js`.
 
-`app/cx-appearance.js` also exists and holds the validation, export and import paths. An earlier
-version of this document asserted the file was not there at all — it is, and it is 27 KB. The
-section [What is not implemented yet](#what-is-not-implemented-yet) is an honest list rather than
-a roadmap footnote, and it is shorter than it was.
+`app/cx-appearance.js` holds the property table, the one CSS mapping (`styleFor`), the legacy
+reader (`normalise`), the capability notes, and the validation, export and import paths.
+
+> [!WARNING]
+> **That file was not in the page until recently.** No `<script src>` tag loaded it, so
+> `window.CX_APPEARANCE` did not exist in the running app: export, import and every named preset hit
+> their `if (!A)` guard and toasted *"cx-appearance.js is missing from this build"* — accurate, and
+> indistinguishable from a packaging accident. Its own tests passed the whole time, because the test
+> runner reads module files directly through `node:vm` rather than through the page. A test that
+> loads a file the app does not load is testing a file, not a feature.
+>
+> Two tests guard it now, both in `tools/test-frontend.mjs`: *every frontend module is actually
+> loaded* checks that no `app/*.js` is missing a script tag, and that every `CX_*` global the page
+> reads is assigned by something the page loads.
+
+The section [What is not implemented yet](#what-is-not-implemented-yet) is an honest list rather
+than a roadmap footnote, and it is shorter than it was.
 
 ## How an element becomes editable
 
@@ -93,16 +106,61 @@ does not overflow a narrow window.
 
 ## What the editor controls
 
+Twenty-three properties. Every one of them is turned into CSS by **one** function —
+`CX_APPEARANCE.styleFor()` in `app/cx-appearance.js` — which `applyAppearance()` and the exporter
+both call. That is deliberate: the two used to keep separate lists, which is how `wide` came to
+apply in the running app and appear in no exported document.
+
 | Control | Stored as | Applied as |
 | --- | --- | --- |
-| Font family (5 options) | `font` | `style.fontFamily` |
-| Size, 70–180 % in steps of 5 | `size` | `style.fontSize = size + "%"` |
-| Weight, 300–700 in steps of 100 | `weight` | `style.fontWeight` |
-| Italic | `italic` | `style.fontStyle` |
-| Underline | `underline` | `style.textDecoration` |
-| Strikethrough | `strike` | `style.textDecoration` |
-| Wide (letter spacing) | `wide` | `style.letterSpacing = ".06em"` |
-| Colour | `color` | `style.color` |
+| Font family — the bundled faces, then every family `codex_fonts` finds installed | `font` | `fontFamily` |
+| Size, 70–180 % on the slider, 10–400 % in the exact-entry field | `size` | `fontSize = size + "%"` |
+| Weight, 100–900 in steps of 100 | `weight` | `fontWeight` |
+| Slant — upright, italic, oblique | `slant` | `fontStyle` |
+| Capitalization — as written, UPPER, lower, Title, small caps | `caps` | `textTransform`, or `fontVariantCaps` for small caps |
+| Underline — none, single, double, dotted, dashed, wavy | `underline` | `textDecorationLine` + `textDecorationStyle` |
+| Underline colour | `underlineColor` | `textDecorationColor` |
+| Strikethrough — none, single, double | `strike` | `textDecorationLine` + `textDecorationStyle` |
+| Overline | `overline` | `textDecorationLine` |
+| Superscript / subscript | `vertAlign` | `verticalAlign` |
+| Baseline offset, −20 to 20 px | `baseline` | `verticalAlign` (overrides super/sub) |
+| Character spacing, −20 to 100 hundredths of an em | `letterSpacing` | `letterSpacing = n/100 + "em"` |
+| Word spacing, −50 to 400 hundredths of an em | `wordSpacing` | `wordSpacing = n/100 + "em"` |
+| Line height, 80–300 % | `lineHeight` | `lineHeight = n/100` |
+| Text direction — inherit, ltr, rtl | `direction` | `direction` |
+| Alignment — inherit, left, centre, right, justify | `align` | `textAlign` |
+| Text colour | `color` | `color` |
+| Highlight | `highlight` | `backgroundColor` |
+| Outline | `outline` | `webkitTextStroke = "0.6px " + c` |
+| Shadow | `shadow` | `textShadow: 0 1px 2px c` |
+| Glow | `glow` | `textShadow: 0 0 6px c` |
+
+Spacings are stored in **hundredths of an em**, so the document holds an integer and the unit never
+travels with the number — a file saying `letterSpacing: 6` means the same thing whatever font size
+the element turns out to have.
+
+One picker serves all six colours. Which property it writes is chosen by a row of chips above it,
+each carrying a swatch of that property's current value so an unset colour is visibly unset rather
+than reading as black. Six separate pickers in a 330 px dialog would be a scrolling contest.
+
+### Documents written by the first build still import
+
+`italic`, `underline`, `strike` and `wide` were booleans. `CX_APPEARANCE.normalise()` reads them
+still — `italic: true` becomes `slant: "italic"`, `underline: true` becomes `"solid"`,
+`strike: true` becomes `"single"`, `wide: true` becomes `letterSpacing: 6` — so an appearance
+exported then applies now, and the editor shows the controls as set rather than presenting the
+element as unstyled and losing the values on the next edit.
+
+### Three things this build cannot do, and says so
+
+They appear in the editor under *What this build cannot do*, not as absent controls. A control that
+simply is not there reads as one nobody thought of.
+
+| Not offered | Why |
+| --- | --- |
+| Variable-font axes past weight (width, optical size, slant) | A browser cannot enumerate the axes a locally installed font exposes, so there is no list to show. Weight is offered because CSS accepts it on any family. |
+| A wavy underline *and* a double strikethrough at once | `text-decoration-style` is one property for every decoration line. The underline's style wins when both are set. |
+| A baseline offset *and* superscript at once | Also one property, `vertical-align`. An explicit offset replaces the superscript rather than adding to it. |
 
 `patchAppear` merges the patch into `state.appearance[target]`, writes the whole map to
 `localStorage` under `codexstudio.appearance`, and `componentDidUpdate` calls `applyAppearance`,
@@ -196,24 +254,17 @@ multi-megabyte CJK webfont, so Cantonese copy stays legible in every language mo
 
 Stated plainly, because a documented capability that does not exist is worse than an absent one.
 
-- **Installed fonts are not offered.** The backend command `codex_fonts` exists, is registered in
-  `electron/commands.js`, and enumerates `%WINDIR%\Fonts` and
-  `%LOCALAPPDATA%\Microsoft\Windows\Fonts` for `.ttf`/`.otf`/`.ttc` — but **no frontend code calls
-  it**. The picker offers five hard-coded families and no per-family live preview of the typeface
-  itself.
-- **Word-depth typography is not there.** Missing: variable-font axes, small caps, capitalisation,
-  superscript and subscript, underline style and colour, double strikethrough, overline, outline,
-  shadow, glow, word spacing, line height, baseline offset, text direction and alignment. What
-  ships is the eight properties in the table above.
 - **The colour picker has no swatch grid, no recents, no eyedropper and no saved palettes.** The
   two-dimensional saturation/brightness field, the hue strip, the three named sliders and the
-  free-text field are the whole picker.
-- **No named presets, no import.** Export copies JSON to the clipboard; nothing reads it back in.
+  free-text field are the whole picker. The six colour *targets* are chips, not swatches — they
+  choose which property the one picker writes, and do not offer a palette to pick from.
 - **No search bar inside the appearance editor.** The Studio settings surface has one, wired to the
-  regex builder; the per-element popover does not.
+  regex builder; the per-element popover does not. The font dropdown *does* carry its own filter and
+  regex builder, which is what makes several hundred installed families usable rather than a wall.
 - **Non-typographic properties are not editable per element** — no radius, border, spacing,
-  background, icon or per-state (hover/focus/collapsed) targeting. Groups carry an `appearance`
-  field in their record that nothing writes.
+  background, icon or per-state (hover/focus/collapsed) targeting. `highlight` sets a background
+  colour, but that is a text-highlight property rather than surface styling. Groups carry an
+  `appearance` field in their record that nothing writes.
 - **`density` and `reducedMotion` are stored but unread.** Both appear in the `CX.settings`
   defaults in `app/codex-core.js`; no control sets them and no code consumes them. The Studio
   Appearance section's description mentions density, which is currently inaccurate.
