@@ -1961,6 +1961,308 @@
       en: ["Remove from group", "Remove from group", "Take this tab out of its group", "Take this tab out of its group", "Lift this tab out of its group"],
       yue: ["移出群組", "移出群組", "將呢個 tab 抽返出個群組", "將呢個 tab 抽返出嚟", "將呢個 tab 抽返出個組"]
     },
+/* Batch 5 — the command palette. Group headings, the one-word hint on the right of
+   each row, and the four action rows. The YOLO row's subtitle names the two settings
+   it actually writes, at every level: a row that says what it turns on but not that it
+   is approval_policy = never is a row that gets somebody in trouble. */
+
+    "palette.groupGoTo": {
+      en: ["Go to", "Go to", "Go to", "Go to", "Take me to"],
+      yue: ["前往", "前往", "去邊度", "去邊度", "帶我去"]
+    },
+    "palette.groupProfile": {
+      en: ["Profile", "Profile", "Profile", "Profiles", "Profiles"],
+      yue: ["設定檔", "設定檔", "Profile", "Profile", "Profile"]
+    },
+    "palette.groupSession": {
+      en: ["Session", "Session", "Session", "Sessions", "Sessions"],
+      yue: ["工作階段", "工作階段", "Session", "Session", "Session"]
+    },
+    "palette.groupCommand": {
+      en: ["Command", "Command", "Command", "Commands", "Commands"],
+      yue: ["指令", "指令", "指令", "指令", "指令"]
+    },
+    "palette.groupSlash": {
+      en: ["Slash", "Slash", "Slash", "Slash commands", "Slash commands"],
+      yue: ["斜線指令", "斜線指令", "Slash 指令", "Slash 指令", "Slash 指令"]
+    },
+    "palette.groupSetting": {
+      en: ["Setting", "Setting", "Setting", "Settings", "Settings"],
+      yue: ["設定", "設定", "設定", "設定", "設定"]
+    },
+    "palette.groupPlugin": {
+      en: ["Plugin", "Plugin", "Plugin", "Plugins", "Plugins"],
+      yue: ["外掛", "外掛", "外掛", "外掛", "外掛"]
+    },
+    "palette.groupFeature": {
+      en: ["Feature", "Feature", "Feature", "Feature flags", "Feature flags"],
+      yue: ["功能旗標", "功能旗標", "功能 flag", "功能 flag", "功能 flag"]
+    },
+    "palette.groupAction": {
+      en: ["Action", "Action", "Action", "Actions", "Things to do"],
+      yue: ["動作", "動作", "動作", "可以做嘅嘢", "可以做嘅嘢"]
+    },
+    "palette.hintGo": {
+      en: ["go", "go", "go", "go", "go"],
+      yue: ["去", "去", "去", "去", "去"]
+    },
+    "palette.hintSwitch": {
+      en: ["switch", "switch", "switch", "switch", "switch"],
+      yue: ["切換", "切換", "轉", "轉", "轉"]
+    },
+    "palette.hintOpen": {
+      en: ["open", "open", "open", "open", "open"],
+      yue: ["開啟", "開啟", "開", "開", "開"]
+    },
+    "palette.hintConsole": {
+      en: ["console", "console", "console", "console", "console"],
+      yue: ["主控台", "主控台", "console", "console", "console"]
+    },
+    "palette.hintWizard": {
+      en: ["wizard", "wizard", "wizard", "wizard", "wizard"],
+      yue: ["精靈", "精靈", "wizard", "wizard", "wizard"]
+    },
+    "palette.hintToggle": {
+      en: ["toggle", "toggle", "toggle", "toggle", "toggle"],
+      yue: ["切換", "切換", "扳", "扳", "扳"]
+    },
+    "palette.hintGit": {
+      en: ["git", "git", "git", "git", "git"],
+      yue: ["git", "git", "git", "git", "git"]
+    },
+    "palette.hintWsl": {
+      en: ["wsl", "wsl", "wsl", "wsl", "wsl"],
+      yue: ["wsl", "wsl", "wsl", "wsl", "wsl"]
+    },
+    "palette.hintTheme": {
+      en: ["theme", "theme", "theme", "theme", "theme"],
+      yue: ["主題", "主題", "主題", "主題", "主題"]
+    },
+    "palette.yoloOn": {
+      en: ["Enable YOLO mode", "Enable YOLO mode", "Turn YOLO mode on", "Turn YOLO mode on", "Turn YOLO mode on"],
+      yue: ["開啟 YOLO 模式", "開啟 YOLO 模式", "開 YOLO 模式", "開 YOLO 模式", "開 YOLO 模式"]
+    },
+    "palette.yoloOff": {
+      en: ["Turn YOLO off", "Turn YOLO off", "Turn YOLO mode off", "Turn YOLO mode off", "Turn YOLO mode off"],
+      yue: ["關閉 YOLO", "關閉 YOLO", "熄 YOLO 模式", "熄 YOLO 模式", "熄 YOLO 模式"]
+    },
+    "palette.undoLast": {
+      en: ["Undo last change", "Undo last change", "Undo the last change", "Undo the last change", "Undo the last change"],
+      yue: ["復原上一個改動", "復原上一個改動", "復原上一個改動", "撤返上一個改動", "撤返上一個改動"]
+    },
+    "palette.undoNothing": {
+      en: ["nothing yet", "nothing yet", "nothing yet", "nothing yet", "nothing to undo yet"],
+      yue: ["未有嘢", "未有嘢", "仲未有嘢", "仲未有嘢", "仲未有嘢好撤"]
+    },
+    "palette.spawnEveryTab": {
+      en: ["Spawn a WSL instance for every tab", "Spawn a WSL instance for every tab", "Spawn a WSL instance for every tab", "Give every tab its own WSL instance", "Give every tab its own WSL instance"],
+      yue: ["為每個分頁開一個 WSL 執行個體", "為每個分頁開一個 WSL 執行個體", "為每個 tab 開一個 WSL instance", "每個 tab 都畀佢自己一個 WSL", "每個 tab 都畀佢自己一個 WSL"]
+    },
+    "palette.perTabRuntimes": {
+      en: ["per-tab runtimes", "per-tab runtimes", "per-tab runtimes", "one runtime per tab", "one runtime per tab"],
+      yue: ["每個分頁一個執行環境", "每個分頁一個執行環境", "每個 tab 一個 runtime", "每個 tab 一個 runtime", "每個 tab 一個 runtime"]
+    },
+    "palette.toLight": {
+      en: ["Switch to light theme", "Switch to light theme", "Switch to the light theme", "Switch to the light theme", "Switch to the light theme"],
+      yue: ["轉做淺色主題", "轉做淺色主題", "轉淺色主題", "轉淺色主題", "轉返淺色主題"]
+    },
+    "palette.toDark": {
+      en: ["Switch to dark theme", "Switch to dark theme", "Switch to the dark theme", "Switch to the dark theme", "Switch to the dark theme"],
+      yue: ["轉做深色主題", "轉做深色主題", "轉深色主題", "轉深色主題", "轉返深色主題"]
+    },
+    "palette.m3Palette": {
+      en: ["Material 3 palette", "Material 3 palette", "Material 3 palette", "Material 3 palette", "Material 3 palette"],
+      yue: ["Material 3 色盤", "Material 3 色盤", "Material 3 色盤", "Material 3 色盤", "Material 3 色盤"]
+    },
+/* Batch 6 — header chips, their context-menu titles, and the dialog titles. The
+   sandbox and YOLO chips describe settings that remove protections, so their hint
+   text names what is actually bypassed at every level; only the wording moves. */
+
+    "chip.model": {
+      en: ["Model (/model)", "Model (/model)", "Model — also /model", "Model — also /model", "Model — also /model"],
+      yue: ["模型（/model）", "模型（/model）", "模型 — 都可以用 /model", "模型 — 都可以用 /model", "模型 — 打 /model 都得"]
+    },
+    "chip.approval": {
+      en: ["Approval policy", "Approval policy", "Approval policy", "How much it asks before acting", "How much it asks you before it acts"],
+      yue: ["批准政策", "批准政策", "批准政策", "做嘢之前問你幾多", "做嘢之前要問你幾多先"]
+    },
+    "chip.sandbox": {
+      en: ["Sandbox policy", "Sandbox policy", "Sandbox policy — what it may touch on disk", "Sandbox policy — what it may touch on disk", "Sandbox policy — what it may touch on disk"],
+      yue: ["沙盒政策", "沙盒政策", "沙盒政策 — 佢喺你部機掂得咩", "沙盒政策 — 佢喺你部機掂得咩", "沙盒政策 — 佢喺你部機掂得邊啲嘢"]
+    },
+    "chip.wsl": {
+      en: ["Per-tab WSL runtime — click to spawn or stop, right-click for the manager", "Per-tab WSL runtime — click to spawn or stop, right-click for the manager", "Per-tab WSL runtime. Click to spawn or stop it; right-click for the manager.", "This tab's own WSL runtime. Click to spawn or stop it; right-click for the manager.", "This tab's own WSL runtime. Click to spawn or stop it; right-click for the manager."],
+      yue: ["每個分頁專屬嘅 WSL 執行環境 — 撳一下開或者停，右鍵開管理員", "每個分頁專屬嘅 WSL 執行環境 — 撳一下開或者停，右鍵開管理員", "呢個 tab 自己嘅 WSL runtime。撳一下開或者停，右鍵開管理員。", "呢個 tab 自己嘅 WSL runtime。撳一下開或者停，右鍵開管理員。", "呢個 tab 自己嘅 WSL runtime。撳一下開或者停，右 click 就開管理員。"]
+    },
+    "chip.yolo": {
+      en: ["One-click bypass, remembered", "One-click bypass, remembered", "One click sets approval_policy = never and sandbox_mode = danger-full-access, and it is remembered", "One click sets approval_policy = never and sandbox_mode = danger-full-access, and it is remembered", "One click sets approval_policy = never and sandbox_mode = danger-full-access — and it stays that way until you change it back"],
+      yue: ["一撳就繞過，仲會記住", "一撳就繞過，仲會記住", "撳一下即刻設定 approval_policy = never 同 sandbox_mode = danger-full-access，而且會記住", "撳一下即刻設定 approval_policy = never 同 sandbox_mode = danger-full-access，而且會記住", "撳一下就 approval_policy = never 加 sandbox_mode = danger-full-access — 唔改返就一直咁"]
+    },
+    "chip.modelPriced": {
+      en: ["Model priced in the headline", "Model priced in the headline", "The model the headline figure is priced against", "The model the headline figure is priced against", "The model the headline figure is priced against"],
+      yue: ["標題價格所用嘅模型", "標題價格所用嘅模型", "上面個價係照呢個模型計", "上面個價係照呢個模型計", "上面個價就係照呢個模型計出嚟"]
+    },
+    "chip.yoloOn": {
+      en: ["YOLO on", "YOLO on", "YOLO on", "YOLO on", "YOLO on"],
+      yue: ["YOLO 開咗", "YOLO 開咗", "YOLO 開咗", "YOLO 開咗", "YOLO 開咗"]
+    },
+    "menu.titleModel": {
+      en: ["Model", "Model", "Model", "Model", "Model"],
+      yue: ["模型", "模型", "模型", "模型", "模型"]
+    },
+    "menu.titleApproval": {
+      en: ["Approval policy", "Approval policy", "Approval policy", "Approval policy", "Approval policy"],
+      yue: ["批准政策", "批准政策", "批准政策", "批准政策", "批准政策"]
+    },
+    "menu.titleSandbox": {
+      en: ["Sandbox", "Sandbox", "Sandbox", "Sandbox", "Sandbox"],
+      yue: ["沙盒", "沙盒", "沙盒", "沙盒", "沙盒"]
+    },
+    "menu.titleWslRuntime": {
+      en: ["WSL runtime", "WSL runtime", "WSL runtime", "WSL runtime", "WSL runtime"],
+      yue: ["WSL 執行環境", "WSL 執行環境", "WSL runtime", "WSL runtime", "WSL runtime"]
+    },
+    "dlg.languageMode": {
+      en: ["Language mode", "Language mode", "Language mode", "Language mode", "Language mode"],
+      yue: ["語言模式", "語言模式", "語言模式", "語言模式", "語言模式"]
+    },
+    "dlg.narratedLanguage": {
+      en: ["Narrated language", "Narrated language", "Narrated language", "Which language it speaks", "Which language it speaks"],
+      yue: ["旁白語言", "旁白語言", "旁白用邊種語言", "佢講邊種話", "佢用邊種話講"]
+    },
+    "dlg.externalEditor": {
+      en: ["External editor", "External editor", "External editor", "External editor", "External editor"],
+      yue: ["外部編輯器", "外部編輯器", "外部編輯器", "用邊個編輯器", "用邊個編輯器"]
+    },
+    "dlg.theme": {
+      en: ["Theme", "Theme", "Theme", "Theme", "Theme"],
+      yue: ["主題", "主題", "主題", "主題", "主題"]
+    },
+    "dlg.namedPresets": {
+      en: ["Named presets", "Named presets", "Named presets", "Saved looks", "Saved looks"],
+      yue: ["已命名預設", "已命名預設", "已命名預設", "儲低咗嘅樣", "儲低咗嘅樣"]
+    },
+    "dlg.namePreset": {
+      en: ["Name this preset", "Name this preset", "Name this preset", "Give this preset a name", "Give this preset a name"],
+      yue: ["為呢個預設命名", "為呢個預設命名", "同呢個預設改個名", "同呢個預設改個名", "同呢個預設改個名"]
+    },
+    "dlg.dateRange": {
+      en: ["Date range", "Date range", "Date range", "Which dates", "Which dates"],
+      yue: ["日期範圍", "日期範圍", "日期範圍", "邊段日子", "邊段日子"]
+    },
+    "dlg.renameTab": {
+      en: ["Rename “{name}”", "Rename “{name}”", "Rename “{name}”", "Rename “{name}”", "Rename “{name}”"],
+      yue: ["重新命名「{name}」", "重新命名「{name}」", "同「{name}」改名", "同「{name}」改名", "同「{name}」改個名"]
+    },
+    "dlg.renameGroup": {
+      en: ["Rename group", "Rename group", "Rename group", "Rename this group", "Rename this group"],
+      yue: ["重新命名群組", "重新命名群組", "同個群組改名", "同呢個群組改名", "同呢個群組改個名"]
+    },
+    "dlg.groupColour": {
+      en: ["Group colour", "Group colour", "Group colour", "Group colour", "Pick the group a colour"],
+      yue: ["群組顏色", "群組顏色", "群組顏色", "群組顏色", "揀個顏色畀個群組"]
+    },
+    "dlg.searchStrip": {
+      en: ["Search this tab strip", "Search this tab strip", "Search this tab strip", "Find a tab in this strip", "Find a tab in this strip"],
+      yue: ["搜尋呢條分頁列", "搜尋呢條分頁列", "搵呢條 tab 列", "喺呢條 tab 列度搵", "喺呢條 tab 列度搵返個 tab"]
+    },
+    "dlg.whichGroup": {
+      en: ["Which group?", "Which group?", "Which group?", "Which group?", "Which group are we looking in?"],
+      yue: ["邊個群組？", "邊個群組？", "邊個群組？", "搵邊個群組？", "我哋要搵邊個群組？"]
+    },
+    "dlg.searchInGroup": {
+      en: ["Search “{group}”", "Search “{group}”", "Search “{group}”", "Find a tab in “{group}”", "Find a tab in “{group}”"],
+      yue: ["搜尋「{group}」", "搜尋「{group}」", "搵「{group}」", "喺「{group}」度搵 tab", "喺「{group}」度搵返個 tab"]
+    },
+    "dlg.searchGroups": {
+      en: ["Search tab groups", "Search tab groups", "Search tab groups", "Find a tab group", "Find a tab group"],
+      yue: ["搜尋分頁群組", "搜尋分頁群組", "搵 tab 群組", "搵返個 tab 群組", "搵返個 tab 群組"]
+    },
+    "dlg.searchEverywhere": {
+      en: ["Every tab, every workspace", "Every tab, every workspace", "Every tab, every workspace", "Every tab, in every workspace", "Every tab, in every workspace"],
+      yue: ["所有工作區嘅所有分頁", "所有工作區嘅所有分頁", "所有工作區嘅所有 tab", "每個工作區、每個 tab", "每個工作區、每個 tab，一個都唔走雞"]
+    },
+    "dlg.overflowTabs": {
+      en: ["Tabs that do not fit", "Tabs that do not fit", "Tabs that do not fit", "The tabs that ran out of room", "The tabs that ran out of room"],
+      yue: ["擺唔落嘅分頁", "擺唔落嘅分頁", "擺唔落嘅 tab", "冇位擺嗰啲 tab", "冇位擺、擠咗出去嗰啲 tab"]
+    },
+    "dlg.fontFamily": {
+      en: ["Font family — {target}", "Font family — {target}", "Font family — {target}", "Typeface for {target}", "Typeface for {target}"],
+      yue: ["字型 — {target}", "字型 — {target}", "字型 — {target}", "{target} 用邊隻字", "{target} 用邊隻字"]
+    },
+    "dlg.wslDistribution": {
+      en: ["WSL distribution", "WSL distribution", "WSL distribution", "Which WSL distribution", "Which WSL distribution"],
+      yue: ["WSL 發行版", "WSL 發行版", "WSL 發行版", "用邊個 WSL 發行版", "用邊個 WSL 發行版"]
+    },
+    "dlg.lifetimeWindow": {
+      en: ["Lifetime window", "Lifetime window", "Lifetime window", "How far ahead to project", "How far ahead to project"],
+      yue: ["累計期間", "累計期間", "累計期間", "推算幾耐", "推算去到幾耐"]
+    },
+    "dlg.everyAction": {
+      en: ["Every action", "Every action", "Every action", "Every action", "Every action"],
+      yue: ["所有動作", "所有動作", "所有動作", "所有動作", "所有動作"]
+    },
+    "console.doctor": {
+      en: ["Doctor", "Doctor", "Doctor", "Doctor", "Doctor"],
+      yue: ["診斷", "診斷", "Doctor", "Doctor", "Doctor"]
+    },
+    "console.account": {
+      en: ["Account", "Account", "Account", "Account", "Account"],
+      yue: ["帳戶", "帳戶", "帳戶", "帳戶", "帳戶"]
+    },
+    "console.usage": {
+      en: ["Usage", "Usage", "Usage", "Usage", "Usage"],
+      yue: ["用量", "用量", "用量", "用量", "用量"]
+    },
+    "console.cloudTasks": {
+      en: ["Cloud tasks", "Cloud tasks", "Cloud tasks", "Cloud tasks", "Cloud tasks"],
+      yue: ["雲端工作", "雲端工作", "雲端工作", "雲端工作", "雲端工作"]
+    },
+/* Batch 7 — the titles on the search-filter menus that hang off each search bar, and
+   the two remaining menu headings. Each names the surface it filters, because the same
+   menu opens from a dozen different search fields and the heading is the only thing
+   telling you which one you are about to narrow. */
+
+    "menu.titleSearch": {
+      en: ["Search", "Search", "Search", "Search", "Search"],
+      yue: ["搜尋", "搜尋", "搜尋", "搵嘢", "搵嘢"]
+    },
+    "menu.titleFilter": {
+      en: ["Filter", "Filter", "Filter", "Filter", "Filter"],
+      yue: ["篩選", "篩選", "篩選", "篩走啲嘢", "篩走啲嘢"]
+    },
+    "menu.titleCommandSearch": {
+      en: ["Command search", "Command search", "Command search", "Search the commands", "Search the commands"],
+      yue: ["指令搜尋", "指令搜尋", "指令搜尋", "搵指令", "搵指令"]
+    },
+    "menu.titleOptionFilter": {
+      en: ["Option filter", "Option filter", "Option filter", "Filter these options", "Filter these options"],
+      yue: ["選項篩選", "選項篩選", "選項篩選", "篩呢啲選項", "篩呢啲選項"]
+    },
+    "menu.titlePaletteSearch": {
+      en: ["Palette search", "Palette search", "Palette search", "Search the palette", "Search the palette"],
+      yue: ["指令面板搜尋", "指令面板搜尋", "指令面板搜尋", "搵指令面板", "搵指令面板"]
+    },
+    "menu.titleChangelogSearch": {
+      en: ["Changelog search", "Changelog search", "Changelog search", "Search the changelog", "Search the changelog"],
+      yue: ["更新紀錄搜尋", "更新紀錄搜尋", "更新紀錄搜尋", "搵更新紀錄", "搵更新紀錄"]
+    },
+    "menu.titleStudioSearch": {
+      en: ["Studio search", "Studio search", "Studio search", "Search the settings", "Search the settings"],
+      yue: ["Studio 搜尋", "Studio 搜尋", "Studio 搜尋", "搵設定", "搵設定"]
+    },
+    "menu.titleHistorySearch": {
+      en: ["History search", "History search", "History search", "Search the history", "Search the history"],
+      yue: ["歷史搜尋", "歷史搜尋", "歷史搜尋", "搵歷史紀錄", "搵歷史紀錄"]
+    },
+    "menu.titleLifetimeCost": {
+      en: ["Lifetime cost", "Lifetime cost", "Lifetime cost", "Cost over time", "Cost over time"],
+      yue: ["累計成本", "累計成本", "累計成本", "長遠使幾多", "長遠使幾多"]
+    },
+    "menu.titleFindTabs": {
+      en: ["Find tabs", "Find tabs", "Find tabs", "Find tabs", "Find tabs"],
+      yue: ["搵分頁", "搵分頁", "搵 tab", "搵 tab", "搵返啲 tab"]
+    },
   };
 
   function resolve(key, mode, funny) {
