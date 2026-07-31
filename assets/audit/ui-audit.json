@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-07-30T21:18:27.782Z",
+  "generatedAt": "2026-07-31T03:28:47.187Z",
   "harness": "tools/audit-ui.mjs + tools/audit-ui-main.cjs",
   "auditedFrom": "the real app — app/index.html with electron/preload.js and electron/commands.js",
   "electron": "40.10.6",
   "chrome": "144.0.7559.236",
   "tree": {
-    "head": "72af981",
+    "head": "ec1bf2f",
     "frontendUncommitted": true,
     "sha256": {
-      "app/index.html": "850f96798c311c18",
+      "app/index.html": "68b274c689f63344",
       "app/codex-core.js": "aab0c0c0e6bdf09a",
-      "app/cx-i18n.js": "8736917542166f39",
+      "app/cx-i18n.js": "8a98bd54b8be4a5a",
       "app/cx-tabs.js": "62a1f5095c8c8910",
       "app/support.js": "8fe7df74405f3c55"
     }
@@ -65,19 +65,19 @@
     "focus-visible": "each interactive element focused in turn; flagged when outline-style is none or zero-width, box-shadow is none, and no border, background or colour changed. severity: medium"
   },
   "coverage": {
-    "visibleElementsMeasured": 101948,
+    "visibleElementsMeasured": 102524,
     "pointerTargetsMeasured": 13192,
     "interactiveElementsMeasured": 13216,
     "tabsMeasured": 740,
     "cellsWhereThePageOverflowed": 0,
-    "textRunsMeasuredForContrast": 3736,
-    "lowestContrastRatioSeen": 4.85,
+    "textRunsMeasuredForContrast": 3762,
+    "lowestContrastRatioSeen": 4.86,
     "elementsFocused": 998,
     "elementsThatShowedFocus": 998
   },
   "summary": {
     "uniqueFindings": 23,
-    "totalOccurrences": 130,
+    "totalOccurrences": 90,
     "bySeverity": {
       "medium": 23
     },
@@ -98,12 +98,12 @@
     },
     "byWidth": {
       "960": 23,
-      "1280": 7
+      "1280": 6
     },
     "byZoom": {
       "2": 23,
-      "1.5": 7,
-      "1.25": 1
+      "1.25": 1,
+      "1.5": 6
     },
     "byLang": {
       "en": 17,
@@ -121,26 +121,26 @@
       "text": "fixture rollout bravo with a deliberately long session name that no st…",
       "message": "Rendered past the right edge of the viewport, but an ancestor truncates it with text-overflow: ellipsis. Deliberate truncation rather than silent loss — read this one as evidence the label no longer fits, not as a defect on its own.",
       "measured": {
-        "right": 676.6,
-        "viewportRight": 641,
-        "overhang": 35.6,
-        "documentScrollWidth": 641,
-        "clippedBy": "div#dc-root > div > div > div:nth-of-type(2) > div > button:nth-of-type(2) > span:nth-of-type(2)",
-        "clipperOverflowX": "hidden",
-        "ellipsisTruncated": true,
-        "scrollable": false
-      },
-      "worst": {
-        "right": 676.9,
+        "right": 620.1,
         "viewportRight": 480,
-        "overhang": 196.9,
+        "overhang": 140.1,
         "documentScrollWidth": 480,
         "clippedBy": "div#dc-root > div > div > div:nth-of-type(2) > div > button:nth-of-type(2) > span:nth-of-type(2)",
         "clipperOverflowX": "hidden",
         "ellipsisTruncated": true,
         "scrollable": false
       },
-      "count": 60,
+      "worst": {
+        "right": 620.1,
+        "viewportRight": 480,
+        "overhang": 140.1,
+        "documentScrollWidth": 480,
+        "clippedBy": "div#dc-root > div > div > div:nth-of-type(2) > div > button:nth-of-type(2) > span:nth-of-type(2)",
+        "clipperOverflowX": "hidden",
+        "ellipsisTruncated": true,
+        "scrollable": false
+      },
+      "count": 20,
       "sections": [
         "chat",
         "console",
@@ -154,11 +154,9 @@
         "studio"
       ],
       "widths": [
-        960,
-        1280
+        960
       ],
       "zooms": [
-        1.5,
         2
       ],
       "langs": [
@@ -168,7 +166,7 @@
       "firstSeen": {
         "section": "chat",
         "width": 960,
-        "zoom": 1.5,
+        "zoom": 2,
         "lang": "en"
       }
     },
@@ -1514,8 +1512,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1161,
-        "visible": 1155,
+        "elements": 1185,
+        "visible": 1179,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -1794,8 +1792,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1161,
-        "visible": 1155,
+        "elements": 1185,
+        "visible": 1179,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -2074,8 +2072,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1161,
-        "visible": 1153,
+        "elements": 1185,
+        "visible": 1177,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -2354,8 +2352,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1161,
-        "visible": 1153,
+        "elements": 1185,
+        "visible": 1177,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -2421,7 +2419,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 1,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2429,7 +2427,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 1
     },
     {
       "width": 960,
@@ -2449,7 +2447,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2457,7 +2455,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 960,
@@ -2477,7 +2475,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2485,7 +2483,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 960,
@@ -2505,7 +2503,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 1,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2513,7 +2511,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 1
     },
     {
       "width": 960,
@@ -2533,7 +2531,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2541,7 +2539,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 960,
@@ -2561,7 +2559,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 3,
+        "cutOffRight": 2,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2569,7 +2567,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 3
+      "findings": 2
     },
     {
       "width": 960,
@@ -2589,7 +2587,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2597,7 +2595,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 960,
@@ -2617,7 +2615,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2625,7 +2623,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 960,
@@ -2634,8 +2632,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1161,
-        "visible": 1153,
+        "elements": 1185,
+        "visible": 1177,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -2645,7 +2643,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 1,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2653,7 +2651,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 1
     },
     {
       "width": 960,
@@ -2673,7 +2671,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 1,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2681,7 +2679,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 1
     },
     {
       "width": 960,
@@ -2701,7 +2699,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 1,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2709,7 +2707,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 1
     },
     {
       "width": 960,
@@ -2729,7 +2727,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2737,7 +2735,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 960,
@@ -2757,7 +2755,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2765,7 +2763,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 960,
@@ -2785,7 +2783,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 1,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2793,7 +2791,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 1
     },
     {
       "width": 960,
@@ -2813,7 +2811,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2821,7 +2819,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 960,
@@ -2841,7 +2839,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 3,
+        "cutOffRight": 2,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2849,7 +2847,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 3
+      "findings": 2
     },
     {
       "width": 960,
@@ -2869,7 +2867,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2877,7 +2875,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 960,
@@ -2897,7 +2895,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2905,7 +2903,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 960,
@@ -2914,8 +2912,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1161,
-        "visible": 1153,
+        "elements": 1185,
+        "visible": 1177,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -2925,7 +2923,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 1,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2933,7 +2931,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 1
     },
     {
       "width": 960,
@@ -2953,7 +2951,7 @@
         "documentScrollWidth": 641,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 1,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -2961,7 +2959,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 1
     },
     {
       "width": 960,
@@ -3194,8 +3192,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1161,
-        "visible": 1149,
+        "elements": 1185,
+        "visible": 1173,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -3474,8 +3472,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1161,
-        "visible": 1149,
+        "elements": 1185,
+        "visible": 1173,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -3543,7 +3541,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 98,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 41,
         "focusIndicated": 41
@@ -3571,7 +3569,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 217,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 72,
         "focusIndicated": 72
@@ -3599,7 +3597,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 98,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 39,
         "focusIndicated": 39
@@ -3627,7 +3625,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 177,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 59,
         "focusIndicated": 59
@@ -3655,7 +3653,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 131,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 59,
         "focusIndicated": 59
@@ -3683,7 +3681,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 130,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 65,
         "focusIndicated": 65
@@ -3711,7 +3709,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 169,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 32,
         "focusIndicated": 32
@@ -3739,7 +3737,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 87,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 41,
         "focusIndicated": 41
@@ -3754,8 +3752,8 @@
       "section": "changelog",
       "deep": true,
       "stats": {
-        "elements": 1179,
-        "visible": 1175,
+        "elements": 1203,
+        "visible": 1199,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -3766,8 +3764,8 @@
         "pageOverflows": false,
         "escapedRight": 0,
         "cutOffRight": 0,
-        "contrastChecked": 609,
-        "minContrastRatio": 4.85,
+        "contrastChecked": 622,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 38,
         "focusIndicated": 38
@@ -3795,7 +3793,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 152,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 53,
         "focusIndicated": 53
@@ -3823,7 +3821,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 98,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 41,
         "focusIndicated": 41
@@ -3851,7 +3849,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 217,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 72,
         "focusIndicated": 72
@@ -3879,7 +3877,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 98,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 39,
         "focusIndicated": 39
@@ -3907,7 +3905,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 177,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 59,
         "focusIndicated": 59
@@ -3935,7 +3933,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 131,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 59,
         "focusIndicated": 59
@@ -3963,7 +3961,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 130,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 65,
         "focusIndicated": 65
@@ -3991,7 +3989,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 169,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 32,
         "focusIndicated": 32
@@ -4019,7 +4017,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 87,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 41,
         "focusIndicated": 41
@@ -4034,8 +4032,8 @@
       "section": "changelog",
       "deep": true,
       "stats": {
-        "elements": 1179,
-        "visible": 1175,
+        "elements": 1203,
+        "visible": 1199,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -4046,8 +4044,8 @@
         "pageOverflows": false,
         "escapedRight": 0,
         "cutOffRight": 0,
-        "contrastChecked": 609,
-        "minContrastRatio": 4.85,
+        "contrastChecked": 622,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 38,
         "focusIndicated": 38
@@ -4075,7 +4073,7 @@
         "escapedRight": 0,
         "cutOffRight": 0,
         "contrastChecked": 152,
-        "minContrastRatio": 4.85,
+        "minContrastRatio": 4.86,
         "documentHasFocus": true,
         "focusChecked": 53,
         "focusIndicated": 53
@@ -4314,8 +4312,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1167,
-        "visible": 1161,
+        "elements": 1191,
+        "visible": 1185,
         "interactive": 43,
         "targets": 43,
         "tablists": 1,
@@ -4594,8 +4592,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1167,
-        "visible": 1161,
+        "elements": 1191,
+        "visible": 1185,
         "interactive": 43,
         "targets": 43,
         "tablists": 1,
@@ -4874,8 +4872,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1161,
-        "visible": 1157,
+        "elements": 1185,
+        "visible": 1181,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -5154,8 +5152,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1161,
-        "visible": 1157,
+        "elements": 1185,
+        "visible": 1181,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -5221,7 +5219,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 1,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5229,7 +5227,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 1
     },
     {
       "width": 1280,
@@ -5249,7 +5247,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5257,7 +5255,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 1280,
@@ -5277,7 +5275,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5285,7 +5283,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 1280,
@@ -5305,7 +5303,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 1,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5313,7 +5311,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 1
     },
     {
       "width": 1280,
@@ -5333,7 +5331,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5341,7 +5339,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 1280,
@@ -5361,7 +5359,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 3,
+        "cutOffRight": 2,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5369,7 +5367,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 3
+      "findings": 2
     },
     {
       "width": 1280,
@@ -5389,7 +5387,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5397,7 +5395,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 1280,
@@ -5417,7 +5415,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5425,7 +5423,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 1280,
@@ -5434,8 +5432,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1161,
-        "visible": 1153,
+        "elements": 1185,
+        "visible": 1177,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,
@@ -5445,7 +5443,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 1,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5453,7 +5451,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 1
     },
     {
       "width": 1280,
@@ -5473,7 +5471,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 1,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5481,7 +5479,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 1
     },
     {
       "width": 1280,
@@ -5501,7 +5499,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 1,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5509,7 +5507,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 1
     },
     {
       "width": 1280,
@@ -5529,7 +5527,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5537,7 +5535,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 1280,
@@ -5557,7 +5555,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5565,7 +5563,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 1280,
@@ -5585,7 +5583,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 1,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5593,7 +5591,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 1
     },
     {
       "width": 1280,
@@ -5613,7 +5611,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 1,
+        "cutOffRight": 0,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5621,7 +5619,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 1
+      "findings": 0
     },
     {
       "width": 1280,
@@ -5634,90 +5632,6 @@
         "visible": 295,
         "interactive": 68,
         "targets": 68,
-        "tablists": 1,
-        "tabs": 2,
-        "innerWidth": 640,
-        "innerHeight": 450,
-        "documentScrollWidth": 640,
-        "pageOverflows": false,
-        "escapedRight": 0,
-        "cutOffRight": 3,
-        "contrastChecked": 0,
-        "minContrastRatio": null,
-        "documentHasFocus": true,
-        "focusChecked": 0,
-        "focusIndicated": 0
-      },
-      "notes": [],
-      "findings": 3
-    },
-    {
-      "width": 1280,
-      "zoom": 2,
-      "lang": "bi",
-      "section": "health",
-      "deep": false,
-      "stats": {
-        "elements": 416,
-        "visible": 405,
-        "interactive": 35,
-        "targets": 35,
-        "tablists": 1,
-        "tabs": 2,
-        "innerWidth": 640,
-        "innerHeight": 450,
-        "documentScrollWidth": 640,
-        "pageOverflows": false,
-        "escapedRight": 0,
-        "cutOffRight": 1,
-        "contrastChecked": 0,
-        "minContrastRatio": null,
-        "documentHasFocus": true,
-        "focusChecked": 0,
-        "focusIndicated": 0
-      },
-      "notes": [],
-      "findings": 1
-    },
-    {
-      "width": 1280,
-      "zoom": 2,
-      "lang": "bi",
-      "section": "history",
-      "deep": false,
-      "stats": {
-        "elements": 195,
-        "visible": 188,
-        "interactive": 44,
-        "targets": 44,
-        "tablists": 1,
-        "tabs": 2,
-        "innerWidth": 640,
-        "innerHeight": 450,
-        "documentScrollWidth": 640,
-        "pageOverflows": false,
-        "escapedRight": 0,
-        "cutOffRight": 1,
-        "contrastChecked": 0,
-        "minContrastRatio": null,
-        "documentHasFocus": true,
-        "focusChecked": 0,
-        "focusIndicated": 0
-      },
-      "notes": [],
-      "findings": 1
-    },
-    {
-      "width": 1280,
-      "zoom": 2,
-      "lang": "bi",
-      "section": "changelog",
-      "deep": false,
-      "stats": {
-        "elements": 1161,
-        "visible": 1153,
-        "interactive": 41,
-        "targets": 41,
         "tablists": 1,
         "tabs": 2,
         "innerWidth": 640,
@@ -5739,6 +5653,90 @@
       "width": 1280,
       "zoom": 2,
       "lang": "bi",
+      "section": "health",
+      "deep": false,
+      "stats": {
+        "elements": 416,
+        "visible": 405,
+        "interactive": 35,
+        "targets": 35,
+        "tablists": 1,
+        "tabs": 2,
+        "innerWidth": 640,
+        "innerHeight": 450,
+        "documentScrollWidth": 640,
+        "pageOverflows": false,
+        "escapedRight": 0,
+        "cutOffRight": 0,
+        "contrastChecked": 0,
+        "minContrastRatio": null,
+        "documentHasFocus": true,
+        "focusChecked": 0,
+        "focusIndicated": 0
+      },
+      "notes": [],
+      "findings": 0
+    },
+    {
+      "width": 1280,
+      "zoom": 2,
+      "lang": "bi",
+      "section": "history",
+      "deep": false,
+      "stats": {
+        "elements": 195,
+        "visible": 188,
+        "interactive": 44,
+        "targets": 44,
+        "tablists": 1,
+        "tabs": 2,
+        "innerWidth": 640,
+        "innerHeight": 450,
+        "documentScrollWidth": 640,
+        "pageOverflows": false,
+        "escapedRight": 0,
+        "cutOffRight": 0,
+        "contrastChecked": 0,
+        "minContrastRatio": null,
+        "documentHasFocus": true,
+        "focusChecked": 0,
+        "focusIndicated": 0
+      },
+      "notes": [],
+      "findings": 0
+    },
+    {
+      "width": 1280,
+      "zoom": 2,
+      "lang": "bi",
+      "section": "changelog",
+      "deep": false,
+      "stats": {
+        "elements": 1185,
+        "visible": 1177,
+        "interactive": 41,
+        "targets": 41,
+        "tablists": 1,
+        "tabs": 2,
+        "innerWidth": 640,
+        "innerHeight": 450,
+        "documentScrollWidth": 640,
+        "pageOverflows": false,
+        "escapedRight": 0,
+        "cutOffRight": 1,
+        "contrastChecked": 0,
+        "minContrastRatio": null,
+        "documentHasFocus": true,
+        "focusChecked": 0,
+        "focusIndicated": 0
+      },
+      "notes": [],
+      "findings": 1
+    },
+    {
+      "width": 1280,
+      "zoom": 2,
+      "lang": "bi",
       "section": "studio",
       "deep": false,
       "stats": {
@@ -5753,7 +5751,7 @@
         "documentScrollWidth": 640,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 1,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": true,
@@ -5761,7 +5759,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 1
     },
     {
       "width": 1920,
@@ -5994,8 +5992,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1179,
-        "visible": 1175,
+        "elements": 1203,
+        "visible": 1199,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -6274,8 +6272,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1179,
-        "visible": 1175,
+        "elements": 1203,
+        "visible": 1199,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -6554,8 +6552,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1179,
-        "visible": 1175,
+        "elements": 1203,
+        "visible": 1199,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -6834,8 +6832,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1179,
-        "visible": 1175,
+        "elements": 1203,
+        "visible": 1199,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -7114,8 +7112,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1179,
-        "visible": 1175,
+        "elements": 1203,
+        "visible": 1199,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -7394,8 +7392,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1179,
-        "visible": 1175,
+        "elements": 1203,
+        "visible": 1199,
         "interactive": 47,
         "targets": 47,
         "tablists": 1,
@@ -7447,286 +7445,6 @@
       "width": 1920,
       "zoom": 2,
       "lang": "en",
-      "section": "chat",
-      "deep": false,
-      "stats": {
-        "elements": 217,
-        "visible": 215,
-        "interactive": 44,
-        "targets": 43,
-        "tablists": 1,
-        "tabs": 2,
-        "innerWidth": 960,
-        "innerHeight": 450,
-        "documentScrollWidth": 960,
-        "pageOverflows": false,
-        "escapedRight": 0,
-        "cutOffRight": 0,
-        "contrastChecked": 0,
-        "minContrastRatio": null,
-        "documentHasFocus": true,
-        "focusChecked": 0,
-        "focusIndicated": 0
-      },
-      "notes": [],
-      "findings": 0
-    },
-    {
-      "width": 1920,
-      "zoom": 2,
-      "lang": "en",
-      "section": "console",
-      "deep": false,
-      "stats": {
-        "elements": 567,
-        "visible": 564,
-        "interactive": 75,
-        "targets": 75,
-        "tablists": 1,
-        "tabs": 2,
-        "innerWidth": 960,
-        "innerHeight": 450,
-        "documentScrollWidth": 960,
-        "pageOverflows": false,
-        "escapedRight": 0,
-        "cutOffRight": 0,
-        "contrastChecked": 0,
-        "minContrastRatio": null,
-        "documentHasFocus": true,
-        "focusChecked": 0,
-        "focusIndicated": 0
-      },
-      "notes": [],
-      "findings": 0
-    },
-    {
-      "width": 1920,
-      "zoom": 2,
-      "lang": "en",
-      "section": "ext",
-      "deep": false,
-      "stats": {
-        "elements": 246,
-        "visible": 229,
-        "interactive": 42,
-        "targets": 42,
-        "tablists": 1,
-        "tabs": 2,
-        "innerWidth": 960,
-        "innerHeight": 450,
-        "documentScrollWidth": 960,
-        "pageOverflows": false,
-        "escapedRight": 0,
-        "cutOffRight": 0,
-        "contrastChecked": 0,
-        "minContrastRatio": null,
-        "documentHasFocus": true,
-        "focusChecked": 0,
-        "focusIndicated": 0
-      },
-      "notes": [],
-      "findings": 0
-    },
-    {
-      "width": 1920,
-      "zoom": 2,
-      "lang": "en",
-      "section": "settings",
-      "deep": false,
-      "stats": {
-        "elements": 448,
-        "visible": 433,
-        "interactive": 62,
-        "targets": 62,
-        "tablists": 1,
-        "tabs": 2,
-        "innerWidth": 960,
-        "innerHeight": 450,
-        "documentScrollWidth": 960,
-        "pageOverflows": false,
-        "escapedRight": 0,
-        "cutOffRight": 0,
-        "contrastChecked": 0,
-        "minContrastRatio": null,
-        "documentHasFocus": true,
-        "focusChecked": 0,
-        "focusIndicated": 0
-      },
-      "notes": [],
-      "findings": 0
-    },
-    {
-      "width": 1920,
-      "zoom": 2,
-      "lang": "en",
-      "section": "cost",
-      "deep": false,
-      "stats": {
-        "elements": 329,
-        "visible": 327,
-        "interactive": 62,
-        "targets": 62,
-        "tablists": 1,
-        "tabs": 2,
-        "innerWidth": 960,
-        "innerHeight": 450,
-        "documentScrollWidth": 960,
-        "pageOverflows": false,
-        "escapedRight": 0,
-        "cutOffRight": 0,
-        "contrastChecked": 0,
-        "minContrastRatio": null,
-        "documentHasFocus": true,
-        "focusChecked": 0,
-        "focusIndicated": 0
-      },
-      "notes": [],
-      "findings": 0
-    },
-    {
-      "width": 1920,
-      "zoom": 2,
-      "lang": "en",
-      "section": "runtime",
-      "deep": false,
-      "stats": {
-        "elements": 308,
-        "visible": 295,
-        "interactive": 68,
-        "targets": 68,
-        "tablists": 1,
-        "tabs": 2,
-        "innerWidth": 960,
-        "innerHeight": 450,
-        "documentScrollWidth": 960,
-        "pageOverflows": false,
-        "escapedRight": 0,
-        "cutOffRight": 0,
-        "contrastChecked": 0,
-        "minContrastRatio": null,
-        "documentHasFocus": true,
-        "focusChecked": 0,
-        "focusIndicated": 0
-      },
-      "notes": [],
-      "findings": 0
-    },
-    {
-      "width": 1920,
-      "zoom": 2,
-      "lang": "en",
-      "section": "health",
-      "deep": false,
-      "stats": {
-        "elements": 416,
-        "visible": 405,
-        "interactive": 35,
-        "targets": 35,
-        "tablists": 1,
-        "tabs": 2,
-        "innerWidth": 960,
-        "innerHeight": 450,
-        "documentScrollWidth": 960,
-        "pageOverflows": false,
-        "escapedRight": 0,
-        "cutOffRight": 0,
-        "contrastChecked": 0,
-        "minContrastRatio": null,
-        "documentHasFocus": true,
-        "focusChecked": 0,
-        "focusIndicated": 0
-      },
-      "notes": [],
-      "findings": 0
-    },
-    {
-      "width": 1920,
-      "zoom": 2,
-      "lang": "en",
-      "section": "history",
-      "deep": false,
-      "stats": {
-        "elements": 195,
-        "visible": 188,
-        "interactive": 44,
-        "targets": 44,
-        "tablists": 1,
-        "tabs": 2,
-        "innerWidth": 960,
-        "innerHeight": 450,
-        "documentScrollWidth": 960,
-        "pageOverflows": false,
-        "escapedRight": 0,
-        "cutOffRight": 0,
-        "contrastChecked": 0,
-        "minContrastRatio": null,
-        "documentHasFocus": true,
-        "focusChecked": 0,
-        "focusIndicated": 0
-      },
-      "notes": [],
-      "findings": 0
-    },
-    {
-      "width": 1920,
-      "zoom": 2,
-      "lang": "en",
-      "section": "changelog",
-      "deep": false,
-      "stats": {
-        "elements": 1161,
-        "visible": 1155,
-        "interactive": 41,
-        "targets": 41,
-        "tablists": 1,
-        "tabs": 2,
-        "innerWidth": 960,
-        "innerHeight": 450,
-        "documentScrollWidth": 960,
-        "pageOverflows": false,
-        "escapedRight": 0,
-        "cutOffRight": 0,
-        "contrastChecked": 0,
-        "minContrastRatio": null,
-        "documentHasFocus": true,
-        "focusChecked": 0,
-        "focusIndicated": 0
-      },
-      "notes": [],
-      "findings": 0
-    },
-    {
-      "width": 1920,
-      "zoom": 2,
-      "lang": "en",
-      "section": "studio",
-      "deep": false,
-      "stats": {
-        "elements": 387,
-        "visible": 372,
-        "interactive": 56,
-        "targets": 56,
-        "tablists": 1,
-        "tabs": 2,
-        "innerWidth": 960,
-        "innerHeight": 450,
-        "documentScrollWidth": 960,
-        "pageOverflows": false,
-        "escapedRight": 0,
-        "cutOffRight": 0,
-        "contrastChecked": 0,
-        "minContrastRatio": null,
-        "documentHasFocus": true,
-        "focusChecked": 0,
-        "focusIndicated": 0
-      },
-      "notes": [],
-      "findings": 0
-    },
-    {
-      "width": 1920,
-      "zoom": 2,
-      "lang": "bi",
       "section": "chat",
       "deep": false,
       "stats": {
@@ -7754,6 +7472,286 @@
     {
       "width": 1920,
       "zoom": 2,
+      "lang": "en",
+      "section": "console",
+      "deep": false,
+      "stats": {
+        "elements": 567,
+        "visible": 564,
+        "interactive": 75,
+        "targets": 75,
+        "tablists": 1,
+        "tabs": 2,
+        "innerWidth": 960,
+        "innerHeight": 450,
+        "documentScrollWidth": 960,
+        "pageOverflows": false,
+        "escapedRight": 0,
+        "cutOffRight": 0,
+        "contrastChecked": 0,
+        "minContrastRatio": null,
+        "documentHasFocus": true,
+        "focusChecked": 0,
+        "focusIndicated": 0
+      },
+      "notes": [],
+      "findings": 0
+    },
+    {
+      "width": 1920,
+      "zoom": 2,
+      "lang": "en",
+      "section": "ext",
+      "deep": false,
+      "stats": {
+        "elements": 246,
+        "visible": 229,
+        "interactive": 42,
+        "targets": 42,
+        "tablists": 1,
+        "tabs": 2,
+        "innerWidth": 960,
+        "innerHeight": 450,
+        "documentScrollWidth": 960,
+        "pageOverflows": false,
+        "escapedRight": 0,
+        "cutOffRight": 0,
+        "contrastChecked": 0,
+        "minContrastRatio": null,
+        "documentHasFocus": true,
+        "focusChecked": 0,
+        "focusIndicated": 0
+      },
+      "notes": [],
+      "findings": 0
+    },
+    {
+      "width": 1920,
+      "zoom": 2,
+      "lang": "en",
+      "section": "settings",
+      "deep": false,
+      "stats": {
+        "elements": 448,
+        "visible": 433,
+        "interactive": 62,
+        "targets": 62,
+        "tablists": 1,
+        "tabs": 2,
+        "innerWidth": 960,
+        "innerHeight": 450,
+        "documentScrollWidth": 960,
+        "pageOverflows": false,
+        "escapedRight": 0,
+        "cutOffRight": 0,
+        "contrastChecked": 0,
+        "minContrastRatio": null,
+        "documentHasFocus": true,
+        "focusChecked": 0,
+        "focusIndicated": 0
+      },
+      "notes": [],
+      "findings": 0
+    },
+    {
+      "width": 1920,
+      "zoom": 2,
+      "lang": "en",
+      "section": "cost",
+      "deep": false,
+      "stats": {
+        "elements": 329,
+        "visible": 327,
+        "interactive": 62,
+        "targets": 62,
+        "tablists": 1,
+        "tabs": 2,
+        "innerWidth": 960,
+        "innerHeight": 450,
+        "documentScrollWidth": 960,
+        "pageOverflows": false,
+        "escapedRight": 0,
+        "cutOffRight": 0,
+        "contrastChecked": 0,
+        "minContrastRatio": null,
+        "documentHasFocus": true,
+        "focusChecked": 0,
+        "focusIndicated": 0
+      },
+      "notes": [],
+      "findings": 0
+    },
+    {
+      "width": 1920,
+      "zoom": 2,
+      "lang": "en",
+      "section": "runtime",
+      "deep": false,
+      "stats": {
+        "elements": 308,
+        "visible": 295,
+        "interactive": 68,
+        "targets": 68,
+        "tablists": 1,
+        "tabs": 2,
+        "innerWidth": 960,
+        "innerHeight": 450,
+        "documentScrollWidth": 960,
+        "pageOverflows": false,
+        "escapedRight": 0,
+        "cutOffRight": 0,
+        "contrastChecked": 0,
+        "minContrastRatio": null,
+        "documentHasFocus": true,
+        "focusChecked": 0,
+        "focusIndicated": 0
+      },
+      "notes": [],
+      "findings": 0
+    },
+    {
+      "width": 1920,
+      "zoom": 2,
+      "lang": "en",
+      "section": "health",
+      "deep": false,
+      "stats": {
+        "elements": 416,
+        "visible": 405,
+        "interactive": 35,
+        "targets": 35,
+        "tablists": 1,
+        "tabs": 2,
+        "innerWidth": 960,
+        "innerHeight": 450,
+        "documentScrollWidth": 960,
+        "pageOverflows": false,
+        "escapedRight": 0,
+        "cutOffRight": 0,
+        "contrastChecked": 0,
+        "minContrastRatio": null,
+        "documentHasFocus": true,
+        "focusChecked": 0,
+        "focusIndicated": 0
+      },
+      "notes": [],
+      "findings": 0
+    },
+    {
+      "width": 1920,
+      "zoom": 2,
+      "lang": "en",
+      "section": "history",
+      "deep": false,
+      "stats": {
+        "elements": 195,
+        "visible": 188,
+        "interactive": 44,
+        "targets": 44,
+        "tablists": 1,
+        "tabs": 2,
+        "innerWidth": 960,
+        "innerHeight": 450,
+        "documentScrollWidth": 960,
+        "pageOverflows": false,
+        "escapedRight": 0,
+        "cutOffRight": 0,
+        "contrastChecked": 0,
+        "minContrastRatio": null,
+        "documentHasFocus": true,
+        "focusChecked": 0,
+        "focusIndicated": 0
+      },
+      "notes": [],
+      "findings": 0
+    },
+    {
+      "width": 1920,
+      "zoom": 2,
+      "lang": "en",
+      "section": "changelog",
+      "deep": false,
+      "stats": {
+        "elements": 1185,
+        "visible": 1179,
+        "interactive": 41,
+        "targets": 41,
+        "tablists": 1,
+        "tabs": 2,
+        "innerWidth": 960,
+        "innerHeight": 450,
+        "documentScrollWidth": 960,
+        "pageOverflows": false,
+        "escapedRight": 0,
+        "cutOffRight": 0,
+        "contrastChecked": 0,
+        "minContrastRatio": null,
+        "documentHasFocus": true,
+        "focusChecked": 0,
+        "focusIndicated": 0
+      },
+      "notes": [],
+      "findings": 0
+    },
+    {
+      "width": 1920,
+      "zoom": 2,
+      "lang": "en",
+      "section": "studio",
+      "deep": false,
+      "stats": {
+        "elements": 387,
+        "visible": 372,
+        "interactive": 56,
+        "targets": 56,
+        "tablists": 1,
+        "tabs": 2,
+        "innerWidth": 960,
+        "innerHeight": 450,
+        "documentScrollWidth": 960,
+        "pageOverflows": false,
+        "escapedRight": 0,
+        "cutOffRight": 0,
+        "contrastChecked": 0,
+        "minContrastRatio": null,
+        "documentHasFocus": true,
+        "focusChecked": 0,
+        "focusIndicated": 0
+      },
+      "notes": [],
+      "findings": 0
+    },
+    {
+      "width": 1920,
+      "zoom": 2,
+      "lang": "bi",
+      "section": "chat",
+      "deep": false,
+      "stats": {
+        "elements": 217,
+        "visible": 215,
+        "interactive": 44,
+        "targets": 43,
+        "tablists": 1,
+        "tabs": 2,
+        "innerWidth": 960,
+        "innerHeight": 450,
+        "documentScrollWidth": 960,
+        "pageOverflows": false,
+        "escapedRight": 0,
+        "cutOffRight": 0,
+        "contrastChecked": 0,
+        "minContrastRatio": null,
+        "documentHasFocus": true,
+        "focusChecked": 0,
+        "focusIndicated": 0
+      },
+      "notes": [],
+      "findings": 0
+    },
+    {
+      "width": 1920,
+      "zoom": 2,
       "lang": "bi",
       "section": "console",
       "deep": false,
@@ -7954,8 +7952,8 @@
       "section": "changelog",
       "deep": false,
       "stats": {
-        "elements": 1161,
-        "visible": 1155,
+        "elements": 1185,
+        "visible": 1179,
         "interactive": 41,
         "targets": 41,
         "tablists": 1,

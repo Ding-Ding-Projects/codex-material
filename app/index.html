@@ -1278,7 +1278,19 @@ class Component extends DCLogic {
     const styleFor = window.CX_APPEARANCE.styleFor;
     document.querySelectorAll("[data-appear]").forEach((el) => {
       const style = styleFor(map[el.getAttribute("data-appear")]);
-      Object.keys(style).forEach((prop) => { el.style[prop] = style[prop]; });
+      /* Clear only what THIS system set last time and is no longer setting. Assigning
+         "" for every property in the result would erase the TEMPLATE's own inline
+         styles: most [data-appear] elements carry an inline background, alignment or
+         line-height, and blanking those repainted a large part of the app transparent.
+         The UI audit went from 23 findings to 251 the moment that happened. */
+      (el._cxAppear || []).forEach((prop) => { if (!style[prop]) el.style[prop] = ""; });
+      const applied = [];
+      Object.keys(style).forEach((prop) => {
+        if (!style[prop]) return;
+        el.style[prop] = style[prop];
+        applied.push(prop);
+      });
+      el._cxAppear = applied;
     });
   }
   /** Kept as the app-wide shorthand: every call site now raises a real
