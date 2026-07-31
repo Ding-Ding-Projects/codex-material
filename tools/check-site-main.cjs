@@ -102,8 +102,43 @@ app.on("ready", async () => {
     return out;
   })()`);
 
+  /* The per-element appearance editor, exercised rather than merely found: name a
+     target, apply an override through the page's own code, and check the element
+     actually changed. A control that opens and changes nothing is the failure mode
+     this whole session has been about. */
+  const appear = await win.webContents.executeJavaScript(`(() => {
+    const out = { targets: 0, applied: false, cleared: false, error: null };
+    try {
+      out.targets = document.querySelectorAll("[data-appear]").length;
+      const host = document.querySelector('[data-appear="Title bar"]');
+      if (!host) { out.error = "no named target to test"; return out; }
+      const menu = new MouseEvent("contextmenu", { bubbles: true, cancelable: true, shiftKey: true });
+      host.dispatchEvent(menu);
+      const sheet = document.querySelector('.sheet[aria-label^="Appearance"]');
+      if (!sheet) { out.error = "shift+right-click did not open the editor"; return out; }
+      /* Drive a real control rather than writing localStorage behind the page's back. */
+      const range = sheet.querySelector('input[type="range"]');
+      if (!range) { out.error = "the editor has no size control"; return out; }
+      range.value = "150";
+      range.dispatchEvent(new Event("input", { bubbles: true }));
+      out.applied = /150/.test(host.style.fontSize || "");
+      const resetAll = Array.prototype.find.call(sheet.querySelectorAll("button"),
+        (b) => b.textContent.indexOf("Reset every element") !== -1);
+      if (resetAll) { resetAll.click(); }
+      out.cleared = !(host.style.fontSize || "");
+    } catch (e) { out.error = String(e && e.message || e); }
+    return out;
+  })()`);
+
   let failedEarly = false;
   const lines = [];
+  lines.push(`appearance targets ${appear.targets}`);
+  lines.push(`override applied   ${appear.applied ? "yes" : "NO"}${appear.error ? " — " + appear.error : ""}`);
+  lines.push(`override cleared   ${appear.cleared ? "yes" : "NO"}`);
+  if (appear.error || !appear.applied || !appear.cleared) {
+    lines.push("\nthe per-element appearance editor did not apply and clear an override end to end");
+    failedEarly = true;
+  }
   lines.push(`tabs rendered      ${report.tabs}`);
   lines.push(`find-tabs entries  ${report.searches}${report.searchLabels && report.searchLabels.length ? " — " + report.searchLabels.join(" | ") : ""}`);
   lines.push(`settings panel     ${colour.ok ? "opened" : "FAILED — " + colour.error}`);

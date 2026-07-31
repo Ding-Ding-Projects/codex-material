@@ -939,6 +939,9 @@
   function showSheet(node, focusMe) {
     closeSheet();
     sheetReturn = document.activeElement;
+    /* The sheet is itself a target: a theming feature that cannot theme its own
+       dialog is incomplete, and the instructions name pickers and dialogs explicitly. */
+    node.setAttribute("data-appear", "Sheet");
     var wrap = el("div", { "class": "sheet__wrap" });
     var close = el("button", { type: "button", "class": "sheet__close", "aria-label": "Close" }, "✕");
     close.addEventListener("click", closeSheet);
@@ -2136,6 +2139,195 @@
 
   /* ------------------------------------------- continuous colour picker */
 
+
+  /* ============================================ per-element appearance
+     Every rendered surface is its own customisation target, edited from a non-modal
+     sheet, with the override applied live and kept per element. The shared instructions
+     are emphatic that no surface is exempt — including the pickers and dialogs, so the
+     appearance system can restyle its own chrome rather than being the one thing on the
+     page that cannot be changed. */
+
+  var APPEAR_PROPS = ["font", "size", "weight", "slant", "caps", "underline", "spacing", "colour", "highlight"];
+
+  function appearMap() {
+    if (!prefs.appearance || typeof prefs.appearance !== "object") { prefs.appearance = {}; }
+    return prefs.appearance;
+  }
+
+  /** The one place a stored override becomes CSS. Shared by the live pass and the
+      export, so the two can never drift into applying different property sets — which
+      is exactly how a property ends up working in the app and missing from its file. */
+  function appearStyle(a) {
+    if (!a) { return {}; }
+    var deco = [];
+    if (a.underline) { deco.push("underline"); }
+    return {
+      fontFamily: a.font ? (FONTS[a.font] ? FONTS[a.font].stack : a.font) : "",
+      fontSize: a.size ? a.size + "%" : "",
+      fontWeight: a.weight ? String(a.weight) : "",
+      fontStyle: a.slant || "",
+      fontVariantCaps: a.caps === "small-caps" ? "small-caps" : "",
+      textTransform: a.caps && a.caps !== "small-caps" ? a.caps : "",
+      textDecorationLine: deco.join(" "),
+      letterSpacing: a.spacing ? (a.spacing / 100) + "em" : "",
+      color: a.colour || "",
+      backgroundColor: a.highlight || ""
+    };
+  }
+
+  /** Apply every override. Clears only what this system set on the previous pass —
+      writing "" for every property it knows about would erase the stylesheet's own
+      values, which is a mistake this project has already made once and measured. */
+  function applyElementAppearance() {
+    var map = appearMap();
+    var nodes = document.querySelectorAll("[data-appear]");
+    Array.prototype.forEach.call(nodes, function (node) {
+      var style = appearStyle(map[node.getAttribute("data-appear")]);
+      var applied = node.__cxsApplied || [];
+      applied.forEach(function (prop) { if (!style[prop]) { node.style[prop] = ""; } });
+      var now = [];
+      Object.keys(style).forEach(function (prop) {
+        if (!style[prop]) { return; }
+        node.style[prop] = style[prop];
+        now.push(prop);
+      });
+      node.__cxsApplied = now;
+    });
+  }
+
+  function patchAppear(name, patch) {
+    var map = appearMap();
+    var next = Object.assign({}, map[name] || {}, patch);
+    /* A cleared control removes its property rather than storing "". Otherwise every
+       control the reader ever touched leaves a tombstone in the exported document. */
+    Object.keys(next).forEach(function (k) {
+      if (next[k] === "" || next[k] === null || next[k] === undefined || next[k] === false) { delete next[k]; }
+    });
+    if (Object.keys(next).length) { map[name] = next; } else { delete map[name]; }
+    savePref("appearance", map);
+    applyElementAppearance();
+  }
+
+  /** The editor. Non-modal, so the element being restyled stays visible and the change
+      can be watched landing on it. */
+  function openAppearFor(name) {
+    var a = appearMap()[name] || {};
+
+    var host = el("div", { "class": "sheet", role: "dialog", "aria-modal": "false",
+      "aria-label": "Appearance — " + name });
+    host.appendChild(el("h3", { "class": "sheet__title" }, "Appearance — " + esc(name)));
+    host.appendChild(el("p", { "class": "section-note" },
+      "Applies to every element named “" + name + "”, live, and persists. Selecting a segment that is already " +
+      "selected clears it."));
+
+    function group(label, prop, options) {
+      var box = el("div", { style: "margin-top:12px" });
+      box.appendChild(el("div", { "class": "section-note", style: "margin-bottom:4px" }, esc(label)));
+      var row = el("div", { "class": "sheet__bar", role: "group", "aria-label": label });
+      options.forEach(function (opt) {
+        var on = (a[prop] || "") === opt[0];
+        var b = el("button", { type: "button", "class": "linkchip", "aria-pressed": on ? "true" : "false" }, esc(opt[1]));
+        b.addEventListener("click", function () {
+          patchAppear(name, JSON.parse('{"' + prop + '":' + JSON.stringify(on ? "" : opt[0]) + "}"));
+          closeSheet();
+          openAppearFor(name);
+        });
+        row.appendChild(b);
+      });
+      box.appendChild(row);
+      host.appendChild(box);
+    }
+
+    group("Typeface", "font", Object.keys(FONTS).map(function (k) { return [k, FONTS[k].label]; }));
+    group("Slant", "slant", [["italic", "Italic"], ["oblique", "Oblique"]]);
+    group("Capitalization", "caps", [["uppercase", "UPPER"], ["lowercase", "lower"], ["capitalize", "Title"], ["small-caps", "Small caps"]]);
+    group("Underline", "underline", [["solid", "Underline"]]);
+
+    function slider(label, prop, min, max, step, unit, dflt) {
+      var box = el("div", { style: "margin-top:12px" });
+      var name2 = el("div", { "class": "section-note", style: "margin-bottom:4px" },
+        label + " " + ((a[prop] === undefined ? dflt : a[prop]) + unit));
+      box.appendChild(name2);
+      var input = el("input", { type: "range", min: String(min), max: String(max), step: String(step),
+        value: String(a[prop] === undefined ? dflt : a[prop]), "aria-label": label, style: "width:100%" });
+      input.addEventListener("input", function () {
+        name2.textContent = label + " " + (input.value + unit);
+        patchAppear(name, JSON.parse('{"' + prop + '":' + Number(input.value) + "}"));
+      });
+      box.appendChild(input);
+      host.appendChild(box);
+    }
+    slider("Size", "size", 70, 180, 5, "%", 100);
+    slider("Weight", "weight", 100, 900, 100, "", 400);
+    slider("Letter spacing", "spacing", -10, 60, 1, "/100em", 0);
+
+    function colourRow(label, prop) {
+      var box = el("div", { "class": "sheet__bar" });
+      box.appendChild(el("span", { "class": "section-note", style: "flex:0 0 110px" }, esc(label)));
+      var input = el("input", { type: "text", "class": "plain", value: a[prop] || "",
+        placeholder: "any notation the translator reads", "aria-label": label, style: "flex:1 1 180px" });
+      input.addEventListener("change", function () {
+        if (!input.value.trim()) { patchAppear(name, JSON.parse('{"' + prop + '":""}')); return; }
+        var hex = colour.parse(input.value);
+        if (!hex) {
+          toast("error", "That is not a colour this reads", "hex, rgb, hsl, hsv, hwb, lab, lch, oklab, oklch, cmyk, or a name.");
+          return;
+        }
+        patchAppear(name, JSON.parse('{"' + prop + '":' + JSON.stringify(hex) + "}"));
+      });
+      box.appendChild(input);
+      host.appendChild(box);
+    }
+    host.appendChild(el("div", { "class": "section-note", style: "margin-top:12px" }, "Colour"));
+    colourRow("Text", "colour");
+    colourRow("Highlight", "highlight");
+
+    var actions = el("div", { "class": "sheet__bar", style: "margin-top:16px" });
+    var resetOne = el("button", { type: "button", "class": "linkchip" }, "Reset this element");
+    resetOne.addEventListener("click", function () {
+      var map = appearMap();
+      delete map[name];
+      savePref("appearance", map);
+      applyElementAppearance();
+      closeSheet();
+      toast("success", "Reset “" + name + "”", "Back to the stylesheet's own values.");
+    });
+    var resetAll = el("button", { type: "button", "class": "linkchip" }, "Reset every element");
+    resetAll.addEventListener("click", function () {
+      savePref("appearance", {});
+      applyElementAppearance();
+      closeSheet();
+      toast("success", "Reset every element", "Every per-element override is gone; theme and accent are untouched.");
+    });
+    actions.appendChild(resetOne);
+    actions.appendChild(resetAll);
+    host.appendChild(actions);
+
+    showSheet(host, host.querySelector("button"));
+  }
+
+  /* Right-click any named surface. Shift+right-click opens the editor straight away,
+     so an element whose own menu matters keeps it. */
+  document.addEventListener("contextmenu", function (e) {
+    var host = e.target && e.target.closest ? e.target.closest("[data-appear]") : null;
+    if (!host) { return; }
+    /* A tab has a real menu of its own — tab management — and must not have it
+       replaced by a styling menu. Its appearance entry lives inside that menu. */
+    if (e.target.closest(".tab")) { return; }
+    e.preventDefault();
+    var name = host.getAttribute("data-appear");
+    if (e.shiftKey) { openAppearFor(name); return; }
+    popupMenu(host, [
+      { label: "Edit appearance — " + name + "…", hint: "Shift", run: function () { openAppearFor(name); } },
+      { label: "Reset this element's appearance", run: function () {
+        var map = appearMap();
+        delete map[name];
+        savePref("appearance", map);
+        applyElementAppearance();
+      } }
+    ], null);
+  });
+
   /* ======================================================= named presets
      A saved look, kept by name, exportable to a file and importable back. The point of
      a preset is surviving a reinstall and being shared; one that lives only in this
@@ -2557,6 +2749,7 @@
     buildBuilder();
     buildStrip();
     wireFindTabs();
+    applyElementAppearance();
 
     var hashTab = location.hash.slice(1);
     activate(tabById(hashTab) ? hashTab : prefs.tab, false);
