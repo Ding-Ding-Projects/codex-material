@@ -15,7 +15,7 @@ import { dirname, join } from "node:path";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const electron = process.platform === "win32" ? "electron.cmd" : "electron";
 
-const child = spawn(join(root, "node_modules", ".bin", electron), [join(root, "tools", "check-site-main.cjs")], {
+const child = spawn(join(root, "node_modules", ".bin", electron), [join(root, "tools", "check-site-main.cjs"), ...process.argv.slice(2)], {
   cwd: root,
   stdio: "inherit",
   shell: process.platform === "win32",

@@ -2336,8 +2336,9 @@
     card.appendChild(el("h3", { "class": "section-title", style: "font-size:1.05rem" }, "Accent colour"));
     card.appendChild(el("p", { "class": "section-note" }, inline(
       "A continuous field, not a fixed swatch list: drag anywhere in the square for saturation and value, use the hue " +
-      "slider for the rest of the spectrum, or type an exact value. The translator below shows the same colour in five " +
-      "notations with a WCAG contrast ratio against the page surface.")));
+      "slider for the rest of the spectrum, or type an exact value in any notation the translator writes. It shows the " +
+      "same colour in twelve, plus the named colours when one matches, with a WCAG contrast ratio against the page " +
+      "surface. Every row copies.")));
 
     var start = prefs.accent || getComputedStyle(document.documentElement).getPropertyValue("--m3-primary").trim() || "#6750A4";
     var rgb = colour.hexToRgb(start) || { r: 103, g: 80, b: 164 };

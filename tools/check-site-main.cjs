@@ -146,6 +146,20 @@ app.on("ready", async () => {
   }
   if (!colour.ok) failed = true;
 
+  /* --shot writes a PNG of the surfaces this tool checks. Asserting that a control
+     exists in the DOM is not the same claim as it being legible, and the difference is
+     exactly the kind a test cannot make for you. */
+  if (process.argv.includes("--shot")) {
+    const fs = require("fs");
+    const out = path.join(ROOT, "assets", "site-check");
+    fs.mkdirSync(out, { recursive: true });
+    fs.writeFileSync(path.join(out, "settings.png"), (await win.webContents.capturePage()).toPNG());
+    await win.webContents.executeJavaScript('document.getElementById("findTabsBtn").click()');
+    await new Promise((r) => setTimeout(r, 350));
+    fs.writeFileSync(path.join(out, "find-tabs.png"), (await win.webContents.capturePage()).toPNG());
+    lines.push("screenshots        assets/site-check/settings.png, find-tabs.png");
+  }
+
   process.stdout.write(lines.join("\n") + "\n\n" + (failed ? "SITE CHECK FAILED\n" : "SITE CHECK PASSED\n"));
   app.exit(failed ? 1 : 0);
 });
