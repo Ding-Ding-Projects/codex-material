@@ -15,7 +15,7 @@ Nothing here is predicted, and nothing is claimed green that was not observed gr
 
 ## Verification block
 
-Run these four. Every figure in this document came from them.
+Run these five. Every figure in this document came from them.
 
 ```bash
 node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/capture.mjs && node tools/audit-ui.mjs && node tools/smoke.mjs
@@ -25,7 +25,7 @@ node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/captur
 | --- | --- |
 | `node tools/test-frontend.mjs` | **27 passed, 0 failed** |
 | `node tools/test-backend.mjs` | **33 passed, 0 failed** |
-| `node tools/capture.mjs` | **exit 0** — 19 shots written, 1 console message (the expected CSP notice) |
+| `node tools/capture.mjs` | **exit 0** — 25 shots written, 1 console message (the expected CSP notice) |
 | `node tools/audit-ui.mjs` | **23 findings across 240 cells, 0 severity high** — all 23 are the harness noting a deliberately ellipsised label |
 | `node tools/smoke.mjs` | **PASSED** — CLI answered; 40 IPC ok / 7 refused as designed / 8 skipped / 0 failed; 10 panels, 7 overlays and 3 language modes ok; 0 console errors |
 
@@ -49,7 +49,7 @@ node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/captur
 
 **Done and verified at this commit**
 
-- Every README screenshot is new. The shot list in `tools/capture-main.cjs` was rewritten so each surface shows its feature *in use* rather than at rest, and four surfaces that had never been photographed were added: the command palette, the filtered history, the feature-flag list and the Cantonese Studio panel. 24 shots.
+- Every README screenshot is new. The shot list in `tools/capture-main.cjs` was rewritten so each surface shows its feature *in use* rather than at rest, and four surfaces that had never been photographed were added: the command palette, the filtered history, the feature-flag list and the Cantonese Studio panel. 25 shots, every one retaken against the current build.
 - The capture fixture lives at `C:\Users\Public\codex-studio-capture`, **not** inside the checkout. The Config panel prints the absolute path of the file it writes, so a fixture under the repository puts the operator's account name straight back into a screenshot.
 - `assets/smoke.json` is redacted before it is written. It is committed, and it used to record the absolute path of the `codex` binary.
 - CI no longer stops runs. See below.
@@ -213,19 +213,12 @@ process.
 Every entry below was re-verified against this commit. Four gaps recorded in the previous
 handoff are now closed and appear under *Recently closed* instead — do not re-report them.
 
-### 1. The appearance editor's typography is eight properties deep
-
-Family, size, weight, italic, underline, strike, a letter-spacing toggle and colour. The rules
-describe a word-processor standard — variable axes, small caps, super/subscript, highlight,
-outline, shadow, baseline offset, direction and the rest — with unsupported properties staying
-visible and explained rather than absent.
-
-### 2. The installers are unsigned
+### 1. The installers are unsigned
 
 `electron-builder` signs with whatever certificate the host offers; there is no code-signing
 identity configured, so Windows SmartScreen will warn on first run.
 
-### 3. Content-Security-Policy is set but permissive
+### 2. Content-Security-Policy is set but permissive
 
 `unsafe-eval` is required: the design-compiler runtime compiles the template with
 `new Function`. Removing it stops the app from starting. This is the source of the one console

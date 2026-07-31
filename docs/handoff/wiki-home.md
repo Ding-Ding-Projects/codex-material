@@ -92,4 +92,4 @@ an eighth. A screenshot is a publication.
 
 ---
 
-**中文：** 一個包住 OpenAI Codex CLI 嘅 Material 3 Windows 桌面介面。佢負責砌 flag、行真嘅 `codex`、即時串你睇佢講咩、讀你真嘅 `~/.codex`；個 agent、sandbox、設定格式、plugin 系統，一律唔會自己重寫。安裝檔**未簽名**，SmartScreen 第一次開會嘈。Installer 有齊 Codex CLI（解壓後約 410 MB），未裝過 Codex 嘅機開機即用；但你部機有 `codex` 嘅話一定用你嗰個 —— 你個登入同 `~/.codex` 係佢管。`build.2` 到 `build.9` 係舊嘅 Tauri 版，開出嚟一片白，已經標咗警告，唔好裝。介面有三種語言模式（English、廣東話、雙語），仲有兩條各自獨立嘅搞笑程度掣（1 至 5，每種語言一條）—— 搞笑只係改語氣，唔會改事實：第五級嗰句「刪咗佢」一樣睇得出係會刪嘢。仲有 92 個標籤未入字串表，所以雙語模式未算做完，呢樣照實講。
+**中文：** 一個包住 OpenAI Codex CLI 嘅 Material 3 Windows 桌面介面。佢負責砌 flag、行真嘅 `codex`、即時串你睇佢講咩、讀你真嘅 `~/.codex`；個 agent、sandbox、設定格式、plugin 系統，一律唔會自己重寫。安裝檔**未簽名**，SmartScreen 第一次開會嘈。Installer 有齊 Codex CLI（解壓後約 410 MB），未裝過 Codex 嘅機開機即用；但你部機有 `codex` 嘅話一定用你嗰個 —— 你個登入同 `~/.codex` 係佢管。`build.2` 到 `build.9` 係舊嘅 Tauri 版，開出嚟一片白，已經標咗警告，唔好裝。介面有三種語言模式（English、廣東話、雙語），仲有兩條各自獨立嘅搞笑程度掣（1 至 5，每種語言一條）—— 搞笑只係改語氣，唔會改事實：第五級嗰句「刪咗佢」一樣睇得出係會刪嘢。介面每一句畀人睇嘅字都行晒字串表（559 個 key、327 個呼叫點）；剩低七個字面值係故意留低 —— 三個係指令名、兩個係字型名、一個係「廣東話」本身、一個係下拉選單清空用嘅空值，每個都喺測試度寫明點解。
