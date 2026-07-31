@@ -264,8 +264,15 @@ account, or an API that does not exist.
 
 | Blocker | Evidence | Smallest unblocking action |
 | --- | --- | --- |
-| **The wiki has no git repository yet** | `has_wiki` is `true`, but cloning `…/codex-material.wiki.git` returns `Repository not found`. GitHub creates the wiki's repo only when the first page is saved through the web UI; no REST or GraphQL endpoint creates it. | Open the repository's Wiki tab and save any page once. The intended first page is written and waiting at `docs/handoff/wiki-home.md`; every later edit can then be pushed by git. |
-| **~520 junk releases and their tags** | `on: push:` with no filter also fires on tag pushes, and the release job creates a tag. The loop published 533 releases; 11 were intended. The trigger is fixed in `aadfce1` and the loop is stopped, but the artifacts remain. | Deleting several hundred published releases and immutable tags is destructive and was not asked for. On confirmation it is a loop over `gh release delete --cleanup-tag`. |
+| **The `gh` token has no `read:project` scope** | `gh project list --owner Ding-Ding-Projects` fails with `your authentication token is missing required scopes [read:project]`. So no GitHub Project can be read, created or updated from here, and the Project half of the handoff is unsatisfied. | `gh auth refresh -s read:project,project` — an interactive device-code flow against the account's own credentials, which an agent must not run unattended. |
+| **The installers are unsigned** | `electron-builder` signs with whatever certificate the host offers and none is configured, so Windows SmartScreen warns on first run of every published `.exe` and `.msi`. | A code-signing certificate. Buying one and installing it on the build host is a purchase and a credential, neither of which an agent may do. |
+
+### Closed since the previous handoff
+
+| Was blocked | Now |
+| --- | --- |
+| **The wiki had no git repository** | Published. `git ls-remote …/codex-material.wiki.git` returns `918ab89` on `refs/heads/master`. The user saved the first page through the web UI, which is the only thing that creates the repo; every later edit is a git push. |
+| **~520 junk releases and their tags** | Deleted, on the user's instruction. 44 releases remain, all intended. The first attempt reported 524 failures that were invisible because stderr went to `/dev/null` — GitHub's secondary rate limit, not a permissions problem. Retried with backoff: 515 of 515 deleted, 0 failed. |
 
 ## Where things live
 
