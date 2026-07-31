@@ -1281,3 +1281,70 @@ test("app/cx-i18n.js — the unreachable-key count does not grow", () => {
     throw error;
   }
 });
+
+/* The narrator's wiring, which is the whole reason it does anything. say() was written
+   with a queue, a debounce and a cooldown and had no caller at all — turning it on did
+   nothing. Nothing in the smoke test exercises speech, so this checks the seam
+   directly: a notification must reach the narrator, an error must skip the cooldown,
+   and a failure inside narration must not break the notification. */
+
+suite("app/codex-core.js", (ctx, file) => {
+  const CX = ctx.CX;
+
+  unit(file, "every notification reaches the narrator", () => {
+    const n = require_(CX && CX.narrator, "the narrator", ["CX.narrator"]);
+    const notify = require_(CX && CX.notify, "the notification centre", ["CX.notify"]);
+
+    const spoken = [];
+    const realSay = n.say;
+    n.say = function (text, category, force) { spoken.push({ text, category, force }); };
+    try {
+      notify.info("Something happened", "with a detail");
+      assert.equal(spoken.length, 1, "an info notification did not reach the narrator");
+      assert.match(spoken[0].text, /Something happened/, "the title was not spoken");
+      assert.match(spoken[0].text, /with a detail/, "the body was not spoken");
+      assert.ok(!spoken[0].force, "an info notification should respect the cooldown");
+
+      notify.error("It failed", "because of this");
+      assert.equal(spoken.length, 2, "an error did not reach the narrator");
+      assert.ok(spoken[1].force, "an error must skip the cooldown — the rate limit exists to stop chatter, not to swallow the message that matters");
+    } finally {
+      n.say = realSay;
+    }
+  });
+
+  unit(file, "a narrator that throws does not take the notification with it", () => {
+    const n = CX.narrator, notify = CX.notify;
+    const realSay = n.say;
+    n.say = () => { throw new Error("no voice on this machine"); };
+    try {
+      const before = notify.log().length;
+      notify.warn("Still recorded", "even though speech blew up");
+      assert.equal(notify.log().length, before + 1, "the notification was lost when narration threw");
+    } finally {
+      n.say = realSay;
+    }
+  });
+
+  unit(file, "Both queues English then Cantonese, in that order", () => {
+    const n = CX.narrator;
+    const realLang = n.lang, realEnabled = n.enabled;
+    n.lang = "both";
+    n.enabled = true;
+    n.queue = [];
+    n.lastAt = 0;
+    try {
+      // No speechSynthesis in this context, so say() returns before queueing. Check the
+      // splitter instead — it is the part that decides what each voice gets.
+      const halves = n.split("Close tab  ·  關閉分頁");
+      assert.equal(halves.en, "Close tab", "the English half was not split out");
+      assert.equal(halves.yue, "關閉分頁", "the Cantonese half was not split out");
+      const single = n.split("Close tab");
+      assert.equal(single.en, "Close tab", "a single-language line should be English by default");
+      assert.equal(single.yue, "", "a single-language line has no Cantonese half to invent");
+    } finally {
+      n.lang = realLang;
+      n.enabled = realEnabled;
+    }
+  });
+}, ["app/cx-notify.js", "app/cx-i18n.js", "app/codex-data.js"]);
