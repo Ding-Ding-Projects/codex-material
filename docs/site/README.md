@@ -228,6 +228,30 @@ Two rules carried over from the app, both learned the hard way:
   its UI audit went from 23 findings to 251 while every other test stayed green.
 - **A cleared control removes its property rather than storing `""`,** so an element restyled back
   to plain does not carry a page of empty values into an exported preset.
+### Searching the settings
+
+The settings surface carries its own search bar, wired to its own regex builder — separate from the
+article search at the top of the page, with its own query, flags and mode. It matches each row's
+label, its description **and its current value**, so typing `cosy` finds the density row by what it
+is set to rather than by what it is called. A card whose every row is hidden is hidden too, so
+nobody scrolls past empty headings hunting for a match. Nothing matching says so and points at the
+app's Studio panel, which has settings this site does not.
+
+### History
+
+Every preference this page owns is versioned, newest first, kept locally. It is recorded at the
+single funnel every write passes through, so a future call site cannot forget to; an unchanged
+write records nothing, so the list stays a set of real events; and each row says what changed
+rather than that something did — *Theme set to dark*, not *Changed the theme*.
+
+**Restoring writes a new revision rather than rewinding.** An undo can itself be undone, and that
+undone in turn. A restore that discards the branch it replaced is the one shape that makes a
+history panel unsafe to open.
+
+Filter by a date range, by text, or by action. The actions are derived from the log with a count
+beside each rather than hard-coded — a fixed list offers choices the log does not contain and
+misses the ones it does. The end date covers the whole of that day, because a filter that hides
+what happened on the day you asked for is a filter nobody trusts twice.
 ### Notifications
 
 Copying, clearing a filter, saving a preference, pinning a tab and every input error raise a corner
