@@ -29,7 +29,7 @@ changelog viewer and the dim sum surprise — lives in [../experience/](../exper
   `data-anchor` today: `list`, `ext`, `set`, `clog`, `studio`, `slash`, `palette`, `dd` and
   `bulk`.
 - **Every rendered element is an appearance target.** Give it `data-appear="<name>"` and end its
-  context menu with `this.appearItem(e)`. There are 37 named targets in the shipped template.
+  context menu with `this.appearItem(e)`. There are 41 named targets in the shipped template.
 - **Informational messages are notifications, never modals.** A modal is for a decision that must
   be made before anything else can continue. Exactly one exists: the bulk-close gate.
 - **Anything the user could regret is committed to History**, with a message naming what changed

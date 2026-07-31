@@ -44,7 +44,7 @@ Runs on `windows-latest`:
 3. **`npm install --ignore-scripts`.** The tests import plain modules and never launch Electron, so
    the ~331 MB Electron download is skipped here and paid for once, in the release job.
 
-Then the four checks that gate the release:
+Then the five checks that gate the release:
 
 | Check | Command |
 | --- | --- |
@@ -52,8 +52,9 @@ Then the four checks that gate the release:
 | Backend module tests | `node tools/test-backend.mjs` |
 | The bundled changelog matches the root copy | `node tools/sync-changelog.mjs --check` |
 | Every file parses | A PowerShell step running `node --check` over every `.js` / `.mjs` / `.cjs` under `app/`, `electron/` and `tools/`, excluding `node_modules` |
+| The landing page carries its own assets | `node tools/sync-site-assets.mjs --check` — the published site keeps its own copies rather than hotlinking the repository, and this fails when they drift. It has caught exactly that: 25 retaken screenshots that were never mirrored. |
 
-At the time of writing the two suites report **23 frontend tests** and **22 backend tests**, all
+At the time of writing the two suites report **29 frontend tests** and **33 backend tests**, all
 passing, neither requiring Electron or a `codex` binary.
 
 The parse sweep exists because a syntax error in a module the unit tests never import would sail
@@ -81,7 +82,8 @@ The steps, in order:
 | **Resolve version and tag** | Reads `version` out of `package.json`, computes the tag, and refuses to continue if the version is blank or the tag already exists. |
 | **Resolve the dim sum code name** | Derives a dish from the run number, and stages its photo when one is bundled. Never blocks the release, and a missing photo never costs the build its name. |
 | **Mirror the changelog into the frontend** | `node tools/sync-changelog.mjs` |
-| **Stage the bundled Codex CLI** | `node tools/fetch-codex.mjs`, then sets a `bundled` output from whether `vendor/codex-bin/bin/codex.exe` exists. |
+| **Stage the bundled Codex CLI** | `node tools/fetch-codex.mjs`, then sets a `bundled` output from whether `vendor/codex-bin/bin/codex.exe` exists. A non-zero exit warns and continues. |
+| **Full smoke test** | `node tools/smoke.mjs` — the real app under Electron: the CLI, every command on the preload allow-list through the real bridge, ten panels, seven overlays and three language modes. It runs here rather than in the test job because that one installs with `--ignore-scripts`, so no Electron binary exists there. |
 | **Build the Windows installers** | `npx electron-builder --win nsis msi --publish never` |
 | **Verify the installers exist** | Fails the job if `dist\` holds no `.exe` or no `.msi`, and prints each artifact's real size in MB. |
 | **Write release notes** | Generates `release-notes.md` from the tag, the commit, the run, and the commit range. |
@@ -104,7 +106,13 @@ tells a user to download nothing.
 `fetch-codex.mjs` downloads roughly 410 MiB of Codex CLI into `vendor/codex-bin` so the installer
 carries one — see [bundled-cli.md](bundled-cli.md). If it does not produce
 `vendor/codex-bin/bin/codex.exe`, the step emits a `::warning::` and sets `bundled=false` instead of
-failing. The release still ships, and the generated notes then say plainly that this build does
+failing.
+
+> [!NOTE]
+> That fallback was **unreachable** until recently on the one failure it exists for. GitHub's pwsh
+> shell appends an exit check on `$LASTEXITCODE`, so a non-zero exit from `fetch-codex.mjs` ended the
+> step — and with it the whole release job — before any of this code could run. The step now checks
+> `$LASTEXITCODE` itself, warns, and resets it. The release still ships, and the generated notes then say plainly that this build does
 **not** bundle the CLI, rather than letting a user find out after installing.
 
 ---
@@ -194,7 +202,7 @@ heading reads *"Changes since the start of the repository"*.
 
 Every body states the **exact commit SHA** it was built from (linked), the **workflow run URL**, and
 the runner it used, so any claim in the notes can be checked against the run that made it. It then
-lists the four checks by name and says they were green in that run — true by construction, because
+lists the checks by name and says they were green in that run — true by construction, because
 `needs: test` means the release job cannot run otherwise.
 
 It is equally explicit about what was **not** verified: the installers are not code-signed, and the

@@ -49,20 +49,24 @@ if (e.shiftKey) { this.setState({ appearOpen: true, appearTarget: name, appearAt
 Ordinary right-click therefore keeps the element's real menu — tab management on a tab, filter
 actions on a search field — and never has it replaced by a styling menu.
 
-### The 37 named targets
+### The 41 named targets
 
 | | | | |
 | --- | --- | --- | --- |
-| Bulk close dialog | Changelog toolbar | Command catalog | Command palette |
-| Command preview | Commit row | Composer | Conversation header |
-| Cost headline | Cost inputs | Dropdown | Extension card |
-| Filter bar | Flag panel | Health card | History intro |
+| Appearance editor | Bulk close dialog | Calendar | Changelog toolbar |
+| Command catalog | Command palette | Command preview | Commit row |
+| Composer | Conversation header | Cost headline | Cost inputs |
+| Dropdown | Empty transcript | Extension card | Filter bar |
+| Flag panel | Health card | History filters | History intro |
 | Lifetime cost | List item | Message bubble | Model comparison |
 | Navigation rail | Notification | Notification centre | Profile tabs |
 | Regex builder | Release entry | Runtime card | Runtime intro |
-| Settings panel | Sidebar search | Studio search | Tab |
-| Tab group header | Tab strip | Title bar | TOML preview |
-| Yolo card | | | |
+| Settings panel | Sidebar search | Studio search | TOML preview |
+| Tab group header | Tab strip | Title bar | Yolo card |
+
+Plus every **tab**, which is keyed `Tab:<id>` rather than by a static name so two tabs with the
+same title stay separately styleable — that is the 41st target and the reason the count is not
+just the length of the table.
 
 The pickers and dialogs are in that list on purpose: **the appearance system styles its own
 chrome.** The regex builder, the dropdown, the command palette, the notification centre and the
@@ -77,7 +81,7 @@ leave the viewport, and clamps vertically against the height the panel can actua
 
 ```js
 const W = 330, GAP = 12;
-const H = Math.min(470, Math.round(window.innerHeight * 0.7));
+const H = Math.round(window.innerHeight * 0.7);
 const r = host.getBoundingClientRect();
 let x = r.right + GAP;
 if (x + W > window.innerWidth - 8) x = r.left - W - GAP;
@@ -85,8 +89,13 @@ if (x + W > window.innerWidth - 8) x = r.left - W - GAP;
 
 > It used to anchor to the **pointer** — `clientX`/`clientY` clamped to the window — so
 > right-clicking anywhere near the middle of a control opened the editor directly on top of the
-> control being edited. The screenshot audit photographed exactly that. Clamping against a
-> constant `470` rather than `70vh` also pushed the panel off the bottom of short windows.
+> control being edited. The screenshot audit photographed exactly that.
+>
+> `H` was then `Math.min(470, 70vh)`, which is 470 on any window taller than 672 px. The panel's
+> own CSS allows 70vh, so on a full-screen window the anchor reserved 470 px while the panel
+> rendered to about 1050 and the bottom two thirds fell off the screen. 470 was a fair guess when
+> the editor had eight controls and is simply a wrong number now that it has twenty-three: it
+> clamps against what the CSS allows, not against a remembered size.
 
 **Keyboard route:** <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> opens the editor for whatever
 element currently has focus, walking up to the nearest `[data-appear]` ancestor. The context menu
@@ -336,7 +345,7 @@ See [local-version-control.md](local-version-control.md).
 
 ## Verification
 
-1. **Reach:** right-click each of the 37 targets and confirm the appearance entry appears and names
+1. **Reach:** right-click each of the 41 targets and confirm the appearance entry appears and names
    that element.
 2. **Shift path:** <kbd>Shift</kbd>+right-click opens the editor straight away; plain right-click
    keeps the element's own menu intact (test on a tab, which has a full management menu).

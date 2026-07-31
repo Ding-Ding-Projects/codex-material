@@ -52,7 +52,7 @@ Three modes — English, playful Hong Kong Cantonese, and bilingual — with **t
 funny-level sliders**, 1 to 5, one per language. Humour styles the voice, never the facts: a
 destructive label still reads as destructive at level 5, and every placeholder survives.
 
-**Every user-visible string goes through the string table** — 559 keys, 327 call sites. Seven
+**Every user-visible string goes through the string table** — 637 keys, 366 call sites. Seven
 literals remain literal on purpose, each with its reason recorded in the test that allows it:
 three CLI command names (`codex login`, `codex logout`, `codex cloud`), two typeface names
 (Georgia, Helvetica Neue), `廣東話` — a language's name in its own language — and the empty

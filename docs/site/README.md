@@ -19,7 +19,7 @@ works, offline, exactly as it does when published.
 | `app.js` | ~1790 | All behaviour: preference store, i18n, colour maths, theming, the bounded regex engine, the tab model, one render function per panel, toasts and the dim sum draw. |
 | `articles.js` | ~1590 | All content: the facts table, the voiced string table, 20 feature articles, the screenshot list, the dim sum catalog, the changelog transcription and the documentation index. |
 | `.nojekyll` | 0 | Tells GitHub Pages to serve this directory verbatim rather than running it through Jekyll. |
-| `assets/` | — | Fonts, the app icon, the 16 screenshots and the 20 dim sum photographs, staged inside the site directory so it is self-contained. |
+| `assets/` | — | Fonts, the app icon, the 25 screenshots and the 72 dim sum photographs, staged inside the site directory so it is self-contained. |
 
 Nothing else is required. No package manager, no bundler, no framework, no CDN, no web font
 service, no analytics, no telemetry, and no outbound request of any kind at runtime. The only
@@ -111,7 +111,7 @@ tool mirrors into `app/`, not here.
 | --- | --- |
 | `assets/fonts/` | `app/fonts/` — the same Roboto and Roboto Mono woff2 the desktop app bundles |
 | `assets/screenshots/` | `assets/screenshots/` — the 16 PNGs written by `npm run capture` |
-| `assets/dimsum/` | `app/dimsum/` — the 20 bundled dish photographs |
+| `assets/dimsum/` | `app/dimsum/` — the 72 bundled dish photographs |
 | `assets/icon.png`, `assets/icon-source.png` | `assets/` — the app icon |
 
 They are staged here so the published site stands on its own and does not depend on where Pages is
@@ -188,7 +188,7 @@ that vanishes after four seconds is a failure nobody read. Nothing on this site 
 
 ### Dim sum
 
-A 1% draw per page load from the 20 bundled photographs, named in English and Cantonese, shown in a
+A 1% draw per page load from the 72 bundled photographs, named in English and Cantonese, shown in a
 non-blocking corner card with `role="status"` that auto-dismisses after nine seconds and can be
 closed at any time. It never fires on a first visit, never twice in one load, and never fetches
 anything. Settings ▸ *Show the dim sum surprise* turns it off permanently, and *Show one now* draws

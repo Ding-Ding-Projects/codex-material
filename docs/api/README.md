@@ -12,7 +12,7 @@ would be a fabricated artifact, and inventing one would be worse than having non
 ## Where the real interface is documented
 
 Codex Studio's only programmatic boundary is Electron IPC between the renderer and the main
-process. All 50 commands — their arguments, return shapes, error strings, the `codex://stdout`
+process. All 55 commands — their arguments, return shapes, error strings, the `codex://stdout`
 streaming channel and the security properties of each — are documented in:
 
 ### → [../architecture/ipc-bridge.md](../architecture/ipc-bridge.md)

@@ -168,7 +168,7 @@ process.
 
 ### The app builds and runs
 
-- **16 screenshots** in `assets/screenshots/` (`01-chats.png` … `16-light-theme.png`), with
+- **25 screenshots** in `assets/screenshots/` (`01-chats.png` … `17b-cantonese-studio.png`), with
   `manifest.json` recording `capturedFrom: "the real app (electron/main.js frontend + preload)"`
   and all 16 entries `applied: true`. They were taken through the project's own harness
   (`tools/capture.mjs` + `tools/capture-main.cjs`), not mocked up.

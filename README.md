@@ -199,7 +199,7 @@ Everything listed here is implemented in this tree. Anything designed but unfini
 - **Language modes** — English, playful Hong Kong Cantonese, and bilingual, over a 199-key table where every key carries 5 voices per language.
 - **Two funny sliders** — one for English, one for Cantonese, 1 (fully professional) to 5 (maximum), persisted, applying to every message category including errors and destructive confirmations. The level changes the voice only: a test asserts that every `err.*`/`warn.*` key keeps its `{placeholder}` at all five levels, so a message can never lose the fact the user has to act on.
 - **Spoken narrator** — off by default, English or Cantonese, one utterance at a time through a serialized queue with a debounce and cooldown.
-- **Dim sum surprise** — a fresh 1% draw per launch from 20 bundled dish photographs, named in both languages, non-blocking, auto-dismissing after nine seconds, never on a first run, and switchable off in settings.
+- **Dim sum surprise** — a fresh 1% draw per launch from 72 bundled dish photographs, named in both languages, non-blocking, auto-dismissing after nine seconds, never on a first run, and switchable off in settings.
 - **Per-element appearance editor** — right-click any surface for *Edit appearance…*; the editor opens anchored beside that element with typography controls, a continuous hue/saturation/value colour picker, a colour translator across HEX, HEX8, RGB, RGBA, HSL, HSV, HWB, LAB, LCH, OKLab, OKLCH and CMYK with per-row copy, a WCAG contrast readout against the current surface, and per-element or global reset. Overrides persist and can be exported.
 - **Light and dark Material 3 themes** applied live, over a full M3 token set.
 - **External editor** — detects 9 editors by executable (VS Code, VS Code Insiders, Cursor, Windsurf, Zed, Sublime Text, Notepad++, IntelliJ IDEA, Notepad); an editor that is not actually installed is never offered, and *Reveal in File Explorer* always works.
@@ -286,7 +286,7 @@ Every script below is exactly what `package.json` defines.
 | `app/support.js` | Generated dc-runtime — a React-backed template engine. **Do not edit**; it is regenerated from its own source. |
 | `app/codex-core.js` | `window.CX` — the bridge, `localStorage` store, TOML writer, bounded regex engine, colour translation, i18n, narrator, local history, notifications, tabs, settings, dim sum draw, live-state hydration, and the browser-mode simulation. |
 | `app/codex-data.js` | `window.CODEX` — the CLI catalog: 6 models, 26 subcommands, 11 global flags, 52 slash commands, 11 settings sections (108 fields), 88 feature flags, 6 hook events. |
-| `app/cx-i18n.js` | 199 keys, 5 funny levels per language, both languages. |
+| `app/cx-i18n.js` | 637 keys, 5 funny levels per language, both languages. |
 | `app/cx-tabs.js` | Tab strip, groups, pinning, the four searches, bulk-close predicate. |
 | `app/cx-notify.js` | Toasts and the notification centre. |
 | `app/cx-changelog.js` | Keep a Changelog parser, date presets, composed filtering, export. |
@@ -370,7 +370,7 @@ Codex Studio is declared **Apache-2.0** in `package.json`. No `LICENSE` file is 
 | --- | --- | --- |
 | **React and ReactDOM 18.3.1** (UMD production builds) | MIT — text at [`app/vendor/LICENSE.react`](app/vendor/LICENSE.react) | `app/vendor/` |
 | **Roboto** and **Roboto Mono** (10 `.woff2` faces) | Apache-2.0 — text at [`app/fonts/LICENSE.roboto`](app/fonts/LICENSE.roboto) | `app/fonts/` |
-| **20 dim sum photographs** | Generated for this project from the maintainers' shared Hong Kong dim sum catalog and bundled as local assets. Never fetched from a third party, never a CDN, no tracking. Each carries alt text naming the dish in both languages. | `app/dimsum/` |
+| **72 dim sum photographs** | Generated for this project from the maintainers' shared Hong Kong dim sum catalog and bundled as local assets. Never fetched from a third party, never a CDN, no tracking. Each carries alt text naming the dish in both languages. | `app/dimsum/` |
 | **The Codex CLI** | OpenAI's own published Windows artifact, staged unmodified from npm. Its licence is OpenAI's, not this project's. | `vendor/codex-bin/` (git-ignored, installer only) |
 
 Traditional Chinese glyphs deliberately fall through to the Windows system CJK faces rather than shipping a 10 MB CJK webfont, so Cantonese copy stays legible in every language mode without inflating the installer further.

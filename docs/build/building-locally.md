@@ -77,7 +77,7 @@ job. That is also why a checkout installed with `--ignore-scripts` can run `npm 
 | Script | Command it runs | What you get |
 | --- | --- | --- |
 | `npm start` | `electron .` | The real app, loading `app/index.html` through `electron/main.js`. |
-| `npm test` | `node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/sync-changelog.mjs --check` | 23 frontend module tests, 22 backend tests, and a check that `app/CHANGELOG.md` still matches the root copy. |
+| `npm test` | `node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/sync-changelog.mjs --check` | 29 frontend module tests, 33 backend tests, and a check that `app/CHANGELOG.md` still matches the root copy. |
 | `npm run capture` | `node tools/capture.mjs` | Sixteen PNGs of the real app in `assets/screenshots/`. |
 | `npm run prepare:cli` | `node tools/fetch-codex.mjs` | Stages the Codex CLI into `vendor/codex-bin/` (~410 MB). |
 | `npm run dist` | `node tools/sync-changelog.mjs && node tools/fetch-codex.mjs && electron-builder --win nsis msi --publish never` | `dist\Codex Studio-0.1.0-x64.exe` and `.msi`, plus `dist\win-unpacked\`. |
@@ -233,7 +233,7 @@ match anything: `src-tauri/` was deleted with the Tauri shell.
 
 1. `node --version` reports 22 or newer.
 2. `npm install` completes and `node_modules\electron\dist\electron.exe` exists.
-3. `npm test` passes: **23 frontend tests**, **22 backend tests**, and
+3. `npm test` passes: **29 frontend tests**, **33 backend tests**, and
    `app/CHANGELOG.md matches the root copy.` The frontend runner also prints its per-file
    breakdown — `codex-core.js` 9, `cx-i18n.js` 6, `cx-dimsum.js` 4, `cx-changelog.js` 4.
 4. `npm start` opens a window titled **Codex Studio** whose title-bar chip reads **Electron IPC**

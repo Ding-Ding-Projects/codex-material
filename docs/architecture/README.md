@@ -5,7 +5,7 @@ How Codex Studio is put together, and the contracts each layer owes the others.
 | Page | What it covers |
 | --- | --- |
 | [Overview](overview.md) | The layers — `app/` frontend, the `dc` template runtime, the `electron/` main process — the main/preload/renderer process model, where the `codex` binary comes from, and why the CLI is never reimplemented |
-| [IPC bridge](ipc-bridge.md) | The `CODEX_BRIDGE.invoke` contract and all 50 commands registered in `electron/commands.js`, with argument shapes, return shapes, the `codex://stdout` streaming channel and the security posture |
+| [IPC bridge](ipc-bridge.md) | The `CODEX_BRIDGE.invoke` contract and all 55 commands registered in `electron/commands.js`, with argument shapes, return shapes, the `codex://stdout` streaming channel and the security posture |
 | [Frontend runtime](frontend-runtime.md) | How the `<x-dc>` template and the `DCLogic` class render through vendored React 18.3.1, why the CSP needs `'unsafe-eval'`, and how to add a panel |
 
 ## The layers in one picture
