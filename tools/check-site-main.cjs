@@ -195,8 +195,33 @@ app.on("ready", async () => {
     return out;
   })()`);
 
+  /* The notification history. A toast auto-dismisses after four seconds, so the
+     reader who looked away is exactly the one the record exists for. */
+  const notify = await win.webContents.executeJavaScript(`(() => {
+    const out = { bell: false, kept: 0, error: null };
+    try {
+      const bell = document.getElementById("bellBtn");
+      if (!bell) { out.error = "no notification-history control"; return out; }
+      out.bell = true;
+      bell.click();
+      const sheet = document.querySelector('.sheet[aria-label="Notification history"]');
+      if (!sheet) { out.error = "the bell did not open the history"; return out; }
+      /* The run has already produced toasts — resets, restores — so an empty list here
+         would mean they were shown and then lost, which is the defect. */
+      out.kept = sheet.querySelectorAll("li").length;
+      const close = sheet.querySelector(".sheet__close");
+      if (close) { close.click(); }
+    } catch (e) { out.error = String(e && e.message || e); }
+    return out;
+  })()`);
+
   let failedEarly = false;
   const lines = [];
+  lines.push(`notify history     ${notify.bell ? "reachable" : "MISSING"}, ${notify.kept} kept`);
+  if (notify.error || !notify.bell || notify.kept < 1) {
+    lines.push(`\ndismissed notifications are not reviewable${notify.error ? " — " + notify.error : ""}`);
+    failedEarly = true;
+  }
   lines.push(`history            +${hist.recorded} revision on a change, ${hist.actions} action filter(s), append-only: ${hist.appendOnly ? "yes" : "NO"}`);
   if (hist.error || hist.recorded < 1 || !hist.appendOnly) {
     lines.push(`\nthe history did not record a change and stay append-only when restoring${hist.error ? " — " + hist.error : ""}`);

@@ -449,6 +449,57 @@
     root.style.setProperty("--m3-on-primary-container", colour.rgbToHex(onContainer));
   }
 
+  /** The count on the bell. Errors and warnings are what a reader comes back for, so
+   *  that is what it counts — a badge showing "17" after seventeen "Copied" toasts is
+   *  noise wearing the shape of a signal. */
+  function updateBell() {
+    var bell = document.getElementById("bellBtn");
+    if (!bell) { return; }
+    var n = notifyLog.filter(function (e) { return e.kind === "error" || e.kind === "warning"; }).length;
+    bell.textContent = n ? "🔔 " + n : "🔔";
+    bell.setAttribute("aria-label", n
+      ? "Notification history — " + n + " error" + (n === 1 ? "" : "s") + " or warning" + (n === 1 ? "" : "s")
+      : "Notification history");
+  }
+
+  function openNotifyCentre() {
+    var host = el("div", { "class": "sheet", role: "dialog", "aria-modal": "false",
+      "aria-label": "Notification history", "data-appear": "Notification centre" });
+    host.appendChild(el("h3", { "class": "sheet__title" }, "Notification history"));
+    host.appendChild(el("p", { "class": "section-note" },
+      "Everything this page has told you since it loaded, newest first. Dismissing a toast hides it; it does not " +
+      "lose it."));
+
+    var list = el("ul", { "class": "sheet__list" });
+    if (!notifyLog.length) {
+      host.appendChild(el("p", { "class": "searchmeta" }, "Nothing yet."));
+    } else {
+      notifyLog.forEach(function (e) {
+        var li = el("li");
+        var row = el("div", { "class": "sheet__row", style: "cursor:default" });
+        var text = el("span", { "class": "sheet__rowLabel" });
+        text.appendChild(el("span", null, esc(e.title)));
+        if (e.body) { text.appendChild(el("div", { "class": "section-note" }, esc(e.body))); }
+        row.appendChild(text);
+        row.appendChild(el("span", { "class": "sheet__rowWhere" },
+          esc(e.kind + " · " + new Date(e.at).toLocaleTimeString())));
+        li.appendChild(row);
+        list.appendChild(li);
+      });
+      host.appendChild(list);
+      var clear = el("button", { type: "button", "class": "linkchip", style: "margin-top:12px" }, "Clear the history");
+      clear.addEventListener("click", function () {
+        /* Clearing the log leaves any toast still on screen alone — a message the
+           reader is in the middle of reading should not vanish because they tidied. */
+        notifyLog = [];
+        updateBell();
+        closeSheet();
+      });
+      host.appendChild(clear);
+    }
+    showSheet(host, host.querySelector("button"));
+  }
+
   /* =================================================================== regex
      The same bounds and the same refusal as app/codex-core.js. A single
      `RegExp.exec` call cannot be interrupted from JavaScript, so a millisecond budget
@@ -593,7 +644,20 @@
 
   /* ================================================================= toasts */
   var TOAST_TIMEOUT = { info: 5000, success: 4000, warning: 0, error: 0 };
+  /* A dismissed notification must stay reviewable. A toast that auto-dismisses after
+     four seconds and leaves no trace loses the one thing the reader was meant to read
+     if they happened to be looking elsewhere — which, for an error, is the case the
+     notification existed for. Kept in memory for this page load: these describe what
+     just happened here, and persisting them across reloads would make a stale one
+     look current. */
+  var notifyLog = [];
+
+  function notifyHistory() { return notifyLog; }
+
   function toast(kind, title, body) {
+    notifyLog.unshift({ at: Date.now(), kind: kind, title: title, body: body || "" });
+    if (notifyLog.length > 100) { notifyLog.length = 100; }
+    updateBell();
     var host = $("toasts");
     if (!host) { return; }
     var node = el("div", { "class": "toast", "data-kind": kind, role: kind === "error" || kind === "warning" ? "alert" : "status" });
@@ -3044,6 +3108,9 @@
     buildBuilder();
     buildStrip();
     wireFindTabs();
+    var bell = document.getElementById("bellBtn");
+    if (bell) { bell.addEventListener("click", openNotifyCentre); }
+    updateBell();
     applyElementAppearance();
 
     var hashTab = location.hash.slice(1);
