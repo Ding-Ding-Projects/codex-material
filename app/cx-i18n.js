@@ -1466,7 +1466,194 @@
     "warn.appearanceOverwrite": {
       en: ["A preset named {name} already exists. Saving again replaces it, and the copy you have now is gone.", "A preset named {name} already exists. Saving again will replace it.", "A preset named {name} already exists — saving again replaces it, and the copy you have now is gone.", "There is already a preset named {name}. Saving again replaces it, and the copy you have now is gone.", "There is already a preset called {name}. Saving again writes right over it, and the copy you have now is gone."],
       yue: ["已經有個叫 {name} 嘅預設。再 save 就會蓋咗佢，而家嗰份會冇咗。", "已經有一個叫 {name} 嘅預設。再儲存會覆蓋佢。", "已經有個叫 {name} 嘅預設 — 再 save 就會蓋咗佢，而家嗰份會冇咗。", "已經有個預設叫 {name} 㗎喇。再 save 就會蓋咗佢，而家嗰份會冇咗。", "已經有個預設叫 {name} 㗎喇。再 save 就直接寫過佢，而家嗰份會冇咗。"]
-    }
+    },
+/* Batch 1 — the slash-command wizard: field labels, hints and instructional
+   placeholders. Five levels per language, repeats where a two-word field label has
+   nowhere playful to go. The facts never move: a hint that names a cost, a scope or
+   an irreversibility says the same thing at level 1 and level 5. */
+
+    "opt.model": {
+      en: ["Model", "Model", "Model", "Which model", "Which brain"],
+      yue: ["模型", "模型", "用邊個模型", "用邊個模型", "揀邊個腦"]
+    },
+    "opt.effort": {
+      en: ["Reasoning effort", "Reasoning effort", "How hard it thinks", "How hard it thinks", "How hard it thinks"],
+      yue: ["推理程度", "推理程度", "諗得幾深", "諗得幾深", "要佢諗到幾盡"]
+    },
+    "opt.personality": {
+      en: ["Personality", "Personality", "Personality", "Tone of voice", "What mood it's in"],
+      yue: ["個性", "個性", "講嘢語氣", "講嘢語氣", "今日咩心情"]
+    },
+    "opt.reviewScope": {
+      en: ["What to review", "What to review", "What to review", "What to look over", "What to put under the lamp"],
+      yue: ["審查範圍", "審查範圍", "睇邊部分", "睇邊部分", "邊忽要攞去照吓"]
+    },
+    "opt.threadName": {
+      en: ["New thread name", "New thread name", "New thread name", "Call this thread what", "New name for this thread"],
+      yue: ["新對話名", "新對話名", "改咩名好", "改咩名好", "呢條 thread 叫咩名好"]
+    },
+    "opt.goal": {
+      en: ["Goal", "Goal", "Goal", "What you're after", "What you're actually after"],
+      yue: ["目標", "目標", "想做啲乜", "想做啲乜", "你到底想搞啲乜"]
+    },
+    "opt.sessionIdOrName": {
+      en: ["Session id or name", "Session id or name", "Session id or name", "Session id, or its name", "Session id, or just its name"],
+      yue: ["工作階段 id 或名稱", "工作階段 id 或名稱", "session 嘅 id 或者名", "session 嘅 id 或者名", "打 session 個 id，唔記得就打個名"]
+    },
+    "opt.sessionId": {
+      en: ["Session id", "Session id", "Session id", "Session id", "Which session's id"],
+      yue: ["工作階段 id", "工作階段 id", "session 嘅 id", "session 嘅 id", "邊個 session 嘅 id"]
+    },
+    "opt.detail": {
+      en: ["Detail", "Detail", "Detail", "How much detail", "How much detail you can take"],
+      yue: ["詳細程度", "詳細程度", "要幾詳細", "要幾詳細", "想睇到幾細"]
+    },
+    "opt.syntaxTheme": {
+      en: ["Syntax theme", "Syntax theme", "Syntax theme", "Syntax colours", "What colour the code goes"],
+      yue: ["語法主題", "語法主題", "程式碼配色", "程式碼配色", "啲 code 要咩色"]
+    },
+    "opt.pet": {
+      en: ["Pet", "Pet", "Pet", "Pet", "Which pet keeps you company"],
+      yue: ["寵物", "寵物", "寵物", "養邊隻", "養邊隻陪你"]
+    },
+    "opt.sideTopic": {
+      en: ["Side topic", "Side topic", "Side topic", "Side question", "The thing you got distracted by"],
+      yue: ["旁支話題", "旁支話題", "順便問嘅嘢", "順便問嘅嘢", "諗起就想問嗰樣嘢"]
+    },
+    "opt.scope": {
+      en: ["Scope", "Scope", "Scope", "How much to cover", "How much to cover"],
+      yue: ["範圍", "範圍", "包幾多", "包幾多", "要睇到幾闊"]
+    },
+    "opt.openingPrompt": {
+      en: ["Opening prompt", "Opening prompt", "Opening prompt", "First thing to say", "First thing to say"],
+      yue: ["開場提示", "開場提示", "第一句講咩", "第一句講咩", "開波第一句講咩"]
+    },
+    "opt.rawMode": {
+      en: ["Raw mode", "Raw mode", "Raw mode", "Raw mode", "Raw mode"],
+      yue: ["原始模式", "原始模式", "raw mode", "raw mode", "raw mode"]
+    },
+
+    "hint.model": {
+      en: ["Sets the model for this thread only.", "Sets the model for this thread only.", "Changes the model for this thread only.", "Only this thread changes model — everything else stays put.", "Only this thread changes model. The rest of your threads never find out."],
+      yue: ["淨係改呢條對話嘅模型。", "淨係改呢條對話嘅模型。", "淨係換呢條 thread 個模型。", "淨係呢條 thread 換模型，其他嘢一律唔郁。", "淨係呢條 thread 換模型，其他 thread 完全唔知發生咩事。"]
+    },
+    "hint.effort": {
+      en: ["Higher effort costs more output tokens.", "Higher effort costs more output tokens.", "More effort means more output tokens, and a bigger bill.", "Think harder, pay more: effort is billed in output tokens.", "Think harder, pay more — effort comes out of your output-token budget, every time."],
+      yue: ["推理程度愈高，輸出 token 用得愈多。", "推理程度愈高，輸出 token 用得愈多。", "諗得愈深，output token 用得愈多，帳單都大啲。", "要佢諗多啲就要畀多啲：呢啲 effort 係按 output token 收費。", "要佢諗多啲就要畀多啲 — 啲 effort 全部喺你 output token 度扣，一次都唔會漏。"]
+    },
+    "hint.approval": {
+      en: ["untrusted asks for everything; never asks for nothing.", "untrusted asks for everything; never asks for nothing.", "untrusted asks before everything; never asks before nothing.", "untrusted checks with you before everything. never checks with you at all.", "untrusted checks with you before everything; never checks with you about nothing, ever."],
+      yue: ["untrusted 咩都要問你；never 咩都唔問。", "untrusted 咩都要問你；never 咩都唔問。", "untrusted 做乜都要問過你；never 一句都唔問。", "untrusted 做乜都要問過你先；never 就乜都唔問你。", "untrusted 做乜都要問過你先；never 就由頭到尾一句都唔會問。"]
+    },
+    "hint.personality": {
+      en: ["Communication style only — never changes safety behaviour.", "Communication style only — never changes safety behaviour.", "Style of speech only. Safety behaviour does not move.", "Only how it talks. What it refuses to do does not move an inch.", "Only how it talks. What it will and will not do does not move an inch."],
+      yue: ["淨係改講嘢風格 — 唔會改安全行為。", "淨係改講嘢風格 — 唔會改安全行為。", "淨係改語氣，安全行為一啲都唔會變。", "淨係改佢點講嘢。佢唔肯做嘅嘢一樣唔肯做。", "淨係改佢點講嘢。邊啲肯做邊啲唔肯做，一毫米都唔會郁。"]
+    },
+    "hint.review": {
+      en: ["Left empty, Codex reviews the current diff.", "Left empty, Codex reviews the current diff.", "Leave it empty and Codex reviews the current diff.", "Leave it empty and Codex just reads the current diff.", "Leave it empty and Codex reads whatever your current diff happens to be."],
+      yue: ["留空嘅話，Codex 會審查現時嘅 diff。", "留空嘅話，Codex 會審查現時嘅 diff。", "唔填就自動睇而家個 diff。", "唔填就自動睇返而家個 diff。", "唔填就自動睇返你而家個 diff，你手上有咩就睇咩。"]
+    },
+    "hint.rename": {
+      en: ["Renames the saved session.", "Renames the saved session.", "Renames the saved session.", "Renames the saved session — the conversation itself is untouched.", "Renames the saved session. Not a word of the conversation moves."],
+      yue: ["重新命名已儲存嘅工作階段。", "重新命名已儲存嘅工作階段。", "改個已儲存 session 嘅名。", "改個 session 名 — 入面啲對話一個字都唔郁。", "改個 session 名啫，入面啲對話一個字都唔會郁。"]
+    },
+    "hint.goal": {
+      en: ["Empty shows the current goal instead of setting one.", "Empty shows the current goal instead of setting one.", "Leave it empty to read the current goal instead of setting one.", "Leave it empty and it reads the goal back to you instead of setting one.", "Leave it empty and it just reads the current goal back at you instead of setting a new one."],
+      yue: ["留空即係睇返而家個目標，唔會設定新嘅。", "留空即係睇返而家個目標，唔會設定新嘅。", "唔填就淨係睇返而家個目標，唔會改。", "唔填就淨係讀返而家個目標畀你聽，唔會設定新嘅。", "唔填就淨係讀返而家個目標畀你聽，唔會偷偷幫你設定個新嘅。"]
+    },
+    "hint.resume": {
+      en: ["UUIDs take precedence over names.", "UUIDs take precedence over names.", "A UUID wins over a name.", "A UUID always wins over a name.", "A UUID always wins over a name, so a name that looks like one is asking for trouble."],
+      yue: ["UUID 優先於名稱。", "UUID 優先於名稱。", "打 UUID 嘅話會蓋過個名。", "有 UUID 就一定用 UUID，唔會理個名。", "有 UUID 就梗係用 UUID，所以改個似 UUID 嘅名係自找麻煩。"]
+    },
+    "hint.fork": {
+      en: ["Forks into a new thread; the original is untouched.", "Forks into a new thread; the original is untouched.", "Forks into a new thread. The original is untouched.", "Splits off a new thread. The original does not change at all.", "Splits off a new thread and leaves the original exactly where it was."],
+      yue: ["分支去一條新對話；原本嗰條唔會變。", "分支去一條新對話；原本嗰條唔會變。", "開條新 thread 出嚟，原本嗰條唔郁。", "劈條新 thread 出嚟，原本嗰條完全唔會變。", "劈條新 thread 出嚟，原本嗰條原封不動擺喺度。"]
+    },
+    "hint.mcp": {
+      en: ["verbose lists every tool each server exposes.", "verbose lists every tool each server exposes.", "verbose lists every tool each server exposes.", "verbose prints every single tool each server hands out.", "verbose prints every single tool each server hands out — all of them."],
+      yue: ["verbose 會列出每個 server 提供嘅所有工具。", "verbose 會列出每個 server 提供嘅所有工具。", "verbose 會逐個 server 列晒佢啲工具。", "verbose 會逐個 server 打晒佢畀出嚟嘅工具。", "verbose 會逐個 server 打晒佢畀出嚟嘅工具，一個都唔會少。"]
+    },
+    "hint.theme": {
+      en: ["Custom themes live in $CODEX_HOME/themes.", "Custom themes live in $CODEX_HOME/themes.", "Custom themes live in $CODEX_HOME/themes.", "Your own themes go in $CODEX_HOME/themes.", "Your own themes go in $CODEX_HOME/themes — that is the only place it looks."],
+      yue: ["自訂主題放喺 $CODEX_HOME/themes。", "自訂主題放喺 $CODEX_HOME/themes。", "自訂主題擺喺 $CODEX_HOME/themes。", "你自己整嘅主題擺喺 $CODEX_HOME/themes。", "你自己整嘅主題擺喺 $CODEX_HOME/themes — 佢淨係去嗰度搵。"]
+    },
+    "hint.pets": {
+      en: ["Custom pets resolve from CODEX_HOME/pets/<id>/pet.json.", "Custom pets resolve from CODEX_HOME/pets/<id>/pet.json.", "Custom pets are read from CODEX_HOME/pets/<id>/pet.json.", "Your own pets are read from CODEX_HOME/pets/<id>/pet.json.", "Your own pets are read from CODEX_HOME/pets/<id>/pet.json, and nowhere else."],
+      yue: ["自訂寵物由 CODEX_HOME/pets/<id>/pet.json 讀取。", "自訂寵物由 CODEX_HOME/pets/<id>/pet.json 讀取。", "自訂寵物喺 CODEX_HOME/pets/<id>/pet.json 度讀。", "你自己養嗰隻喺 CODEX_HOME/pets/<id>/pet.json 度讀。", "你自己養嗰隻喺 CODEX_HOME/pets/<id>/pet.json 度讀，第二度佢唔會搵。"]
+    },
+    "hint.sandboxAddReadDir": {
+      en: ["Windows only. Grants the sandbox read access.", "Windows only. Grants the sandbox read access.", "Windows only. Gives the sandbox read access to that path.", "Windows only. The sandbox gets to read that path — read, not write.", "Windows only. The sandbox gets to read that path. Read only; it still cannot write there."],
+      yue: ["淨係 Windows。畀 sandbox 讀取權限。", "淨係 Windows。畀 sandbox 讀取權限。", "淨係 Windows 先用到。畀 sandbox 讀嗰個路徑。", "淨係 Windows 用到。畀 sandbox 讀嗰個路徑 — 得讀，唔寫得。", "淨係 Windows 用到。畀 sandbox 讀嗰個路徑之嘛，寫係一樣寫唔到。"]
+    },
+    "hint.side": {
+      en: ["Runs in an ephemeral fork; the main thread is untouched.", "Runs in an ephemeral fork; the main thread is untouched.", "Runs in a throwaway fork. The main thread is untouched.", "Runs in a throwaway fork, so the main thread never notices.", "Runs in a throwaway fork, so your main thread never even notices it happened."],
+      yue: ["喺一條臨時分支度行；主對話唔會受影響。", "喺一條臨時分支度行；主對話唔會受影響。", "喺條用完即棄嘅分支度行，主 thread 唔郁。", "喺條用完即棄嘅分支度行，主 thread 完全唔知情。", "喺條用完即棄嘅分支度行，主 thread 由頭到尾都唔知發生過。"]
+    },
+    "hint.btw": {
+      en: ["Same as /side.", "Same as /side.", "Same as /side.", "Same as /side, just shorter to type.", "Same as /side, just shorter to type."],
+      yue: ["同 /side 一樣。", "同 /side 一樣。", "同 /side 一模一樣。", "同 /side 一樣，不過打少幾個字。", "同 /side 一模一樣，純粹打少幾個字。"]
+    },
+    "hint.usage": {
+      en: ["reset uses a usage-limit reset if one is available.", "reset uses a usage-limit reset if one is available.", "reset spends a usage-limit reset, if you have one.", "reset spends a usage-limit reset — if there is one to spend.", "reset spends a usage-limit reset, if there is actually one sitting there to spend."],
+      yue: ["如果有可用嘅用量上限重設，reset 會用咗佢。", "如果有可用嘅用量上限重設，reset 會用咗佢。", "有得 reset 用量上限嘅話，reset 就會用咗佢。", "reset 會用咗個用量上限重設 — 前提係有得用。", "reset 會用咗個用量上限重設，前提係真係有一個喺度畀你用。"]
+    },
+    "hint.keymap": {
+      en: ["Context bindings win over global ones.", "Context bindings win over global ones.", "A context binding beats a global one.", "A context binding always beats a global one.", "A context binding always beats a global one, no matter which you set last."],
+      yue: ["情境按鍵優先於全域按鍵。", "情境按鍵優先於全域按鍵。", "情境嗰個會蓋過全域嗰個。", "情境嗰個一定蓋過全域嗰個。", "情境嗰個一定蓋過全域嗰個，唔理你邊個設得遲。"]
+    },
+    "hint.new": {
+      en: ["Starts a fresh chat in the same profile.", "Starts a fresh chat in the same profile.", "Starts a fresh chat in the same profile.", "Opens a clean chat, same profile, nothing carried over.", "Opens a clean chat in the same profile. Nothing at all carries over."],
+      yue: ["喺同一個 profile 開一段新對話。", "喺同一個 profile 開一段新對話。", "喺同一個 profile 度開段新對話。", "開段乾淨對話，同一個 profile，乜都唔會帶過去。", "開段乾淨對話，同一個 profile，之前啲嘢一樣都唔會帶過去。"]
+    },
+    "hint.clear": {
+      en: ["Clears the terminal and starts a new chat.", "Clears the terminal and starts a new chat.", "Clears the terminal and starts a new chat.", "Wipes the terminal and starts a new chat.", "Wipes the terminal clean and starts a new chat on top of it."],
+      yue: ["清空終端機，然後開新對話。", "清空終端機，然後開新對話。", "清晒個 terminal，再開段新對話。", "抹晒個 terminal，再開段新對話。", "抹到個 terminal 白鴿眼咁乾淨，再喺上面開段新對話。"]
+    },
+    "hint.raw": {
+      en: ["Copy-friendly scrollback for terminal selection.", "Copy-friendly scrollback for terminal selection.", "Scrollback you can actually select and copy.", "Scrollback you can actually select and copy out.", "Scrollback you can actually select and copy out without fighting the terminal."],
+      yue: ["方便複製嘅捲動紀錄，可以喺終端機度選取。", "方便複製嘅捲動紀錄，可以喺終端機度選取。", "啲 scrollback 變到真係揀得、copy 得。", "啲 scrollback 變到真係揀得、copy 得走。", "啲 scrollback 終於揀得又 copy 得，唔使再同個 terminal 摶命。"]
+    },
+    "hint.ide": {
+      en: ["Pulls current IDE context into the thread.", "Pulls current IDE context into the thread.", "Pulls what your IDE is showing into the thread.", "Pulls whatever your IDE is showing into the thread.", "Pulls whatever your IDE happens to be showing straight into the thread."],
+      yue: ["將而家 IDE 嘅內容拉入對話。", "將而家 IDE 嘅內容拉入對話。", "將你個 IDE 而家開緊嘅嘢拉入條 thread。", "將你個 IDE 而家顯示緊嘅嘢拉入條 thread。", "將你個 IDE 而家啱啱顯示緊嗰啲嘢，原封不動拉入條 thread。"]
+    },
+
+    "ph.reviewScope": {
+      en: ["uncommitted changes / a branch / a path", "uncommitted changes / a branch / a path", "uncommitted changes / a branch / a path", "uncommitted changes, a branch, or a path", "uncommitted changes, a branch, or a path"],
+      yue: ["未 commit 嘅改動 / 一條 branch / 一個路徑", "未 commit 嘅改動 / 一條 branch / 一個路徑", "未 commit 嘅改動 / branch / 路徑", "未 commit 嘅改動、一條 branch、或者一個路徑", "未 commit 嘅改動、一條 branch、或者一個路徑"]
+    },
+    "ph.renameExample": {
+      en: ["payments regression", "payments regression", "payments regression", "the payments thing that broke", "the payments thing that broke"],
+      yue: ["付款 regression", "付款 regression", "付款嗰單嘢", "付款壞咗嗰單嘢", "付款壞咗嗰單嘢"]
+    },
+    "ph.goalExample": {
+      en: ["ship the Tauri bridge", "ship the Tauri bridge", "ship the Tauri bridge", "get the Tauri bridge out the door", "get the Tauri bridge out the door"],
+      yue: ["出咗個 Tauri bridge", "出咗個 Tauri bridge", "搞掂個 Tauri bridge", "推咗個 Tauri bridge 出街", "推咗個 Tauri bridge 出街"]
+    },
+    "ph.pickerEmpty": {
+      en: ["leave empty for the picker", "leave empty for the picker", "leave empty for the picker", "leave it empty and pick from a list", "leave it empty and pick from a list instead"],
+      yue: ["留空就用選擇器", "留空就用選擇器", "唔填就有個 list 畀你揀", "唔填就有個 list 畀你揀", "唔填就彈個 list 出嚟畀你揀"]
+    },
+    "ph.optional": {
+      en: ["optional", "optional", "optional", "optional", "skip it if you like"],
+      yue: ["可留空", "可留空", "可以唔填", "可以唔填", "唔想填就唔填"]
+    },
+    "ph.kebabTheme": {
+      en: ["kebab-case name", "kebab-case name", "kebab-case name", "a kebab-case name", "a kebab-case name"],
+      yue: ["kebab-case 名稱", "kebab-case 名稱", "kebab-case 個名", "kebab-case 個名", "kebab-case 嗰種名"]
+    },
+    "ph.petId": {
+      en: ["id, or 'hide'", "id, or 'hide'", "id, or 'hide'", "an id, or 'hide'", "an id, or 'hide' to send it away"],
+      yue: ["id，或者 'hide'", "id，或者 'hide'", "個 id，或者打 'hide'", "個 id，或者打 'hide'", "個 id，唔想見佢就打 'hide'"]
+    },
+    "ph.quickQuestion": {
+      en: ["quick question", "quick question", "quick question", "a quick question", "just a quick one"],
+      yue: ["問條快嘅", "問條快嘅", "問條快嘅", "諗起想問嗰樣", "問條快嘅啫"]
+    },
+    "ph.ideContext": {
+      en: ["selection / open files", "selection / open files", "selection / open files", "the selection, or the open files", "the selection, or the open files"],
+      yue: ["選取範圍 / 開咗嘅檔案", "選取範圍 / 開咗嘅檔案", "選取範圍 / 開住嘅檔案", "你 highlight 嗰橛，或者開住嘅檔案", "你 highlight 嗰橛，或者開住嘅檔案"]
+    },
   };
 
   function resolve(key, mode, funny) {

@@ -1031,30 +1031,33 @@ const EXT_CATEGORIES = [
   { id: "features" }
 ];
 
-/* Wizards for the slash-command catalog: argument shape per command. */
-const SLASH_WIZARDS = {
-  model: [{ id: "model", label: "Model", type: "enum", options: DATA.MODELS.map((m) => m.id), hint: "Sets the model for this thread only." },
-          { id: "effort", label: "Reasoning effort", type: "enum", options: DATA.ENUMS.reasoningEffort, hint: "Higher effort costs more output tokens." }],
-  permissions: [{ id: "policy", label: CX.i18n.t("opt.approvalPolicy"), type: "enum", options: DATA.ENUMS.approval, hint: "untrusted asks for everything; never asks for nothing." }],
-  personality: [{ id: "p", label: "Personality", type: "enum", options: DATA.ENUMS.personality, hint: "Communication style only — never changes safety behaviour." }],
-  review: [{ id: "scope", label: "What to review", type: "text", placeholder: "uncommitted changes / a branch / a path", hint: "Left empty, Codex reviews the current diff." }],
-  rename: [{ id: "name", label: "New thread name", type: "text", placeholder: "payments regression", hint: "Renames the saved session." }],
-  goal: [{ id: "goal", label: "Goal", type: "text", placeholder: "ship the Tauri bridge", hint: "Empty shows the current goal instead of setting one." }],
-  resume: [{ id: "id", label: "Session id or name", type: "text", placeholder: "leave empty for the picker", hint: "UUIDs take precedence over names." }],
-  fork: [{ id: "id", label: "Session id", type: "text", placeholder: "leave empty for the picker", hint: "Forks into a new thread; the original is untouched." }],
-  mcp: [{ id: "verbose", label: "Detail", type: "enum", options: ["", "verbose"], hint: "verbose lists every tool each server exposes." }],
-  theme: [{ id: "theme", label: "Syntax theme", type: "text", placeholder: "kebab-case name", hint: "Custom themes live in $CODEX_HOME/themes." }],
-  pets: [{ id: "pet", label: "Pet", type: "text", placeholder: "id, or 'hide'", hint: "Custom pets resolve from CODEX_HOME/pets/<id>/pet.json." }],
-  "sandbox-add-read-dir": [{ id: "dir", label: CX.i18n.t("opt.absolutePath"), type: "text", placeholder: "C:/src/vendor", hint: "Windows only. Grants the sandbox read access." }],
-  side: [{ id: "topic", label: "Side topic", type: "text", placeholder: "quick question", hint: "Runs in an ephemeral fork; the main thread is untouched." }],
-  btw: [{ id: "topic", label: "Side topic", type: "text", placeholder: "quick question", hint: "Same as /side." }],
-  usage: [{ id: "what", label: "Scope", type: "enum", options: ["", "reset"], hint: "reset uses a usage-limit reset if one is available." }],
-  keymap: [{ id: "binding", label: CX.i18n.t("opt.actionToRebind"), type: "text", placeholder: "composer.submit", hint: "Context bindings win over global ones." }],
-  new: [{ id: "prompt", label: "Opening prompt", type: "text", placeholder: "optional", hint: "Starts a fresh chat in the same profile." }],
-  clear: [{ id: "prompt", label: "Opening prompt", type: "text", placeholder: "optional", hint: "Clears the terminal and starts a new chat." }],
-  raw: [{ id: "mode", label: "Raw mode", type: "enum", options: ["", "on", "off"], hint: "Copy-friendly scrollback for terminal selection." }],
-  ide: [{ id: "what", label: CX.i18n.t("opt.contextToInclude"), type: "text", placeholder: "selection / open files", hint: "Pulls current IDE context into the thread." }]
-};
+/* Wizards for the slash-command catalog: argument shape per command.
+   A function, not a const: every label, hint and placeholder in here is resolved
+   through CX.i18n, and a const would resolve them once at load and then keep showing
+   the language the app started in after the user switches. */
+function slashWizards() { return {
+  model: [{ id: "model", label: CX.i18n.t("opt.model"), type: "enum", options: DATA.MODELS.map((m) => m.id), hint: CX.i18n.t("hint.model") },
+          { id: "effort", label: CX.i18n.t("opt.effort"), type: "enum", options: DATA.ENUMS.reasoningEffort, hint: CX.i18n.t("hint.effort") }],
+  permissions: [{ id: "policy", label: CX.i18n.t("opt.approvalPolicy"), type: "enum", options: DATA.ENUMS.approval, hint: CX.i18n.t("hint.approval") }],
+  personality: [{ id: "p", label: CX.i18n.t("opt.personality"), type: "enum", options: DATA.ENUMS.personality, hint: CX.i18n.t("hint.personality") }],
+  review: [{ id: "scope", label: CX.i18n.t("opt.reviewScope"), type: "text", placeholder: CX.i18n.t("ph.reviewScope"), hint: CX.i18n.t("hint.review") }],
+  rename: [{ id: "name", label: CX.i18n.t("opt.threadName"), type: "text", placeholder: CX.i18n.t("ph.renameExample"), hint: CX.i18n.t("hint.rename") }],
+  goal: [{ id: "goal", label: CX.i18n.t("opt.goal"), type: "text", placeholder: CX.i18n.t("ph.goalExample"), hint: CX.i18n.t("hint.goal") }],
+  resume: [{ id: "id", label: CX.i18n.t("opt.sessionIdOrName"), type: "text", placeholder: CX.i18n.t("ph.pickerEmpty"), hint: CX.i18n.t("hint.resume") }],
+  fork: [{ id: "id", label: CX.i18n.t("opt.sessionId"), type: "text", placeholder: CX.i18n.t("ph.pickerEmpty"), hint: CX.i18n.t("hint.fork") }],
+  mcp: [{ id: "verbose", label: CX.i18n.t("opt.detail"), type: "enum", options: ["", "verbose"], hint: CX.i18n.t("hint.mcp") }],
+  theme: [{ id: "theme", label: CX.i18n.t("opt.syntaxTheme"), type: "text", placeholder: CX.i18n.t("ph.kebabTheme"), hint: CX.i18n.t("hint.theme") }],
+  pets: [{ id: "pet", label: CX.i18n.t("opt.pet"), type: "text", placeholder: CX.i18n.t("ph.petId"), hint: CX.i18n.t("hint.pets") }],
+  "sandbox-add-read-dir": [{ id: "dir", label: CX.i18n.t("opt.absolutePath"), type: "text", placeholder: "C:/src/vendor", hint: CX.i18n.t("hint.sandboxAddReadDir") }],
+  side: [{ id: "topic", label: CX.i18n.t("opt.sideTopic"), type: "text", placeholder: CX.i18n.t("ph.quickQuestion"), hint: CX.i18n.t("hint.side") }],
+  btw: [{ id: "topic", label: CX.i18n.t("opt.sideTopic"), type: "text", placeholder: CX.i18n.t("ph.quickQuestion"), hint: CX.i18n.t("hint.btw") }],
+  usage: [{ id: "what", label: CX.i18n.t("opt.scope"), type: "enum", options: ["", "reset"], hint: CX.i18n.t("hint.usage") }],
+  keymap: [{ id: "binding", label: CX.i18n.t("opt.actionToRebind"), type: "text", placeholder: "composer.submit", hint: CX.i18n.t("hint.keymap") }],
+  new: [{ id: "prompt", label: CX.i18n.t("opt.openingPrompt"), type: "text", placeholder: CX.i18n.t("ph.optional"), hint: CX.i18n.t("hint.new") }],
+  clear: [{ id: "prompt", label: CX.i18n.t("opt.openingPrompt"), type: "text", placeholder: CX.i18n.t("ph.optional"), hint: CX.i18n.t("hint.clear") }],
+  raw: [{ id: "mode", label: CX.i18n.t("opt.rawMode"), type: "enum", options: ["", "on", "off"], hint: CX.i18n.t("hint.raw") }],
+  ide: [{ id: "what", label: CX.i18n.t("opt.contextToInclude"), type: "text", placeholder: CX.i18n.t("ph.ideContext"), hint: CX.i18n.t("hint.ide") }]
+}; }
 
 const SLASH_NOTES = {
   compact: "Summarises the thread so it fits back inside the context window. Cheaper than starting over, lossy by design.",
@@ -1788,7 +1791,7 @@ class Component extends DCLogic {
   slashPreviewText() {
     const name = this.state.slashPick, args = this.state.slashArgs[name] || {};
     const parts = ["/" + name];
-    (SLASH_WIZARDS[name] || []).forEach((w) => { const v = args[w.id]; if (v) parts.push(v); });
+    (slashWizards()[name] || []).forEach((w) => { const v = args[w.id]; if (v) parts.push(v); });
     return parts.join(" ");
   }
 
@@ -2378,7 +2381,7 @@ class Component extends DCLogic {
       slashSearchMenu: (e) => this.menuAt(e, "Command search", this.filterItems("slash", st.slashQuery || "").concat([this.appearItem(e)])),
       slashMatches: slashItems.map((s) => ({
         key: s.name, name: s.name, tag: s.duringTask ? "live" : "idle", desc: s.desc,
-        detail: (SLASH_NOTES[s.name] || ((SLASH_WIZARDS[s.name] || []).length ? "Opens a wizard: " + SLASH_WIZARDS[s.name].map((w) => w.label.toLowerCase()).join(", ") + "." : "No arguments — runs as-is.")),
+        detail: (SLASH_NOTES[s.name] || ((slashWizards()[s.name] || []).length ? "Opens a wizard: " + slashWizards()[s.name].map((w) => w.label.toLowerCase()).join(", ") + "." : "No arguments — runs as-is.")),
         bg: s.name === pick.name ? "var(--m3-secondary-container)" : "transparent",
         fg: s.name === pick.name ? "var(--m3-on-secondary-container)" : "var(--m3-primary)",
         select: () => this.setState({ slashPick: s.name, slashView: "wizard" }),
@@ -2392,7 +2395,7 @@ class Component extends DCLogic {
       slashDetailDesc: pick.desc,
       slashDetailNotes: (SLASH_NOTES[pick.name] || "") + (SLASH_NOTES[pick.name] ? " " : "") +
         (pick.duringTask ? "Available while a task is running." : "Only available when the agent is idle."),
-      slashWizard: (SLASH_WIZARDS[pick.name] || []).map((w) => ({
+      slashWizard: (slashWizards()[pick.name] || []).map((w) => ({
         key: w.id, label: w.label, hint: w.hint,
         isEnum: w.type === "enum", isText: w.type !== "enum",
         value: slashArgs[w.id] || "", placeholder: w.placeholder || "",
