@@ -50,28 +50,37 @@ Your own install always wins: it owns your login and your `~/.codex`.
 
 Three modes — English, playful Hong Kong Cantonese, and bilingual — with **two independent
 funny-level sliders**, 1 to 5, one per language. Humour styles the voice, never the facts: a
-destructive label still reads as destructive at level 5, and every placeholder survives. The
-navigation rail, the tab and appearance menus, the destructive actions and every message go
-through the string table; **92 secondary labels do not yet** (mostly the Console flag panel and
-the Config section list).
+destructive label still reads as destructive at level 5, and every placeholder survives.
+
+**Every user-visible string goes through the string table** — 559 keys, 327 call sites. Seven
+literals remain literal on purpose, each with its reason recorded in the test that allows it:
+three CLI command names (`codex login`, `codex logout`, `codex cloud`), two typeface names
+(Georgia, Helvetica Neue), `廣東話` — a language's name in its own language — and the empty
+sentinel a dropdown clears itself with.
+
+That is checked by a test rather than a grep. The grep it replaced looked only at `label: "…"`,
+which cannot see a positional argument to `pick()`/`toggle()`/`slider()`/`action()`, a command
+palette's `group` or `hint`, or a label inside a ternary — so it reported 92 remaining strings
+when the real figure was over 200.
 
 ## Honest limitations
 
 - Nothing installs and launches the artifact on a clean machine, so "it installs" is not among the things CI verifies.
 - The installers are **not code-signed**; that needs a certificate this project does not have.
 - Each chat message is its own `codex exec` invocation — there is no resumed interactive thread yet.
-- 92 interface labels are still hard-coded English, so bilingual mode is not yet complete.
-- Levels 1 and 2 of the funny sliders are identical for most pre-existing keys, so that step of the slider does nothing visible.
-- The appearance editor covers eight typography properties, not the full word-processor set.
+- Levels 1 and 2 of the funny sliders are identical for most one- and two-word labels, where inventing a distinct level 2 for "Chats" or "Hue" would make the interface worse rather than more compliant. Sentence-length keys do differ at every level.
+- The appearance editor has no swatch grid, eyedropper or saved palettes, no search bar inside the popover, and nothing non-typographic per element (no radius, border, spacing or per-state targeting).
+- `density` and `reducedMotion` are stored in settings and read by nothing.
 
 ## Verified state
 
-Run these four; every figure the repository quotes comes from them.
+Run these five; every figure the repository quotes comes from them.
 
-    node tools/test-frontend.mjs    # 25 passed
-    node tools/test-backend.mjs     # 28 passed
-    node tools/capture.mjs          # 20 shots, exit 0
+    node tools/test-frontend.mjs    # 27 passed
+    node tools/test-backend.mjs     # 33 passed
+    node tools/capture.mjs          # 25 shots, exit 0
     node tools/audit-ui.mjs         # 23 findings, 0 severity high
+    node tools/smoke.mjs            # PASSED
 
 All 23 remaining audit findings are the harness noting a **deliberately** ellipsised label —
 evidence a label no longer fits its box, not a defect. There are no unaddressed real findings.
