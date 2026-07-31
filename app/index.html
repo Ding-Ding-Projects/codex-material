@@ -2987,7 +2987,6 @@ class Component extends DCLogic {
       appearTop: st.appearAt.y + "px",
       appearLeft: st.appearAt.x + "px",
       closeAppear: () => this.setState({ appearOpen: false }),
-      fontRows: this.fontOptions().map((f, i) => ({ key: "f" + i, value: f.value, label: f.label })),
       appearFontLabel: (this.fontOptions().find((f) => f.value === (appear.font || "")) || { label: appear.font || "Default (Roboto)" }).label,
       openFontMenu: (e) => {
         /* The dropdown carries its own filter and regex builder, which is what makes
@@ -3001,8 +3000,6 @@ class Component extends DCLogic {
           onPick: (o) => { this.patchAppear({ font: o.value }); this.setState({ dd: null }); }
         });
       },
-      appearFont: appear.font || "",
-      setAppearFont: (e) => this.patchAppear({ font: e.target.value }),
       appearSize: String(appear.size || 100),
       appearSizeLabel: CX.i18n.t("appear.size", { value: (appear.size || 100) + "%" }),
       setAppearSize: (e) => this.patchAppear({ size: Number(e.target.value) }),
