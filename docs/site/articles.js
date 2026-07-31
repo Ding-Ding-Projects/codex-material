@@ -1409,7 +1409,58 @@
           p("That is the same command set the test job runs, minus the parse sweep. Locally: " + FACTS.testsFrontend + " frontend tests and " + FACTS.testsBackend + " backend tests, " + FACTS.tests + " in total, all passing at the time this page was written.")
         ]}
       ],
-      { related: ["capture", "cli", "changelog"], prereq: ["capture"], next: "shell" })
+      { related: ["capture", "cli", "changelog"], prereq: ["capture"], next: "site" }),
+    /* ------------------------------------------------------ 21. this site */
+    a("site", "This site, and why it carries the app's features", "Feature",
+      "Tabs with groups and four searches, a twelve-space colour translator, named presets exportable as a file, and a check that loads the real page.",
+      {
+        en: [
+          "The documentation site is held to the same standard as the application it documents.",
+          "The documentation site is held to the same standard as the application it documents.",
+          "This site is held to the same standard as the app it documents — the features are not just described here, they are here.",
+          "This site is held to the same standard as the app it documents. The features are not merely described on it; they are in it.",
+          "This site is held to the same standard as the app it documents. The features are not merely described on it — they are in it, and there is a test that opens the page to prove it."],
+        yue: [
+          "呢個文件站同佢介紹緊嗰個 app 用同一個標準。",
+          "呢個文件站同佢介紹緊嗰個 app 用同一個標準。",
+          "呢個站同佢寫緊嗰個 app 同一標準 —— 啲功能唔止寫喺度，係真係喺度。",
+          "呢個站同佢寫緊嗰個 app 同一標準。啲功能唔係淨係寫喺上面，係真係做咗喺入面。",
+          "呢個站同佢寫緊嗰個 app 同一標準。啲功能唔係淨係寫喺上面 —— 係真係做咗喺入面，仲有個測試會開個頁面驗證。"]
+      },
+      [
+        { h: "Behaviour", blocks: [
+          p("**Tabs, with everything a tab strip is supposed to have.** Pinning into a stable region, an overflow surface that never swallows the tab you are reading, reordering with <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>←</kbd>/<kbd>→</kbd> within the tab's own region, and groups you can name, colour, collapse and dissolve. Dissolving a group keeps every tab in it — the tabs are this site's sections and there is nothing to close."),
+          p("**Four tab-discovery searches, not one reused four times:** this strip, inside one group, groups by name, and every tab everywhere. Each keeps its own query, pattern, flags and mode, and each has its own regex builder that writes back into the field that opened it. A shared one silently applies the last query you typed to whichever surface you open next."),
+          p("Every result says where it lives — which group, whether it is pinned, whether that group is collapsed. A result you cannot locate is a result you cannot act on. Revealing a result inside a collapsed group expands it and says so, rather than scrolling to something invisible."),
+          p("**A twelve-space colour translator**, matching the app's: HEX, HEX8, RGB, RGBA, HSL, HSV, HWB, LAB, LCH, OKLab, OKLCH and CMYK, plus the named colours when one matches. Alpha travels rather than being dropped — a lost alpha is indistinguishable from a colour that never had one. One field reads all of them back, in both the legacy comma form and the modern space-with-slash-alpha form."),
+          p("**Named presets**, saved by name and exported to a real file. The point of a preset is surviving a reinstall and being shared; a clipboard blob with nowhere to paste it back satisfies neither. A preset holds theme, accent, font, font scale and density — the look, not which page you happen to be reading.")
+        ]},
+        { h: "Configuration", blocks: [
+          p("Everything persists in `localStorage` per visitor: theme, accent, font, font scale, density, language mode, both funny levels, the dim sum toggle, which tab is open, which tabs are pinned, the manual tab order, every group with its name, colour, collapsed state and membership, and the saved presets."),
+          p("A group that forgets it was collapsed the moment you reload is a decoration rather than a feature, which is why collapsed state is stored alongside the rest."),
+          p("The stored tab order is reconciled against the real tab list on every read: a tab added by a later build is not in an order written months ago, and one that has since been removed still is.")
+        ]},
+        { h: "Failure modes", blocks: [
+          ul([
+            "**An imported file that is not an appearance document.** Refused by `format`, naming what was expected and what was found. Nothing is applied.",
+            "**An imported preset carrying a setting this build has no idea about.** Named in the report with the reason, never written blindly into preferences. A theme that quietly loses half its settings is worse than one that refuses outright, because there is no way to tell which half went.",
+            "**A colour in a notation the translator cannot read.** Refused, with the list of the twelve it does read. The field keeps what you typed rather than swallowing it mid-keystroke.",
+            "**A regular expression that would take too long.** The same bounded engine as everywhere else on this page, with the same refusals — so what matches in the builder is what matches in the search beside it.",
+            "**No groups yet, and you open the group search.** A message saying how to make one, rather than an empty list that looks broken."
+          ])
+        ]},
+        { h: "Security considerations", blocks: [
+          p("Every asset is local. No CDN script, no external stylesheet, no remote font, no third-party image, no analytics and no tracking — the same prohibition the app is under. A CI check fails the build when the site's copies drift from the repository's, and it has already caught exactly that."),
+          p("Preferences and presets are strings in this browser's `localStorage`. Nothing is transmitted, and an exported file is written by your own click to a location you choose."),
+          p("Regular expressions are evaluated locally under the same pattern, sample, match-count and time bounds the app uses.")
+        ]},
+        { h: "How to verify it", blocks: [
+          code("node tools/check-site.mjs\n# → tabs rendered      6\n# → find-tabs entries  4 — Search this tab strip… | Search inside a group… | …\n# → colour notations   12 — HEX HEX8 RGB RGBA HSL HSV HWB LAB LCH OKLAB OKLCH CMYK\n# → preset controls    4/4\n# → console errors     0\n# → SITE CHECK PASSED"),
+          p("It loads the exact bytes GitHub Pages serves, in a real browser, and fails on a console error, a strip that did not render, a missing required control, a translator offering fewer than twelve notations, or a Find-tabs menu offering fewer than four searches."),
+          p("Before this existed, the site's entire evidence was that its files parsed. `node --check` proves a file parses and says nothing whatever about whether the page boots — which is how a menu that opened and closed on the same click went unnoticed until something actually clicked it.")
+        ]}
+      ],
+      { related: ["tabs", "appearance", "regex", "language"], prereq: [], next: "capture" }),
   ];
 
   /* ------------------------------------------------------------ screenshots
