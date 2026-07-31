@@ -222,12 +222,22 @@ jobs:
           # useful the moment Studio is installed; the app still prefers the user's
           # own `codex` whenever one is on PATH.
           node tools/fetch-codex.mjs
+          # The warning below was unreachable on the failure it exists for. GitHub's
+          # pwsh shell appends `if ((Test-Path variable:\LASTEXITCODE)) { exit
+          # $LASTEXITCODE }`, so a non-zero exit from node ended the STEP — and with it
+          # the whole release job — before anything here could decide to ship without a
+          # bundled CLI. A registry hiccup took the release down with it.
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::warning::fetch-codex.mjs exited $LASTEXITCODE. Continuing: a missing bundled CLI is a smaller release than none at all."
+          }
           if (Test-Path vendor/codex-bin/bin/codex.exe) {
             Add-Content -Path $env:GITHUB_OUTPUT -Value 'bundled=true'
           } else {
             Write-Host "::warning::No CLI staged; the installer will require the user to already have Codex installed."
             Add-Content -Path $env:GITHUB_OUTPUT -Value 'bundled=false'
           }
+          # Explicit, because the appended exit check reads whatever this is left at.
+          $global:LASTEXITCODE = 0
 
       - name: Full smoke test
         # Runs here, not in the test job: that one installs with --ignore-scripts, so

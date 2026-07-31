@@ -2803,6 +2803,83 @@
         "旁白開咗喇，你會聽到佢逐句讀返 app 度發生嘅事。",
         "旁白開咗喇，你會聽到佢逐句讀返 app 度發生嘅事 —— 呢句就係第一句。"]
     },
+/* The regex builder — the surface every search bar in the app is required to expose,
+   and the last one still rendering English in every language mode. The engine note
+   carries real limits and names the engine; those numbers are identical at level 1 and
+   level 5, because a user reading them is deciding whether their pattern will fit. */
+
+    "search.builderTitle": {
+      en: ["Regex builder", "Regex builder", "Regex builder", "Regex builder", "Regex builder"],
+      yue: ["Regex 產生器", "Regex 產生器", "Regex 產生器", "砌 regex", "砌 regex"]
+    },
+    "search.sampleHint": {
+      en: ["Sample — the values this field filters", "Sample — the values this field filters", "Sample — the values this field filters", "Sample — what this field is actually filtering", "Sample — what this field is actually filtering"],
+      yue: ["樣本 —— 呢個欄位篩緊嘅值", "樣本 —— 呢個欄位篩緊嘅值", "樣本 —— 呢個欄篩緊嘅值", "樣本 —— 呢個欄真正喺度篩嗰啲值", "樣本 —— 呢個欄真正喺度篩嗰啲值"]
+    },
+    "search.anchoredTo": {
+      en: ["Anchored to the {target} — Apply syncs pattern, flags and mode back into that field only.",
+        "Anchored to the {target} — Apply syncs pattern, flags and mode back into that field only.",
+        "Anchored to the {target}. Apply syncs the pattern, flags and mode back into that field only.",
+        "Anchored to the {target}. Apply pushes the pattern, flags and mode back into that field — and no other.",
+        "Anchored to the {target}. Apply pushes the pattern, flags and mode back into that field — and into no other, however many are on screen."],
+      yue: ["扣住「{target}」—— 撳 Apply 會將 pattern、flag 同模式同步返去嗰個欄，唔會影響其他。",
+        "扣住「{target}」—— 撳 Apply 會將 pattern、flag 同模式同步返去嗰個欄，唔會影響其他。",
+        "扣住「{target}」。撳 Apply 會將 pattern、flag 同模式同步返去嗰個欄，唔會掂其他。",
+        "扣住「{target}」。撳 Apply 就將 pattern、flag 同模式推返落嗰個欄 —— 得嗰個。",
+        "扣住「{target}」。撳 Apply 就將 pattern、flag 同模式推返落嗰個欄 —— 得嗰個，畫面有幾多個都唔關事。"]
+    },
+    "search.engineNote": {
+      en: ["Engine: JavaScript RegExp — the same engine that filters these lists. Limits: pattern {pattern} chars, sample {sample} chars, {matches} matches, {ms} ms. Nothing is persisted or sent anywhere.",
+        "Engine: JavaScript RegExp — the same engine that filters these lists. Limits: pattern {pattern} chars, sample {sample} chars, {matches} matches, {ms} ms. Nothing is persisted or sent anywhere.",
+        "Engine: JavaScript RegExp — the same one that filters these lists. Limits: pattern {pattern} chars, sample {sample} chars, {matches} matches, {ms} ms. Nothing is persisted or sent anywhere.",
+        "Engine: JavaScript RegExp — the very one filtering these lists. Limits: pattern {pattern} chars, sample {sample} chars, {matches} matches, {ms} ms. Nothing is persisted and nothing leaves this machine.",
+        "Engine: JavaScript RegExp — the very one filtering these lists, so what you see here is what you will get. Limits: pattern {pattern} chars, sample {sample} chars, {matches} matches, {ms} ms. Nothing is persisted and nothing leaves this machine."],
+      yue: ["引擎：JavaScript RegExp —— 同篩呢啲清單嗰個一模一樣。上限：pattern {pattern} 字、樣本 {sample} 字、{matches} 個match、{ms} 毫秒。唔會儲低，亦唔會送去任何地方。",
+        "引擎：JavaScript RegExp —— 同篩呢啲清單嗰個一模一樣。上限：pattern {pattern} 字、樣本 {sample} 字、{matches} 個match、{ms} 毫秒。唔會儲低，亦唔會送去任何地方。",
+        "引擎：JavaScript RegExp —— 就係篩緊呢啲清單嗰個。上限：pattern {pattern} 字、樣本 {sample} 字、{matches} 個 match、{ms} 毫秒。唔會儲低，唔會送出去。",
+        "引擎：JavaScript RegExp —— 就係而家篩緊呢啲清單嗰個。上限：pattern {pattern} 字、樣本 {sample} 字、{matches} 個 match、{ms} 毫秒。唔會儲低，亦唔會離開你部機。",
+        "引擎：JavaScript RegExp —— 就係而家篩緊呢啲清單嗰個，所以你喺度睇到咩就係咩。上限：pattern {pattern} 字、樣本 {sample} 字、{matches} 個 match、{ms} 毫秒。唔會儲低，亦唔會離開你部機。"]
+    },
+    "search.targetList": {
+      en: ["sidebar search", "sidebar search", "sidebar search", "sidebar search", "sidebar search"],
+      yue: ["側欄搜尋", "側欄搜尋", "側欄搜尋", "側欄搜尋", "側欄搜尋"]
+    },
+    "search.targetExt": {
+      en: ["extensions filter", "extensions filter", "extensions filter", "extensions filter", "extensions filter"],
+      yue: ["擴充功能篩選", "擴充功能篩選", "擴充功能篩選", "擴充功能篩選", "擴充功能篩選"]
+    },
+    "search.targetSet": {
+      en: ["settings filter", "settings filter", "settings filter", "settings filter", "settings filter"],
+      yue: ["設定篩選", "設定篩選", "設定篩選", "設定篩選", "設定篩選"]
+    },
+    "search.targetSlash": {
+      en: ["command catalog search", "command catalog search", "command catalog search", "command catalog search", "command catalog search"],
+      yue: ["指令目錄搜尋", "指令目錄搜尋", "指令目錄搜尋", "指令目錄搜尋", "指令目錄搜尋"]
+    },
+    "search.targetDd": {
+      en: ["dropdown option filter", "dropdown option filter", "dropdown option filter", "dropdown option filter", "dropdown option filter"],
+      yue: ["下拉選項篩選", "下拉選項篩選", "下拉選項篩選", "下拉選項篩選", "下拉選項篩選"]
+    },
+    "search.targetPalette": {
+      en: ["command palette", "command palette", "command palette", "command palette", "command palette"],
+      yue: ["指令面板", "指令面板", "指令面板", "指令面板", "指令面板"]
+    },
+    "search.targetClog": {
+      en: ["changelog search", "changelog search", "changelog search", "changelog search", "changelog search"],
+      yue: ["更新紀錄搜尋", "更新紀錄搜尋", "更新紀錄搜尋", "更新紀錄搜尋", "更新紀錄搜尋"]
+    },
+    "search.targetHist": {
+      en: ["history search", "history search", "history search", "history search", "history search"],
+      yue: ["歷史搜尋", "歷史搜尋", "歷史搜尋", "歷史搜尋", "歷史搜尋"]
+    },
+    "search.targetStudio": {
+      en: ["settings search", "settings search", "settings search", "settings search", "settings search"],
+      yue: ["設定搜尋", "設定搜尋", "設定搜尋", "設定搜尋", "設定搜尋"]
+    },
+    "search.targetBulk": {
+      en: ["bulk-close match text", "bulk-close match text", "bulk-close match text", "bulk-close match text", "bulk-close match text"],
+      yue: ["批次關閉比對文字", "批次關閉比對文字", "批次關閉比對文字", "批次關閉比對文字", "批次關閉比對文字"]
+    },
   };
 
   function resolve(key, mode, funny) {

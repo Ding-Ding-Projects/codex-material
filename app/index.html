@@ -201,7 +201,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary) !
       <div style="padding:10px 12px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--m3-outline-variant)">
         <div data-appear="Sidebar search" data-anchor="list" style="display:flex;align-items:center;gap:6px;height:40px;padding:0 6px 0 14px;border-radius:20px;background:var(--m3-surface-container);border:1px solid {{ listBorder }}">
           <input value="{{ listQuery }}" onInput="{{ setListQuery }}" onContextMenu="{{ listSearchMenu }}" placeholder="{{ listPlaceholder }}" aria-label="{{ listPlaceholder }}" style="flex:1;min-width:0;min-height:26px;border:none;background:transparent;font-size:13px" />
-          <button onClick="{{ openListRegex }}" title="Open the anchored regex builder for this search" style="flex:0 0 auto;height:26px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ listRegexBg }};color:{{ listRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+          <button onClick="{{ openListRegex }}" title="{{ regexBuilderHint }}" style="flex:0 0 auto;height:26px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ listRegexBg }};color:{{ listRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
         </div>
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
           <div style="font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--m3-on-surface-variant);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ listTitle }}</div>
@@ -314,7 +314,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary) !
             <div data-appear="Filter bar" data-anchor="ext" style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;row-gap:6px;min-height:42px;padding:0 6px 0 16px;border-radius:21px;background:var(--m3-surface-container);border:1px solid {{ extBorder }}">
               <input value="{{ extQuery }}" onInput="{{ setExtQuery }}" onContextMenu="{{ extSearchMenu }}" placeholder="{{ extPlaceholder }}" aria-label="{{ extPlaceholder }}" style="flex:1 1 160px;min-width:24px;min-height:26px;border:none;background:transparent;outline:none;font-size:13px" />
               <span style="flex:0 0 auto;font-size:11px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ extCount }}</span>
-              <button onClick="{{ openExtRegex }}" title="Open the anchored regex builder for this filter" style="flex:0 0 auto;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ extRegexBg }};color:{{ extRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+              <button onClick="{{ openExtRegex }}" title="{{ regexBuilderHint }}" style="flex:0 0 auto;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ extRegexBg }};color:{{ extRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
             </div>
             <sc-for list="{{ extRows }}" as="x" hint-placeholder-count="5">
               <div onContextMenu="{{ x.context }}" data-appear="Extension card" style="background:var(--m3-surface-container);border:1px solid var(--m3-outline-variant);border-radius:18px;padding:13px 16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;min-width:0">
@@ -339,7 +339,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary) !
             <div data-appear="Filter bar" data-anchor="set" style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;row-gap:6px;min-height:42px;padding:0 6px 0 16px;border-radius:21px;background:var(--m3-surface-container);border:1px solid {{ setBorder }}">
               <input value="{{ setQuery }}" onInput="{{ setSetQuery }}" onContextMenu="{{ setSearchMenu }}" placeholder="{{ setPlaceholder }}" aria-label="{{ setPlaceholder }}" style="flex:1 1 160px;min-width:24px;min-height:26px;border:none;background:transparent;outline:none;font-size:13px" />
               <span style="flex:0 0 auto;font-size:11px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ setCount }}</span>
-              <button onClick="{{ openSetRegex }}" title="Open the anchored regex builder for this filter" style="flex:0 0 auto;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ setRegexBg }};color:{{ setRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+              <button onClick="{{ openSetRegex }}" title="{{ regexBuilderHint }}" style="flex:0 0 auto;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ setRegexBg }};color:{{ setRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
             </div>
 
             <sc-if value="{{ showYoloCard }}" hint-placeholder-val="{{ false }}">
@@ -645,7 +645,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary) !
                 <span style="flex:0 0 auto;font-family:'Roboto Mono',monospace;font-size:13px;color:var(--m3-primary)">/</span>
                 <input value="{{ slashQuery }}" onInput="{{ setSlashQuery }}" onContextMenu="{{ slashSearchMenu }}" placeholder="{{ slashPlaceholder }}" aria-label="{{ slashPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:13px" />
                 <span style="flex:0 0 auto;font-size:11px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ slashCount }}</span>
-                <button onClick="{{ openSlashRegex }}" title="Open the anchored regex builder for the command catalog" style="flex:0 0 auto;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ slashRegexBg }};color:{{ slashRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+                <button onClick="{{ openSlashRegex }}" title="{{ regexBuilderHint }}" style="flex:0 0 auto;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ slashRegexBg }};color:{{ slashRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
               </div>
               <sc-if value="{{ slashListView }}" hint-placeholder-val="{{ true }}">
                 <div style="flex:1;min-height:0;max-height:340px;overflow:auto;padding:8px">
@@ -724,7 +724,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary) !
           <span style="flex:0 0 auto;color:var(--m3-on-surface-variant);font-size:14px">⌕</span>
           <input value="{{ paletteQuery }}" onInput="{{ setPaletteQuery }}" onContextMenu="{{ paletteSearchMenu }}" placeholder="{{ palettePlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:15px" />
           <span style="flex:0 0 auto;font-size:11px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ paletteCount }}</span>
-          <button onClick="{{ openPaletteRegex }}" title="Search the palette with the regex builder" style="flex:0 0 auto;height:30px;padding:0 11px;border-radius:15px;border:1px solid var(--m3-outline-variant);background:{{ paletteRegexBg }};color:{{ paletteRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
+          <button onClick="{{ openPaletteRegex }}" title="{{ regexBuilderHint }}" style="flex:0 0 auto;height:30px;padding:0 11px;border-radius:15px;border:1px solid var(--m3-outline-variant);background:{{ paletteRegexBg }};color:{{ paletteRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:11px">.*</button>
         </div>
         <div style="flex:1;overflow:auto;padding:8px">
           <sc-for list="{{ paletteRows }}" as="r" hint-placeholder-count="6">
@@ -748,7 +748,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary) !
       <div data-anchor="dd" style="flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px 8px 8px 14px;border-bottom:1px solid var(--m3-outline-variant)">
         <input value="{{ ddQuery }}" onInput="{{ setDdQuery }}" onContextMenu="{{ ddSearchMenu }}" placeholder="{{ ddPlaceholder }}" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:12.5px" />
         <span style="flex:0 0 auto;font-size:10.5px;color:var(--m3-on-surface-variant);white-space:nowrap">{{ ddCount }}</span>
-        <button onClick="{{ openDdRegex }}" title="Filter these options with the regex builder" style="flex:0 0 auto;height:26px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ ddRegexBg }};color:{{ ddRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:10.5px">.*</button>
+        <button onClick="{{ openDdRegex }}" title="{{ regexBuilderHint }}" style="flex:0 0 auto;height:26px;padding:0 9px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:{{ ddRegexBg }};color:{{ ddRegexFg }};cursor:pointer;font-family:'Roboto Mono',monospace;font-size:10.5px">.*</button>
       </div>
       <div style="flex:1;max-height:300px;overflow:auto;padding:6px">
         <sc-for list="{{ ddRows }}" as="o" hint-placeholder-count="4">
@@ -769,7 +769,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary) !
     <div onClick="{{ stop }}" data-appear="Regex builder" style="position:fixed;top:{{ regexTop }};left:{{ regexLeft }};width:480px;max-width:calc(100vw - 24px);max-height:70vh;overflow:auto;background:var(--m3-surface-high);border:1px solid var(--m3-outline-variant);border-radius:20px;padding:16px 18px;box-shadow:0 18px 44px rgba(0,0,0,.5);z-index:99">
       <div style="display:flex;align-items:flex-start;gap:10px">
         <div style="flex:1;min-width:0">
-          <div style="font-size:15px;font-weight:500">Regex builder</div>
+          <div style="font-size:15px;font-weight:500">{{ regexBuilderTitle }}</div>
           <div style="font-size:11.5px;color:var(--m3-on-surface-variant);margin-top:2px;line-height:1.5">{{ regexTargetLabel }}</div>
         </div>
         <button onClick="{{ closeRegex }}" style="flex:0 0 auto;width:30px;height:30px;border-radius:15px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px">✕</button>
@@ -801,7 +801,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary) !
       </div>
 
       <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--m3-on-surface-variant)">Sample — the values this field filters</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--m3-on-surface-variant)">{{ regexSampleHint }}</div>
         <textarea value="{{ regexSample }}" onInput="{{ setRegexSample }}" rows="4" style="border-radius:11px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:9px 11px;font-family:'Roboto Mono',monospace;font-size:12px;outline:none;resize:vertical"></textarea>
         <div style="font-size:11.5px;color:{{ regexStatusFg }};line-height:1.5">{{ regexStatus }}</div>
         <div style="border-radius:11px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:8px 11px;font-family:'Roboto Mono',monospace;font-size:12px;line-height:1.8;max-height:140px;overflow:auto">
@@ -814,7 +814,7 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary) !
       <div style="display:flex;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap">
         <div style="flex:1 1 200px;min-width:0;font-size:10.5px;color:var(--m3-on-surface-variant);line-height:1.5">{{ regexEngineNote }}</div>
         <button onClick="{{ copyRegex }}" style="flex:0 0 auto;height:32px;padding:0 14px;border-radius:16px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px">{{ copyRegexLabel }}</button>
-        <button onClick="{{ applyRegex }}" style="flex:0 0 auto;height:36px;padding:0 20px;border:none;border-radius:18px;background:var(--m3-primary);color:var(--m3-on-primary);cursor:pointer;font-size:12.5px;font-weight:500">Apply</button>
+        <button onClick="{{ applyRegex }}" style="flex:0 0 auto;height:36px;padding:0 20px;border:none;border-radius:18px;background:var(--m3-primary);color:var(--m3-on-primary);cursor:pointer;font-size:12.5px;font-weight:500">{{ regexApplyLabel }}</button>
       </div>
     </div>
   </sc-if>
@@ -2925,7 +2925,21 @@ class Component extends DCLogic {
       regexOpen: st.regexOpen,
       regexTop: st.regexAt.y + "px",
       regexLeft: st.regexAt.x + "px",
-      regexTargetLabel: "Anchored to the " + (st.regexTarget === "ext" ? "extensions filter" : st.regexTarget === "set" ? "settings filter" : st.regexTarget === "slash" ? "command catalog search" : st.regexTarget === "dd" ? "dropdown option filter" : st.regexTarget === "palette" ? "command palette" : "sidebar search") + " — Apply syncs pattern, flags and mode back into that field only.",
+      /* Every target openRegexFor() is actually called with, not the five it used to
+         branch on — the changelog, history, Studio and bulk-close builders all
+         described themselves as the sidebar search. */
+      regexTargetLabel: CX.i18n.t("search.anchoredTo", {
+        target: CX.i18n.t({
+          list: "search.targetList", ext: "search.targetExt", set: "search.targetSet",
+          slash: "search.targetSlash", dd: "search.targetDd", palette: "search.targetPalette",
+          clog: "search.targetClog", hist: "search.targetHist", studio: "search.targetStudio",
+          bulk: "search.targetBulk"
+        }[st.regexTarget] || "search.targetList")
+      }),
+      regexBuilderTitle: CX.i18n.t("search.builderTitle"),
+      regexSampleHint: CX.i18n.t("search.sampleHint"),
+      regexApplyLabel: CX.i18n.t("act.apply"),
+      regexBuilderHint: CX.i18n.t("search.builder"),
       regexPattern: st.regexPattern,
       setRegexPattern: (e) => this.setState({ regexPattern: e.target.value }),
       regexFlagString: st.regexFlags.join(""),
@@ -2949,7 +2963,7 @@ class Component extends DCLogic {
         key: i, index: String(m.index), text: m.text === "" ? "∅ zero-width" : m.text,
         groups: m.groups.length ? "( " + m.groups.map((x) => (x == null ? "–" : x)).join(" | ") + " )" : ""
       })),
-      regexEngineNote: "Engine: JavaScript RegExp — the same engine that filters these lists. Limits: pattern " + CX.LIMITS.pattern + " chars, sample " + CX.LIMITS.sample + " chars, " + CX.LIMITS.matches + " matches, " + CX.LIMITS.ms + " ms. Nothing is persisted or sent anywhere.",
+      regexEngineNote: CX.i18n.t("search.engineNote", { pattern: CX.LIMITS.pattern, sample: CX.LIMITS.sample, matches: CX.LIMITS.matches, ms: CX.LIMITS.ms }),
       copyRegexLabel: st.copiedRegex ? "Copied" : "Copy",
       copyRegex: () => { navigator.clipboard.writeText("/" + st.regexPattern + "/" + st.regexFlags.join("")); this.setState({ copiedRegex: true }); setTimeout(() => this.setState({ copiedRegex: false }), 1400); },
       closeRegex: () => this.setState({ regexOpen: false }),
