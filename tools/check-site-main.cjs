@@ -10,9 +10,18 @@
  */
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
+const os = require("os");
+const fs = require("fs");
 
 const ROOT = path.resolve(__dirname, "..");
 const PAGE = path.join(ROOT, "docs", "site", "index.html");
+
+/* A fresh profile per run. Electron persists localStorage between runs in its default
+   userData directory, and this page stores every preference there — so a run inherited
+   whatever the last one left behind, and reported "matches that pattern" for a plain-text
+   search because a previous session had switched regex on. A check whose result depends
+   on what a previous check happened to do is not a check. */
+app.setPath("userData", fs.mkdtempSync(path.join(os.tmpdir(), "cxs-site-check-")));
 
 /** Controls the shared instructions require a user-facing surface to carry. Each is a
  *  selector plus what it is, so a failure names the requirement rather than a CSS
@@ -130,8 +139,40 @@ app.on("ready", async () => {
     return out;
   })()`);
 
+  /* The settings search, driven: type something that matches one row, confirm the
+     others are hidden and the count is honest, then clear and confirm they come back.
+     The instructions require a search on every adjustment surface, and a search bar
+     that filters nothing looks identical to one that does. */
+  const setSearch = await win.webContents.executeJavaScript(`(() => {
+    const out = { present: false, filtered: false, restored: false, meta: "", error: null };
+    try {
+      const field = document.getElementById("setq");
+      if (!field) { out.error = "the settings surface has no search bar"; return out; }
+      out.present = true;
+      const rows = () => document.querySelectorAll(".setrow");
+      const visible = () => Array.prototype.filter.call(rows(), (r) => !r.hidden).length;
+      const before = visible();
+      field.value = "density";
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      const after = visible();
+      out.filtered = after > 0 && after < before;
+      const meta = document.querySelector("#panel-settings .searchmeta");
+      out.meta = meta ? meta.textContent.trim() : "";
+      field.value = "";
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      out.restored = visible() === before;
+    } catch (e) { out.error = String(e && e.message || e); }
+    return out;
+  })()`);
+
   let failedEarly = false;
   const lines = [];
+  lines.push(`settings search    ${setSearch.present ? "present" : "MISSING"}, ${setSearch.filtered ? "filters" : "DOES NOT FILTER"}, ${setSearch.restored ? "restores" : "DOES NOT RESTORE"}`);
+  if (setSearch.meta) lines.push(`  it reported       ${setSearch.meta}`);
+  if (setSearch.error || !setSearch.present || !setSearch.filtered || !setSearch.restored) {
+    lines.push(`\nthe settings search did not filter and restore${setSearch.error ? " — " + setSearch.error : ""}`);
+    failedEarly = true;
+  }
   lines.push(`appearance targets ${appear.targets}`);
   lines.push(`override applied   ${appear.applied ? "yes" : "NO"}${appear.error ? " — " + appear.error : ""}`);
   lines.push(`override cleared   ${appear.cleared ? "yes" : "NO"}`);

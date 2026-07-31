@@ -1923,11 +1923,117 @@
   }
 
   /* ------------------------------------------------------------- settings */
+
+  /* ------------------------------------------------- the settings search
+     Every adjustment surface carries its own search bar wired to the same regex
+     builder — the instructions are explicit, and "it is a short page, just scroll"
+     is not an answer for a reader who knows a setting's name but not which card it
+     is on. This searches each row's own label, description AND current value, so
+     typing "oklch" finds the accent picker and typing "cosy" finds the density row
+     by what it is set to rather than by what it is called. */
+
+  function settingsSearchBar(panel) {
+    var state = { q: "", regex: !!prefs.regex };
+
+    var wrap = el("div", { "class": "field", style: "margin:10px 0 4px", "data-appear": "Settings search" });
+    wrap.appendChild(el("span", { "aria-hidden": "true" }, "🔍"));
+    var input = el("input", {
+      type: "search", id: "setq", autocomplete: "off", spellcheck: "false",
+      "aria-label": "Search settings", placeholder: "Search settings by name, description or current value…"
+    });
+    var mode = el("button", {
+      type: "button", "class": "icon-btn", "aria-pressed": state.regex ? "true" : "false",
+      title: "Use this query as a regular expression. Plain text is the default."
+    }, ".*");
+    var open = el("button", { type: "button", "class": "icon-btn", title: "Open the regex builder for this search" }, "⚙");
+    var clear = el("button", { type: "button", "class": "icon-btn", title: "Clear the settings search" }, "✕");
+    wrap.appendChild(input);
+    wrap.appendChild(mode);
+    wrap.appendChild(open);
+    wrap.appendChild(clear);
+
+    var meta = el("p", { "class": "searchmeta", role: "status", "aria-live": "polite" });
+
+    function apply() {
+      var rows = panel.querySelectorAll(".setrow");
+      var cards = panel.querySelectorAll(".card");
+      var shown = 0, total = rows.length;
+      Array.prototype.forEach.call(rows, function (row) {
+        /* Label, description and the control's current value together: a reader who
+           knows a setting only by what it is set to should still find it. */
+        var hay = row.textContent + " " + Array.prototype.map.call(
+          row.querySelectorAll("input,select,button"),
+          function (c) { return (c.value || "") + " " + (c.getAttribute("aria-pressed") === "true" ? c.textContent : ""); }
+        ).join(" ");
+        var hit;
+        if (!state.q) { hit = true; }
+        else if (!state.regex) { hit = hay.toLowerCase().indexOf(state.q.toLowerCase()) !== -1; }
+        else {
+          var res = safeRegex(state.q, hay);
+          hit = res.ok && res.matches.length > 0;
+        }
+        row.hidden = !hit;
+        if (hit) { shown += 1; }
+      });
+      /* A card whose every row is hidden is hidden too, so the reader is not left
+         scrolling past empty headings looking for the match. */
+      Array.prototype.forEach.call(cards, function (card) {
+        var rowsIn = card.querySelectorAll(".setrow");
+        if (!rowsIn.length) { return; }
+        var any = Array.prototype.some.call(rowsIn, function (r) { return !r.hidden; });
+        card.hidden = !any;
+      });
+
+      if (!state.q) { meta.textContent = ""; return; }
+      if (!shown) {
+        /* Say plainly that nothing matched here — and that other surfaces exist, since
+           a setting the reader is hunting may live in the app rather than on this page. */
+        meta.textContent = "Nothing on this page matches “" + state.q + "”" +
+          (state.regex ? " as a regular expression." : " as plain text.") +
+          " The app's own Studio panel has settings this site does not.";
+        return;
+      }
+      meta.textContent = shown + " of " + total + " settings match" +
+        (state.regex ? " that pattern." : " that text.");
+    }
+
+    input.addEventListener("input", function () { state.q = input.value; apply(); });
+    mode.addEventListener("click", function () {
+      state.regex = !state.regex;
+      mode.setAttribute("aria-pressed", state.regex ? "true" : "false");
+      apply();
+    });
+    clear.addEventListener("click", function () {
+      state.q = "";
+      input.value = "";
+      state.regex = false;
+      mode.setAttribute("aria-pressed", "false");
+      apply();
+      input.focus();
+    });
+    /* Its own builder, writing back into this field — not the article search's. */
+    open.addEventListener("click", function () {
+      openRegexBuilder(state.q, function (pattern) {
+        state.q = pattern;
+        state.regex = true;
+        input.value = pattern;
+        mode.setAttribute("aria-pressed", "true");
+        apply();
+      });
+    });
+
+    return { wrap: wrap, meta: meta, apply: apply };
+  }
+
   function renderSettings(panel) {
     panel.appendChild(el("h2", { "class": "section-title" }, "Settings"));
     panel.appendChild(el("p", { "class": "section-note" },
       "Everything here is stored in this browser's localStorage under the `cxs.` prefix and persists across reloads. " +
       "Nothing is sent anywhere; there is nowhere to send it to."));
+
+    var setSearch = settingsSearchBar(panel);
+    panel.appendChild(setSearch.wrap);
+    panel.appendChild(setSearch.meta);
 
     /* ---- appearance ---- */
     var look = el("div", { "class": "card" });
