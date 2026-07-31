@@ -1,5 +1,5 @@
 {
-  "startedAt": "2026-07-31T04:02:08.038Z",
+  "startedAt": "2026-07-31T04:07:04.985Z",
   "cli": {
     "resolvedFrom": "installed on this machine",
     "bundled": false,
@@ -12,13 +12,13 @@
     {
       "name": "codex_version",
       "status": "ok",
-      "ms": 69,
+      "ms": 76,
       "shape": "object"
     },
     {
       "name": "codex_state",
       "status": "ok",
-      "ms": 223,
+      "ms": 218,
       "shape": "object"
     },
     {
@@ -48,13 +48,13 @@
     {
       "name": "codex_config_restore",
       "status": "ok",
-      "ms": 1,
+      "ms": 2,
       "shape": "object"
     },
     {
       "name": "codex_run",
       "status": "ok",
-      "ms": 86,
+      "ms": 91,
       "shape": "object"
     },
     {
@@ -66,85 +66,85 @@
     {
       "name": "codex_running",
       "status": "ok",
-      "ms": 1,
+      "ms": 0,
       "shape": "object"
     },
     {
       "name": "codex_capture",
       "status": "ok",
-      "ms": 493,
+      "ms": 452,
       "shape": "object"
     },
     {
       "name": "codex_doctor",
       "status": "ok",
-      "ms": 1140,
+      "ms": 1098,
       "shape": "object"
     },
     {
       "name": "codex_mcp_list",
       "status": "ok",
-      "ms": 73,
+      "ms": 69,
       "shape": "array(3)"
     },
     {
       "name": "codex_mcp_toggle",
       "status": "ok",
-      "ms": 76,
+      "ms": 69,
       "shape": "array(3)"
     },
     {
       "name": "codex_mcp_add",
       "status": "ok",
-      "ms": 161,
+      "ms": 135,
       "shape": "array(4)"
     },
     {
       "name": "codex_mcp_remove",
       "status": "ok",
-      "ms": 155,
+      "ms": 169,
       "shape": "array(3)"
     },
     {
       "name": "codex_plugin_list",
       "status": "ok",
-      "ms": 73,
+      "ms": 67,
       "shape": "array(0)"
     },
     {
       "name": "codex_plugin_catalog",
       "status": "ok",
-      "ms": 77,
+      "ms": 68,
       "shape": "array(0)"
     },
     {
       "name": "codex_plugin_install",
       "status": "refused",
-      "ms": 74,
+      "ms": 71,
       "error": "Error invoking remote method 'codex_plugin_install': Error: Error: plugin requires --marketplace unless passed as <plugin>@<marketplace>"
     },
     {
       "name": "codex_plugin_uninstall",
       "status": "refused",
-      "ms": 75,
+      "ms": 67,
       "error": "Error invoking remote method 'codex_plugin_uninstall': Error: Error: plugin requires --marketplace unless passed as <plugin>@<marketplace>"
     },
     {
       "name": "codex_marketplace_list",
       "status": "ok",
-      "ms": 71,
+      "ms": 65,
       "shape": "array(0)"
     },
     {
       "name": "codex_marketplace_add",
       "status": "refused",
-      "ms": 84,
+      "ms": 62,
       "error": "Error invoking remote method 'codex_marketplace_add': Error: error: unexpected argument 'https://example.invalid/smoke' found\n\nUsage: codex plugin marketplace add [OPTIONS] <SOURCE>\n\nFor more informat"
     },
     {
       "name": "codex_marketplace_remove",
       "status": "refused",
-      "ms": 70,
+      "ms": 63,
       "error": "Error invoking remote method 'codex_marketplace_remove': Error: Error: marketplace `__smoke_probe_absent` is not configured or installed"
     },
     {
@@ -173,25 +173,25 @@
     {
       "name": "codex_features",
       "status": "ok",
-      "ms": 77,
+      "ms": 65,
       "shape": "array(96)"
     },
     {
       "name": "codex_set_feature",
       "status": "ok",
-      "ms": 152,
+      "ms": 144,
       "shape": "array(96)"
     },
     {
       "name": "codex_usage",
       "status": "ok",
-      "ms": 2,
+      "ms": 4,
       "shape": "object"
     },
     {
       "name": "codex_cloud_tasks",
       "status": "ok",
-      "ms": 74,
+      "ms": 76,
       "shape": "object"
     },
     {
@@ -203,7 +203,7 @@
     {
       "name": "codex_session_action",
       "status": "refused",
-      "ms": 675,
+      "ms": 584,
       "error": "Error invoking remote method 'codex_session_action': Error: `codex archive 0f3c1a92-7b41-4d6e-9c02-51ab8e7d3f10` failed: Error: failed to archive session"
     },
     {
@@ -214,7 +214,7 @@
     {
       "name": "codex_login_status",
       "status": "ok",
-      "ms": 79,
+      "ms": 67,
       "shape": "object"
     },
     {
@@ -225,73 +225,73 @@
     {
       "name": "codex_wsl_list",
       "status": "ok",
-      "ms": 61,
+      "ms": 56,
       "shape": "object"
     },
     {
       "name": "codex_wsl_spawn",
       "status": "refused",
-      "ms": 64,
+      "ms": 94,
       "error": "Error invoking remote method 'codex_wsl_spawn': Error: `Ubuntu` is not an installed WSL distribution"
     },
     {
       "name": "codex_wsl_stop",
       "status": "ok",
-      "ms": 0,
+      "ms": 1,
       "shape": "object"
     },
     {
       "name": "codex_wsl_kill",
       "status": "ok",
-      "ms": 66,
+      "ms": 61,
       "shape": "object"
     },
     {
       "name": "codex_wsl_set",
       "status": "ok",
-      "ms": 59,
+      "ms": 60,
       "shape": "object"
     },
     {
       "name": "codex_wsl_exec",
       "status": "ok",
-      "ms": 2011,
+      "ms": 2158,
       "shape": "object"
     },
     {
       "name": "codex_history_commit",
       "status": "ok",
-      "ms": 284,
+      "ms": 271,
       "shape": "object"
     },
     {
       "name": "codex_history_log",
       "status": "ok",
-      "ms": 48,
+      "ms": 45,
       "shape": "object"
     },
     {
       "name": "codex_history_show",
       "status": "ok",
-      "ms": 72,
+      "ms": 49,
       "shape": "object"
     },
     {
       "name": "codex_history_diff",
       "status": "ok",
-      "ms": 56,
+      "ms": 45,
       "shape": "object"
     },
     {
       "name": "codex_history_prune",
       "status": "ok",
-      "ms": 51,
+      "ms": 50,
       "shape": "object"
     },
     {
       "name": "codex_editors",
       "status": "ok",
-      "ms": 1592,
+      "ms": 1586,
       "shape": "object"
     },
     {
@@ -313,7 +313,7 @@
     {
       "name": "codex_read_text",
       "status": "ok",
-      "ms": 0,
+      "ms": 1,
       "shape": "object"
     },
     {
@@ -335,7 +335,7 @@
   "panels": [
     {
       "nav": "chat",
-      "chars": 1049,
+      "chars": 861,
       "unresolved": 0,
       "controls": 31,
       "drove": null,
@@ -344,7 +344,7 @@
     },
     {
       "nav": "console",
-      "chars": 3351,
+      "chars": 3322,
       "unresolved": 0,
       "controls": 62,
       "drove": null,
@@ -353,7 +353,7 @@
     },
     {
       "nav": "ext",
-      "chars": 1072,
+      "chars": 569,
       "unresolved": 0,
       "controls": 30,
       "drove": null,
@@ -362,7 +362,7 @@
     },
     {
       "nav": "settings",
-      "chars": 2310,
+      "chars": 2281,
       "unresolved": 0,
       "controls": 49,
       "drove": null,
@@ -371,7 +371,7 @@
     },
     {
       "nav": "cost",
-      "chars": 2015,
+      "chars": 1619,
       "unresolved": 0,
       "controls": 49,
       "drove": null,
@@ -380,7 +380,7 @@
     },
     {
       "nav": "runtime",
-      "chars": 1609,
+      "chars": 1580,
       "unresolved": 0,
       "controls": 55,
       "drove": null,
@@ -389,7 +389,7 @@
     },
     {
       "nav": "health",
-      "chars": 1530,
+      "chars": 1469,
       "unresolved": 0,
       "controls": 22,
       "drove": null,
@@ -398,7 +398,7 @@
     },
     {
       "nav": "history",
-      "chars": 1398,
+      "chars": 1267,
       "unresolved": 0,
       "controls": 51,
       "drove": null,
@@ -407,7 +407,7 @@
     },
     {
       "nav": "changelog",
-      "chars": 29647,
+      "chars": 29499,
       "unresolved": 0,
       "controls": 28,
       "unresolvedInProse": 1,
@@ -417,7 +417,7 @@
     },
     {
       "nav": "studio",
-      "chars": 4610,
+      "chars": 1553,
       "unresolved": 0,
       "controls": 43,
       "drove": null,

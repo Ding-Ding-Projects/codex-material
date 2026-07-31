@@ -1608,7 +1608,10 @@ class Component extends DCLogic {
    *  user the second reading. */
   navHint(id) { return CX.i18n.t("nav." + id) + " — " + CX.i18n.t("nav." + id + ".hint"); }
   extTitle(id) { return CX.i18n.t("ext." + id); }
-  extSub(id) { return id === "features" ? DATA.FEATURES.length + " keys" : CX.i18n.t("ext." + id + ".sub"); }
+  /* Six of the seven categories had a translated .sub; "features" did not, and the
+     gap was papered over with an English literal that never followed the language
+     mode. It has its own key now, and the count rides in beside it. */
+  extSub(id) { return id === "features" ? DATA.FEATURES.length + " · " + CX.i18n.t("ext.featuresSub") : CX.i18n.t("ext." + id + ".sub"); }
 
   appearTargetName(key) {
     if (!key) return "";
@@ -1648,7 +1651,7 @@ class Component extends DCLogic {
   appearItem(e) {
     const host = e.target.closest ? e.target.closest("[data-appear]") : null;
     const name = host ? host.getAttribute("data-appear") : null;
-    return { key: "appear", icon: "🎨", label: name ? "Edit appearance — " + name : "Edit appearance…", click: () => this.openAppearFor(host) };
+    return { key: "appear", icon: "🎨", label: name ? CX.i18n.t("menu.editAppearanceFor", { name: name }) : CX.i18n.t("menu.editAppearance"), click: () => this.openAppearFor(host) };
   }
 
   openRegexFor(target, currentQuery) {
@@ -3645,7 +3648,7 @@ class Component extends DCLogic {
       bulkOpen: !!st.bulkOpen,
       bulkTitle: st.bulkInvert ? CX.i18n.t("tab.closeNotContaining") : CX.i18n.t("tab.closeContaining"),
       bulkSummary: preview && preview.ok
-        ? CX.i18n.t("tab.bulkSummary", { count: preview.matched.length, total: preview.total, mode: preview.mode === "regex" ? "regex" : "plain text" })
+        ? CX.i18n.t("tab.bulkSummary", { count: preview.matched.length, total: preview.total, mode: CX.i18n.t(preview.mode === "regex" ? "search.modeRegex" : "search.modePlain") })
         : CX.i18n.t("tab.bulkNeedsQuery"),
       bulkQuery: st.bulkQuery,
       setBulkQuery: (e) => this.setState({ bulkQuery: e.target.value, bulkRegex: null }),
@@ -4403,9 +4406,19 @@ class Component extends DCLogic {
     });
   }
 
+  /** The first build spelled two of these as booleans under different names, and
+   *  normalise() still reads them so an old document applies. That created a trap: the
+   *  Slant control writes `slant`, clearing it deletes `slant` — and normalise then
+   *  re-derived `slant: "italic"` from the `italic: true` still sitting beside it, so a
+   *  legacy italic could never be turned off. Writing the modern key retires the old
+   *  one it supersedes. */
   patchAppear(patch) {
+    const superseded = { slant: "italic", letterSpacing: "wide" };
     const appearance = Object.assign({}, this.state.appearance);
     const next = Object.assign({}, appearance[this.state.appearTarget] || {}, patch);
+    Object.keys(patch).forEach((k) => {
+      if (superseded[k]) delete next[superseded[k]];
+    });
     /* A cleared control removes its property rather than storing "". Otherwise every
        segmented control the user ever touched leaves a tombstone in the document, and
        an element restyled back to plain still exports a page of empty values. When

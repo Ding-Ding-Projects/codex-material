@@ -2892,6 +2892,26 @@
       en: ["{space} copied", "{space} copied", "{space} copied", "{space} is on the clipboard", "{space} is on the clipboard"],
       yue: ["已複製 {space}", "已複製 {space}", "copy 咗 {space}", "{space} 已經喺剪貼簿度", "{space} 已經喺剪貼簿度"]
     },
+/* The entry that opens the appearance editor, reused by every context menu in the app,
+   was building its label by string concatenation in English — while the key for the
+   named form already existed and was used in exactly one other place. */
+
+    "menu.editAppearance": {
+      en: ["Edit appearance…", "Edit appearance…", "Edit appearance…", "Restyle this…", "Restyle this…"],
+      yue: ["編輯外觀…", "編輯外觀…", "改吓個樣…", "改吓個樣…", "同佢換個樣…"]
+    },
+    "ext.featuresSub": {
+      en: ["Experimental switches read from config.toml", "Experimental switches read from config.toml", "Experimental switches, read from config.toml", "Experimental switches, straight out of config.toml", "Experimental switches, straight out of config.toml"],
+      yue: ["由 config.toml 讀出嚟嘅實驗性開關", "由 config.toml 讀出嚟嘅實驗性開關", "實驗性開關，喺 config.toml 度讀", "實驗性開關，直接喺 config.toml 度攞", "實驗性開關，直接喺 config.toml 度攞"]
+    },
+    "search.modePlain": {
+      en: ["plain text", "plain text", "plain text", "plain text", "plain text"],
+      yue: ["純文字", "純文字", "純文字", "純文字", "純文字"]
+    },
+    "search.modeRegex": {
+      en: ["regex", "regex", "regex", "regex", "regex"],
+      yue: ["regex", "regex", "regex", "regex", "regex"]
+    },
   };
 
   function resolve(key, mode, funny) {
