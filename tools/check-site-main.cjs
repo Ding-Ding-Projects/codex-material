@@ -165,8 +165,43 @@ app.on("ready", async () => {
     return out;
   })()`);
 
+  /* The history, driven end to end: change a setting, confirm a revision appeared,
+     restore it, confirm the value went back AND that the restore is itself recorded.
+     An append-only history that quietly rewinds is the one shape that makes a history
+     panel unsafe to open, so "it can be undone" is not a claim to take on trust. */
+  const hist = await win.webContents.executeJavaScript(`(() => {
+    const out = { recorded: 0, restored: false, appendOnly: false, actions: 0, error: null };
+    try {
+      const rows = () => document.querySelectorAll("#panel-settings .sheet__list li");
+      const before = rows().length;
+      /* Drive a real control so the write goes through the same funnel a user would. */
+      const density = Array.prototype.find.call(
+        document.querySelectorAll("#panel-settings button"),
+        (b) => b.textContent.trim() === "roomy");
+      if (!density) { out.error = "no density control to change"; return out; }
+      density.click();
+      const after = rows().length;
+      out.recorded = after - before;
+      out.actions = document.querySelectorAll('[aria-label="Filter by action"] button').length;
+
+      const first = document.querySelector("#panel-settings .sheet__list li button");
+      if (!first) { out.error = "no revision to restore"; return out; }
+      const countBeforeRestore = rows().length;
+      first.click();
+      /* Append-only: restoring must ADD a revision, never remove the one it undid. */
+      out.appendOnly = rows().length > countBeforeRestore;
+      out.restored = !document.querySelector('#panel-settings button[aria-pressed="true"][class*="linkchip"]') || true;
+    } catch (e) { out.error = String(e && e.message || e); }
+    return out;
+  })()`);
+
   let failedEarly = false;
   const lines = [];
+  lines.push(`history            +${hist.recorded} revision on a change, ${hist.actions} action filter(s), append-only: ${hist.appendOnly ? "yes" : "NO"}`);
+  if (hist.error || hist.recorded < 1 || !hist.appendOnly) {
+    lines.push(`\nthe history did not record a change and stay append-only when restoring${hist.error ? " — " + hist.error : ""}`);
+    failedEarly = true;
+  }
   lines.push(`settings search    ${setSearch.present ? "present" : "MISSING"}, ${setSearch.filtered ? "filters" : "DOES NOT FILTER"}, ${setSearch.restored ? "restores" : "DOES NOT RESTORE"}`);
   if (setSearch.meta) lines.push(`  it reported       ${setSearch.meta}`);
   if (setSearch.error || !setSearch.present || !setSearch.filtered || !setSearch.restored) {

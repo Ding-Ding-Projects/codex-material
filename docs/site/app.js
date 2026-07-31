@@ -69,7 +69,15 @@
     prefs.funnyYue = clamp(Math.round(Number(prefs.funnyYue) || 3), 1, 5);
     prefs.fontScale = clamp(Math.round(Number(prefs.fontScale) || 100), 80, 150);
   })();
-  function savePref(key, value) { prefs[key] = value; store.set(key, value); }
+  /* Every preference write is versioned here, at the one funnel they all pass
+     through — recording at each call site instead would mean a future one can forget,
+     which is exactly how the app's own snapshot came to be missing half of what it
+     owned. `history` itself is excluded, or writing the log would log the write. */
+  function savePref(key, value) {
+    if (key !== "history" && typeof record === "function") { record(key, prefs[key], value); }
+    prefs[key] = value;
+    store.set(key, value);
+  }
 
   function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
 
@@ -1924,6 +1932,186 @@
 
   /* ------------------------------------------------------------- settings */
 
+
+  /* ============================================================== history
+     Every preference this page owns is versioned. The instructions ask any app that
+     owns user records to let a mistake be undone, and a settings page is a record
+     store however small it looks — clearing an accent you spent five minutes choosing
+     is exactly the kind of loss an undo exists for.
+
+     Append-only. Restoring writes a NEW revision rather than rewinding, so an undo can
+     itself be undone, and then that undone in turn. A "restore" that discards the
+     branch it replaced is the one shape that makes a history panel unsafe to open. */
+
+  var historyRepaint = null;
+  var HISTORY_KEY = "history";
+  var HISTORY_KEEP = 200;
+
+  /* What each stored key is called, and which action it belongs to. A filter built
+     from a hard-coded list drifts the moment a preference is added; these come from
+     the log itself, and this is only how a row is labelled. */
+  var PREF_ACTIONS = {
+    theme: "appearance", accent: "appearance", font: "appearance", fontScale: "appearance",
+    density: "appearance", appearance: "appearance", presets: "preset",
+    lang: "language", funnyEn: "language", funnyYue: "language",
+    dimsum: "delight", regex: "search", regexFlags: "search",
+    tab: "navigation", pinned: "navigation", order: "navigation", groups: "navigation"
+  };
+
+  function history() {
+    if (!Array.isArray(prefs.history)) { prefs.history = []; }
+    return prefs.history;
+  }
+
+  function describe(key, before, after) {
+    var name = key === "appearance" ? "per-element appearance"
+      : key === "presets" ? "the named presets"
+      : key === "groups" ? "the tab groups"
+      : key === "pinned" ? "the pinned tabs"
+      : key === "order" ? "the tab order"
+      : "the " + key;
+    if (before === undefined || before === null || before === "") { return "Set " + name; }
+    if (after === undefined || after === null || after === "") { return "Cleared " + name; }
+    /* Say what it became when that is a value a person recognises. "Changed the theme"
+       is a worse record than "Theme set to dark" for exactly the reason the app's own
+       history rule gives: label a revision with what changed, not that something did. */
+    if (typeof after === "string" || typeof after === "number" || typeof after === "boolean") {
+      return name.charAt(0).toUpperCase() + name.slice(1) + " set to " + after;
+    }
+    return "Changed " + name;
+  }
+
+  function record(key, before, after) {
+    /* An unchanged write records nothing, so the panel stays a list of real events. */
+    if (JSON.stringify(before) === JSON.stringify(after)) { return; }
+    var log = history();
+    log.unshift({
+      at: Date.now(),
+      key: key,
+      action: PREF_ACTIONS[key] || "other",
+      label: describe(key, before, after),
+      before: before === undefined ? null : before
+    });
+    if (log.length > HISTORY_KEEP) { log.length = HISTORY_KEEP; }
+    prefs.history = log;
+    store.set(HISTORY_KEY, log);
+    if (typeof historyRepaint === "function") { historyRepaint(); }
+  }
+
+  function restoreRevision(index) {
+    var log = history();
+    var entry = log[index];
+    if (!entry) { return; }
+    var now = prefs[entry.key];
+    /* The restore is itself a write, so it goes through savePref and lands in the log
+       as its own revision. That is what makes an undo undoable. */
+    savePref(entry.key, entry.before);
+    applyAppearance();
+    applyElementAppearance();
+    renderActive();
+    toast("success", "Restored", entry.label + " — undone. This restore is itself a revision, so it can be undone too.",
+      { was: now });
+  }
+
+  /** Every action present in the log, with a count. Derived, never hard-coded: a list
+   *  of four over a log that records eight leaves half of them unreachable, and drifts
+   *  every time a new kind is added. */
+  function historyActions() {
+    var counts = {};
+    history().forEach(function (e) { counts[e.action] = (counts[e.action] || 0) + 1; });
+    return Object.keys(counts).sort().map(function (a) { return { id: a, n: counts[a] }; });
+  }
+
+  function renderHistory() {
+    var state = { from: "", to: "", actions: [], q: "" };
+
+    var card = el("div", { "class": "card", "data-appear": "History" });
+    card.appendChild(el("h3", { "class": "section-title", style: "font-size:1.05rem" }, "History"));
+    card.appendChild(el("p", { "class": "section-note" }, inline(
+      "Every preference change on this page, newest first, kept locally. Restoring writes a **new** revision rather " +
+      "than rewinding, so an undo can itself be undone. Nothing here leaves this browser.")));
+
+    var bar = el("div", { "class": "sheet__bar" });
+    var q = el("input", { type: "search", "class": "plain", "aria-label": "Search the history", placeholder: "Search…" });
+    var from = el("input", { type: "date", "class": "plain", "aria-label": "From date" });
+    var to = el("input", { type: "date", "class": "plain", "aria-label": "To date" });
+    bar.appendChild(q);
+    bar.appendChild(el("span", { "class": "section-note" }, "from"));
+    bar.appendChild(from);
+    bar.appendChild(el("span", { "class": "section-note" }, "to"));
+    bar.appendChild(to);
+    card.appendChild(bar);
+
+    var chips = el("div", { "class": "sheet__bar", role: "group", "aria-label": "Filter by action" });
+    card.appendChild(chips);
+    var status = el("p", { "class": "searchmeta", role: "status", "aria-live": "polite" });
+    card.appendChild(status);
+    var list = el("ul", { "class": "sheet__list" });
+    card.appendChild(list);
+
+    function matches(e) {
+      if (state.actions.length && state.actions.indexOf(e.action) === -1) { return false; }
+      if (state.from && e.at < new Date(state.from + "T00:00:00").getTime()) { return false; }
+      /* The end date covers the whole of that day. A filter that hides what happened on
+         the day you asked for is a filter nobody trusts twice. */
+      if (state.to && e.at > new Date(state.to + "T23:59:59.999").getTime()) { return false; }
+      if (state.q && (e.label + " " + e.action).toLowerCase().indexOf(state.q.toLowerCase()) === -1) { return false; }
+      return true;
+    }
+
+    function paint() {
+      chips.innerHTML = "";
+      historyActions().forEach(function (a) {
+        var on = state.actions.indexOf(a.id) !== -1;
+        var b = el("button", { type: "button", "class": "linkchip", "aria-pressed": on ? "true" : "false" },
+          esc(a.id) + " " + a.n);
+        b.addEventListener("click", function () {
+          state.actions = on ? state.actions.filter(function (x) { return x !== a.id; }) : state.actions.concat([a.id]);
+          paint();
+        });
+        chips.appendChild(b);
+      });
+
+      var all = history();
+      var rows = all.filter(matches);
+      list.innerHTML = "";
+      if (!all.length) {
+        status.textContent = "Nothing yet. Change a setting and it will appear here.";
+        return;
+      }
+      status.textContent = "Showing " + rows.length + " of " + all.length + " revisions.";
+      if (!rows.length) {
+        status.textContent += " Nothing matches the current filter.";
+        return;
+      }
+      rows.slice(0, 60).forEach(function (e) {
+        var i = all.indexOf(e);
+        var li = el("li");
+        var b = el("button", { type: "button", "class": "sheet__row",
+          title: "Restore the value from before this change" });
+        b.appendChild(el("span", { "class": "sheet__rowLabel" }, esc(e.label)));
+        b.appendChild(el("span", { "class": "sheet__rowWhere" },
+          esc(new Date(e.at).toLocaleString() + " · " + e.action)));
+        b.addEventListener("click", function () { restoreRevision(i); });
+        li.appendChild(b);
+        list.appendChild(li);
+      });
+    }
+
+    q.addEventListener("input", function () { state.q = q.value; paint(); });
+    from.addEventListener("change", function () { state.from = from.value; paint(); });
+    to.addEventListener("change", function () { state.to = to.value; paint(); });
+
+    paint();
+    /* Held while this card is on screen so a change recorded now shows up now. Without
+       it the list is whatever it was when the panel was built, and a reader who changes
+       a setting and looks straight at the history sees nothing — which reads exactly
+       like "it did not record". renderActive() rebuilds the panel and calls this again,
+       so the reference never points at a detached node. */
+    historyRepaint = paint;
+    return card;
+  }
+
   /* ------------------------------------------------- the settings search
      Every adjustment surface carries its own search bar wired to the same regex
      builder — the instructions are explicit, and "it is a short page, just scroll"
@@ -2083,6 +2271,7 @@
     /* ---- accent colour ---- */
     panel.appendChild(renderPicker());
     panel.appendChild(renderPresets());
+    panel.appendChild(renderHistory());
 
     /* ---- language ---- */
     var lang = el("div", { "class": "card" });
