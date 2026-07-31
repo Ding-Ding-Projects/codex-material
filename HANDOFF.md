@@ -63,7 +63,7 @@ node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/captur
 - **Bilingual mode is complete.** The earlier entry here said 92 hard-coded labels remained; the real number was over 200, because the audit behind it grepped `label: "…"` and that pattern cannot see a positional argument to `pick()`, a palette `group`, or a label inside a ternary. 327 `CX.i18n.t()` call sites now, against a 559-key table, and the audit is a test rather than a grep — `app/index.html — no user-visible string bypasses CX.i18n` sweeps six props against a seven-entry allow-list and separately checks that every key the frontend asks for is defined.
 - **The appearance editor covers 23 typography properties**, the word-processor set the rules describe, and the three things this build genuinely cannot represent are shown in the editor with the reason rather than being absent.
 - **`app/cx-appearance.js` is loaded by the page.** It never was: no `<script src>` tag listed it, so `window.CX_APPEARANCE` did not exist at runtime and export, import and every named preset hit their `if (!A)` guard while the module's own tests passed throughout — the test runner reads module files directly through `node:vm` rather than through the page. Two tests guard it now: no `app/*.js` may be missing a script tag, and every `CX_*` global the page reads must be assigned by something the page loads.
-- **Releases carry a dim sum code name again.** The index moved to the run number (past 590) while the list it indexed was the 72-dish bundled photo slice, so every build past #72 published unnamed. Names come from `app/dimsum/roster.json` — all 703 catalog dishes, 356 KB — and a missing photo no longer costs a build its name.
+- **Releases carry a dim sum code name again.** The index moved to the run number (past 590) while the list it indexed was the 72-dish bundled photo slice, so every build past #72 published unnamed. Names come from `app/dimsum/roster.json` — all 768 catalog dishes, 356 KB — and a missing photo no longer costs a build its name.
 
 **A multi-agent audit found twelve features that passed every test and did not work**
 
@@ -105,7 +105,7 @@ The group is `ci-${{ github.run_id }}` now — unique per run, so it never match
 
 The serialisation had been protecting the dim sum code name, which was derived from a count of releases already carrying a dish; two overlapping runs read the same count and claim the same dish. The index is `GITHUB_RUN_NUMBER` instead, which is unique per run by construction. The cost is that a re-run build skips a dish — a gap in a decorative sequence, not a fault.
 
-That run number is already past 590, so the index is resolved against `app/dimsum/roster.json` — every dish the shared catalog names, 703 of them in 356 KB — rather than the 72-dish photo slice the installer bundles. Builds 591 and 592 published unnamed before that was noticed. A build named after a dish outside the photo slice ships the name and no picture, and the release notes say why.
+That run number is already past 590, so the index is resolved against `app/dimsum/roster.json` — every dish the shared catalog names, 768 of them in about 390 KB — rather than the 72-dish photo slice the installer bundles. Builds 591 and 592 published unnamed before that was noticed. A build named after a dish outside the photo slice ships the name and no picture, and the release notes say why.
 
 ## The smoke test is the one that matters
 

@@ -109,11 +109,14 @@ carries one — see [bundled-cli.md](bundled-cli.md). If it does not produce
 failing.
 
 > [!NOTE]
+The release still ships, and the generated notes then say plainly that this build does **not**
+bundle the CLI, rather than letting a user find out after installing.
+
+> [!NOTE]
 > That fallback was **unreachable** until recently on the one failure it exists for. GitHub's pwsh
-> shell appends an exit check on `$LASTEXITCODE`, so a non-zero exit from `fetch-codex.mjs` ended the
-> step — and with it the whole release job — before any of this code could run. The step now checks
-> `$LASTEXITCODE` itself, warns, and resets it. The release still ships, and the generated notes then say plainly that this build does
-**not** bundle the CLI, rather than letting a user find out after installing.
+> shell appends an exit check on `$LASTEXITCODE`, so a non-zero exit from `fetch-codex.mjs` ended
+> the step — and with it the whole release job — before any of this code could run. The step now
+> checks `$LASTEXITCODE` itself, warns, and resets it.
 
 ---
 
@@ -162,10 +165,10 @@ $json = node tools/release-codename.mjs --derive $env:GITHUB_RUN_NUMBER | Conver
   is how a release pipeline becomes an infinite loop. Deriving from the monotonic run number gives
   the same one-dish-per-build guarantee and stays auditable, because the tag reproduces the choice.
 - **The name list and the photo list are different sizes, on purpose.** `roster.json` names all
-  **703** dishes the shared catalog holds; `app/dimsum/manifest.json` describes the **72** whose
+  **768** dishes the shared catalog holds; `app/dimsum/manifest.json` describes the **72** whose
   256px photo is bundled in the installer. The catalog's originals are ~2.3 MB each, so bundling
   every photo would add well over a hundred megabytes to an app that draws one dish at 56 CSS
-  pixels, once per hundred launches — while 703 *names* cost 356 KB. A build named after a dish
+  pixels, once per hundred launches — while 768 *names* cost about 390 KB. A build named after a dish
   outside the photo slice publishes the name and no picture, and the release notes say so.
   `roster.json` is excluded from the packaged app in `package.json` ▸ `build.files`: only the
   release tooling reads it, and it runs from the checkout, never from the installed app.
