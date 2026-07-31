@@ -112,22 +112,16 @@ shows a verified publisher instead of "Unknown publisher". The release notes sto
 "not code-signed" caveat because it is no longer true. **Blocked on the user obtaining a
 certificate** — an agent cannot buy one.
 
-### 5. A stop button that actually kills the run
+### 5. A stop button that actually kills the run — *done*
 
-**State:** `electron/commands.js:126` awaits `cli.stream(...)` and keeps no child-process
-handle. There is no `codex_stop`, no `codex_cancel` and no abort path anywhere in `app/` or
-`electron/`.
+**What landed:** `codex_cancel` and `codex_running` are registered in
+`electron/commands.js`, both are on the preload allow-list, and `cli.killTree` takes down the
+child and everything under it. Two backend tests cover it: *codex_running lists the live runs
+and codex_cancel kills one*, and *quitting kills every tracked run*.
 
-**Why it matters:** a Codex run can be long, expensive and wrong from the first line. Right now
-the only way to stop one is to close the application — which also kills every pinned WSL shell
-and loses the session. A GUI whose entire premise is "you can see what the CLI is doing"
-should let you stop what it is doing.
-
-**Done looks like:** `codex_run` retains the child handle keyed by run id; a `codex_stop`
-command terminates that process tree (on Windows the `.cmd` shim means killing the direct child
-is not enough); the console panel shows a Stop control while a run is live; stopping reports
-the partial output and a truthful non-zero result rather than pretending the run finished. A
-backend test asserts a spawned process is actually gone after stop.
+This entry claimed there was "no `codex_stop`, no `codex_cancel` and no abort path anywhere",
+which stopped being true some time ago and was not noticed until an audit read the roadmap
+against the tree.
 
 ### 6. Disclose the funny-level behaviour at first run
 
@@ -150,23 +144,23 @@ modes.
 
 ## Tier 3 — Feature completeness
 
-### 7. Named appearance presets, exported and imported as files
+### 7. Named appearance presets, exported and imported as files — *done*
 
-**State:** `CX.vcs.snapshot()` reads an `appearancePresets` key (`app/codex-core.js:564`) that
-**nothing writes** — there is no named-preset surface. "Export appearance presets"
-(`app/index.html:3070`) writes JSON to the **clipboard**, and there is no import path at all:
-no file input, no `readAsText`, no handler.
+**What landed:** `app/cx-appearance.js` owns the whole path — named presets, a portable
+document with provenance, validation on the way in, and a stable filename so re-exporting a
+preset overwrites its own file. `exportAppearance()` downloads a real file; `importAppearance()`
+opens a file picker and reads it. An import never silently drops a value it cannot represent:
+every rejection lands in `dropped` with the dotted key from the user's own file and the reason,
+and the caller shows them.
 
-**Why it matters:** the point of a preset is surviving a reinstall and being shared. A clipboard
-blob with nowhere to paste it back satisfies neither. The mechanism already exists in this
-codebase — the changelog viewer downloads a real file at `app/index.html:2578` — so this is
-wiring, not invention.
+This entry said export "writes JSON to the clipboard" and that there was "no import path at all:
+no file input, no `readAsText`, no handler". All three exist.
 
-**Done looks like:** users can save the current appearance as a named preset, switch between
-presets, export one or all to a `.json` file, and import that file back on a fresh install with
-a preview of what will be overwritten. `appearancePresets` is actually written. An import that
-carries a property this build cannot represent says so and keeps the user's input rather than
-silently dropping it.
+> [!WARNING]
+> There is a real defect buried under the stale text, and it is worse than what the entry
+> described: **the module was never loaded by the page.** No `<script src>` tag listed it, so
+> `window.CX_APPEARANCE` did not exist at runtime and every one of these paths hit its
+> `if (!A)` guard. Fixed, and two tests now check that no `app/*.js` is missing from the page.
 
 ### 8. Drag-to-reorder tabs
 
@@ -207,21 +201,15 @@ strip, group, pinned state and label in distinct columns. Revealing a result ins
 group does not persist an expansion the user did not ask for. Permitted tab-management actions
 are offered inline without clearing the active query.
 
-### 10. A calendar picker for the changelog date filter
+### 10. A calendar picker for the changelog date filter — *done*
 
-**State:** the typed-date half is genuinely good — `cx-changelog.js`'s `parseDate` handles ISO
-and locale order, reports partial input without consuming what was typed, and distinguishes
-"needs a day" from "month 13 does not exist" from "that year is ambiguous". Seven presets exist.
-What is missing is the calendar: `clogFrom` and `clogTo` are plain text inputs
-(`app/index.html:482`) with a preset dropdown beside them. There is no month grid.
+**What landed:** an anchored calendar popover with a weekday header and a day grid, sharing
+state bidirectionally with the typed fields, so editing either updates the other. It is a named
+appearance target, it is exercised by the smoke test's overlay phase, and it is screenshotted at
+`assets/screenshots/09b-calendar.png`.
 
-**Why it matters:** typing a date is precise and slow; picking one is fast and imprecise. A date
-filter wants both, and the parsing groundwork — the expensive part — is already done and tested.
-
-**Done looks like:** an anchored calendar popover with month/year jump and range selection,
-sharing state bidirectionally with the typed fields so editing either updates the other. The
-presets remain. Invalid typed input still reports inline without discarding what the user typed.
-Keyboard-operable with a visible focus ring and screen-reader-announced dates.
+This entry said `clogFrom` and `clogTo` were "plain text inputs with a preset dropdown beside
+them" and that "there is no month grid".
 
 ### 11. Auto-update
 
@@ -256,11 +244,11 @@ the arm64 installer is confirmed to run natively rather than under emulation.
 
 ## Smaller items worth doing while nearby
 
-- **Template placeholders in number inputs.** `app/index.html:352`, `:386`, `:387`, `:388`
-  render `value="{{ c.value }}"` into `<input type="number">`, producing four real console
-  errors captured in `assets/screenshots/manifest.json`. The rendered value is correct, so this
-  is noise — but noise is where real errors hide. Done: the capture harness records zero
-  console errors from the app's own markup.
+- **Template placeholders in number inputs — done.** The four cost inputs bind their `type`
+  through the view model rather than writing `type="number"` literally, so the browser never
+  validates the uncompiled `{{ c.value }}` text. The capture harness records zero console errors
+  from the app's own markup. The same trap caught the appearance editor's new exact-size field,
+  which is why the fix is written down beside both.
 - **Re-check the Pages site after item 1.** Publishing shipped during this session (`713b498`
   added `docs/site/index.html` and `tools/sync-site-assets.mjs`; `has_pages` is now `true` and
   two deployments succeeded). It went live *before* the doc migration finished, so the site is

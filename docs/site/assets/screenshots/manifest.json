@@ -101,7 +101,7 @@
       "id": "appearance",
       "file": "12-appearance.png",
       "applied": true,
-      "note": "Per-element appearance editor — the two-dimensional colour field and the twelve-space translator"
+      "note": "Per-element appearance editor — the typography half: slant, capitalization, five underline styles, single and double strike, super/subscript, direction and alignment"
     },
     {
       "id": "appearance-colour",

@@ -62,7 +62,10 @@
   const state = {
     codexHome: "~/.codex",
     version: "codex-cli 0.58.0",
-    auth: { method: "chatgpt", account: "ding@outlook.com", plan: "ChatGPT Pro", expires: "2026-09-02", apiKey: false },
+    /* An obviously-fictional address. This was a real-looking personal one, and the
+       Health panel renders it verbatim whenever the Electron bridge is absent — so it
+       reached every browser-mode screenshot looking exactly like someone's account. */
+    auth: { method: "chatgpt", account: "you@example.com", plan: "ChatGPT Pro", expires: "2026-09-02", apiKey: false },
     mcp: [
       { name: "lowlevel-computer-use", transport: "streamable-http", url: "http://127.0.0.1:8391/mcp", enabled: true, tools: 14, status: "connected", oauth: false },
       { name: "github", transport: "stdio", command: "gh-mcp", args: ["serve"], enabled: true, tools: 22, status: "connected", oauth: true },

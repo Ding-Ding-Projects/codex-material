@@ -405,14 +405,20 @@ async function main() {
   // Console errors from panels this run never opened are still true of those panels.
   const merged = ONLY ? [...new Set([...priorErrors, ...errors])] : errors;
 
-  fs.writeFileSync(
-    manifestPath,
-    JSON.stringify(
-      { capturedFrom: "the real app (electron/main.js frontend + preload)", shots: allShots, consoleErrors: merged },
-      null,
-      2,
-    ),
-  );
+  /* The same redaction the smoke report gets, and for the same reason: this file is
+     COMMITTED and mirrored to the published site, while consoleErrors is written
+     verbatim from renderer console output. A stack trace or an unhandled path in a
+     console message would carry the operator's account name straight into the
+     repository — which has already happened twice by two other routes. C:\Users\Public
+     and /Users/dev are the authored fixture paths and stay legible. */
+  const HOMEISH = /[A-Za-z]:\\+Users\\+(?!Public|dev)[^"',\s]*|\/(?:home|Users)\/(?!dev)[^"',\s]*/g;
+  const manifest = JSON.stringify(
+    { capturedFrom: "the real app (electron/main.js frontend + preload)", shots: allShots, consoleErrors: merged },
+    null,
+    2,
+  ).replace(HOMEISH, "<redacted-home-path>");
+
+  fs.writeFileSync(manifestPath, manifest);
 
   if (errors.length) {
     process.stdout.write(`\nRenderer reported ${errors.length} console error(s):\n`);

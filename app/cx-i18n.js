@@ -2880,6 +2880,18 @@
       en: ["bulk-close match text", "bulk-close match text", "bulk-close match text", "bulk-close match text", "bulk-close match text"],
       yue: ["批次關閉比對文字", "批次關閉比對文字", "批次關閉比對文字", "批次關閉比對文字", "批次關閉比對文字"]
     },
+/* The colour translator's rows were plain divs with an onClick and a title of "Copy",
+   so the only way to copy any of the twelve representations was a mouse. They are
+   buttons now and need a name that says which one. */
+
+    "appear.copySpace": {
+      en: ["Copy the {space} value, {value}", "Copy the {space} value, {value}", "Copy {space} — {value}", "Copy {space} — {value}", "Copy {space} — {value}"],
+      yue: ["複製 {space} 值：{value}", "複製 {space} 值：{value}", "copy {space} —— {value}", "copy 咗 {space} —— {value}", "copy 咗 {space} —— {value}"]
+    },
+    "appear.copied": {
+      en: ["{space} copied", "{space} copied", "{space} copied", "{space} is on the clipboard", "{space} is on the clipboard"],
+      yue: ["已複製 {space}", "已複製 {space}", "copy 咗 {space}", "{space} 已經喺剪貼簿度", "{space} 已經喺剪貼簿度"]
+    },
   };
 
   function resolve(key, mode, funny) {

@@ -906,9 +906,9 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary) !
         <input value="{{ appearColorText }}" onInput="{{ setAppearColorText }}" aria-label="{{ appearColorLabel }}" placeholder="{{ appearColorLabel }}" style="width:100%;min-height:32px;border-radius:9px;border:1px solid {{ appearColorBorder }};background:var(--m3-surface-container);padding:0 10px;font-family:'Roboto Mono',monospace;font-size:11.5px;outline:none" />
         <div style="border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:7px 10px;max-height:140px;overflow:auto">
           <sc-for list="{{ colorRows }}" as="c" hint-placeholder-count="6">
-            <div onClick="{{ c.copy }}" title="Copy" style="display:flex;gap:8px;font-family:'Roboto Mono',monospace;font-size:11px;line-height:1.9;cursor:pointer;min-width:0">
+            <button onClick="{{ c.copy }}" type="button" aria-label="{{ c.label }}" title="{{ c.label }}" style="display:flex;gap:8px;width:100%;text-align:left;border:none;background:transparent;color:inherit;padding:0;font-family:'Roboto Mono',monospace;font-size:11px;line-height:1.9;cursor:pointer;min-width:0">
               <span style="flex:0 0 48px;color:var(--m3-on-surface-variant)">{{ c.space }}</span><span style="flex:1;min-width:0;overflow-wrap:anywhere">{{ c.value }}</span>
-            </div>
+            </button>
           </sc-for>
         </div>
         <div style="font-size:11px;color:var(--m3-on-surface-variant);line-height:1.5">{{ contrastLabel }}</div>
@@ -3143,7 +3143,16 @@ class Component extends DCLogic {
       pickSV: (e) => { this._svDrag = true; this.setSVFromEvent(e, hsv); },
       dragSV: (e) => { if (this._svDrag) this.setSVFromEvent(e, hsv); },
       endSV: () => { this._svDrag = false; },
-      colorRows: CX.color.translate(appearColor).map(([space, value]) => ({ key: space, space, value, copy: () => { navigator.clipboard.writeText(value); this.toast(space + " copied"); } })),
+      /* Buttons, not divs with an onClick: the only way to copy any of the twelve
+         representations used to be a mouse, and the title on every row was the same
+         word "Copy" — so a screen reader announced twelve identical controls. Each
+         one names its own space and value. A native button already fires on Enter
+         and Space, so no key handler is needed — adding one would double-fire. */
+      colorRows: CX.color.translate(appearColor).map(([space, value]) => ({
+        key: space, space: space, value: value,
+        label: CX.i18n.t("appear.copySpace", { space: space, value: value }),
+        copy: () => { navigator.clipboard.writeText(value); this.toast(CX.i18n.t("appear.copied", { space: space })); }
+      })),
       contrastLabel: (() => {
         const fg = CX.color.hexToRgb(appearColor);
         const bg = st.theme === "dark" ? { r: 20, g: 18, b: 24 } : { r: 254, g: 247, b: 255 };
