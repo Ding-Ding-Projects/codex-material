@@ -181,10 +181,14 @@ underneath show through — the editor never bakes a computed value it did not r
 
 ### The colour picker
 
-Three sliders — hue 0–360, saturation 0–100, value 0–100 — over `CX.color.hsvToRgb`, plus a free
-text field that accepts any 3-, 6- or 8-digit hex (`hexToRgb` expands `#abc`, defaults alpha to
-`ff`, and returns `null` on anything else). The sliders are a continuous HSV field rather than a
-finite swatch grid; the text field is the direct-entry path.
+A two-dimensional saturation/brightness field with a hue strip and three named sliders, writing
+whichever of the six colour properties is selected above it. Described in full under
+[The colour picker](#the-colour-picker-1) below.
+
+> An earlier version of this section described three sliders and a hex-only text field, and sat a
+> hundred lines above a second section saying something different. Both statements had been
+> superseded: the field is two-dimensional, and the text input reads every representation the
+> translator writes.
 
 ### The colour translator: twelve spaces
 
@@ -237,7 +241,9 @@ showing a wrong number.
 | Reset element | Editor footer, and the root context menu | Deletes `appearance[target]` |
 | Reset all | Editor footer | Clears the whole map |
 | Reset every element | Studio → Appearance | Clears the map **and commits a revision**, so it is undoable from History |
-| Export appearance presets | Studio → Appearance | Copies `{ version: 1, appearance }` as JSON to the clipboard |
+| Export appearance to a file | Studio → Appearance | Downloads the document `CX_APPEARANCE.export()` builds — `format`, `version`, `exportedAt`, `app`, `elements`, `appearance`, `presets`, and any `dropped` or `warnings` — under a stable filename, so re-exporting a preset overwrites its own file |
+| Import an appearance file | Studio → Appearance | A file picker. Anything the file asks for that this build cannot represent is named in `dropped` with the reason and shown, never silently discarded |
+| Named presets | Studio → Appearance | Save the current appearance under a name, apply one, or delete one |
 | Theme (light/dark) | Studio → Appearance, and the title bar | Sets `data-theme` on `<html>`, persisted under `codexstudio.theme` |
 
 The appearance map is part of the local version-control snapshot (`vcs.snapshot()` reads both
@@ -250,8 +256,8 @@ was in force at the time — see [local-version-control.md](local-version-contro
 | --- | --- | --- |
 | Per-element styles | `localStorage["codexstudio.appearance"]` | `{}` |
 | Theme | `localStorage["codexstudio.theme"]`, `data-theme` on `<html>` | `dark` |
-| Font family options | `openFontMenu` / `fontRows` in `app/index.html` | Default (Roboto), Roboto Mono, Georgia, Helvetica Neue, System UI |
-| Size / weight ranges | The editor's `<input type="range">` bounds | 70–180 % step 5; 300–700 step 100 |
+| Font family options | `fontOptions()` in `app/index.html` | The five bundled entries — Default (Roboto), Roboto Mono, Georgia, Helvetica Neue, System UI — then every family `codex_fonts` finds installed on the machine |
+| Size / weight ranges | The sliders' bounds, and the exact-entry field's | Size 70–180 % step 5 on the slider, 10–400 % typed; weight 100–900 step 100 |
 | Default editor colour | `appearColor` fallback | `#D0BCFF` |
 | Bundled faces | `app/fonts/` | Roboto and Roboto Mono, 10 woff2 files, Apache-2.0 |
 
@@ -326,7 +332,8 @@ See [local-version-control.md](local-version-control.md).
 | Right-click gives no appearance item | The element's own menu, unchanged | The element has no `data-appear`, or its menu omits `appearItem(e)` |
 | Editor opens with an empty title | Header reads *"Appearance — "* | `appearTarget` is null; the root handler only opens the editor when a name was found |
 | Invalid hex typed | Contrast line reads *"Enter a valid colour to see contrast."*; the swatch keeps the last valid colour | `hexToRgb` returned `null` |
-| A style does not visibly apply | Nothing changes | The property is one of the eight; anything else is not implemented — see above |
+| A style does not visibly apply | Nothing changes | Check it is one of the twenty-three in the table above, and that it is not one of the three the platform cannot represent — the editor lists those with their reasons |
+| A cleared control leaves the old style in place | The element keeps a style nothing is set to | Only properties this system set on the previous pass are cleared. Clearing every property it knows about would erase the template's own inline styles, which is what happened once: the UI audit went from 23 findings to 251, all but 23 of them contrast failures, because the backgrounds were gone |
 | Styling survives a reset | The old value returns | Reset removes the map entry; the Material 3 token underneath may look similar |
 | Editor clipped at a window edge | It is not | Position is clamped to `innerWidth - 350` / `innerHeight - 470` before opening |
 
@@ -337,7 +344,7 @@ See [local-version-control.md](local-version-control.md).
   ever resolve to a bundled or system face — a hostile value cannot pull a remote font.
 - **Values are applied as DOM style properties**, never interpolated into a stylesheet or markup
   string, so a crafted value cannot escape into CSS injection.
-- **Export is a clipboard write the user asked for.** It contains only element names and style
+- **Export writes a file the user asked for.** It contains only element names and style
   values — no paths, no session content, no credentials.
 - **Contrast is advisory.** The readout compares against the app's surface colour, not against
   whatever the element actually sits on. A passing number is not a guarantee for a chip on a
@@ -349,20 +356,23 @@ See [local-version-control.md](local-version-control.md).
    that element.
 2. **Shift path:** <kbd>Shift</kbd>+right-click opens the editor straight away; plain right-click
    keeps the element's own menu intact (test on a tab, which has a full management menu).
-3. **Live application:** change size, weight, italic and colour; each must land immediately on
-   every instance of that named element, with no restart.
-4. **Persistence:** restart and confirm the styles return.
-5. **Translator:** set `#D0BCFF` and check all twelve rows render; click one and confirm the
-   clipboard holds exactly that string.
-6. **Contrast bands:** pick a colour near 4.5:1 and one near 3:1; confirm the verdict changes at
+3. **Live application:** change size, weight, slant, capitalization, an underline style, a
+   spacing and each of the six colours; every one must land immediately on every instance of that
+   named element, with no restart.
+4. **Clearing:** press each segmented control's already-selected segment and confirm the property goes
+   away *and* the element's own inline styling — background, alignment, line height — survives.
+5. **Persistence:** restart and confirm the styles return.
+6. **Translator:** set `#D0BCFF` and check all twelve rows render; reach one by keyboard, activate
+   it with Enter, and confirm the clipboard holds exactly that string.
+7. **Contrast bands:** pick a colour near 4.5:1 and one near 3:1; confirm the verdict changes at
    the thresholds and that both light and dark themes recompute.
-7. **Invalid input:** type `#zz` and confirm the contrast line reports it instead of showing a
+8. **Invalid input:** type `#zz` and confirm the contrast line reports it instead of showing a
    number.
-8. **Reset:** reset one element, then reset all. Confirm *Reset every element* in Studio also
+9. **Reset:** reset one element, then reset all. Confirm *Reset every element* in Studio also
    records a revision that History can undo.
-9. **Edge placement:** open the editor from an element at the extreme right and bottom of the
+10. **Edge placement:** open the editor from an element at the extreme right and bottom of the
    window; it must stay fully on screen.
-10. **Self-theming:** style the *Regex builder* and the *Dropdown* targets and confirm the popovers
+11. **Self-theming:** style the *Regex builder* and the *Dropdown* targets and confirm the popovers
     themselves change.
 11. **Screenshot:** `node tools/capture.mjs --only appearance` renders the editor from the real
     app into `assets/screenshots/`.
