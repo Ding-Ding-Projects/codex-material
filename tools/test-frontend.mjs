@@ -1483,3 +1483,90 @@ test("documentation figures match the tree", () => {
     throw error;
   }
 });
+
+/* One anchor calculation, not two.
+ *
+ * The appearance popover is opened from two places: appearItem() on elements that have
+ * their own context menu, and the root onContextMenu handler on everything else. The
+ * root one kept its own maths — pointer position, hard-coded 470px clamp — which is
+ * precisely what appearAnchor() was written to replace. So the same editor opened from
+ * two routes landed in two different places, and from one of them it hung off the
+ * bottom of a window that cannot scroll. */
+
+test("app/index.html — the appearance popover has one anchor calculation", () => {
+  const b = bucket("app/index.html");
+  const src = fs.readFileSync(path.join(ROOT, "app", "index.html"), "utf8");
+
+  const run = (name, fn) => {
+    try {
+      fn();
+      b.pass += 1;
+    } catch (error) {
+      b.fail += 1;
+      process.exitCode = 1;
+      throw error;
+    }
+  };
+
+  run("no popover sized in vh is positioned with a pixel constant", () => {
+    /* A constant is fine for a popover whose own max-height is a constant — the
+       dropdown's list is 300px and it clamps with 320. It is wrong for one sized in
+       vh, because the constant stops matching the moment the panel grows or the window
+       changes. The appearance editor and the regex builder are both 70vh; both had a
+       remembered pixel clamp, and both put their footer below a viewport that has
+       overflow:hidden and so cannot be scrolled to reach it. */
+    const vhPanels = (src.match(/max-height:70vh/g) || []).length;
+    assert.ok(vhPanels >= 2, `expected the vh-sized popovers to still exist, found ${vhPanels}`);
+
+    const clamps = [...src.matchAll(/window\.innerHeight\s*-\s*(\d{2,4})\b/g)];
+    const suspect = clamps.filter((m) => {
+      /* Defensible only when the four lines above it explain which fixed height the
+         constant mirrors. That is a low bar and a useful one: it forces whoever adds a
+         constant to have checked that the thing it positions is not sized in vh. */
+      const from = src.lastIndexOf("\n", m.index);
+      const before = src.slice(Math.max(0, from - 400), from);
+      return !/mirrors[\s\S]{0,200}max-height|max-height[\s\S]{0,200}mirrors/.test(before);
+    });
+    assert.deepEqual(
+      suspect.map((m) => m[0]),
+      [],
+      "these clamp a popover against a remembered pixel height; if the panel is sized " +
+        "in vh, clamp against the same vh: " + suspect.map((m) => m[0]).join(", "),
+    );
+  });
+
+  run("every path that opens the editor anchors through appearAnchor", () => {
+    /* Each site that sets appearAt must take it from appearAnchor(...), never from an
+       inline object built out of clientX/clientY. */
+    /* `[^,}]+` stopped at the first comma, so the initial-state `{ x: 0, y: 0 }` came
+       back as the fragment `{ x: 0` and looked like an unrecognised expression. Take a
+       whole brace group or a bare identifier instead. */
+    const sites = [...src.matchAll(/appearAt:\s*(\{[^{}]*\}|[\w.]+\([^()]*\)|[\w.]+)/g)].map((m) => m[1].trim());
+    assert.ok(sites.length >= 3, `expected several open paths, found ${sites.length}`);
+    const bad = sites.filter(
+      (s) => !/appearAnchor\(/.test(s) && s !== "at" && !/^\{\s*x:\s*0\s*,\s*y:\s*0\s*\}$/.test(s),
+    );
+    assert.deepEqual(bad, [], "these set appearAt without going through appearAnchor: " + bad.join(" | "));
+
+    /* `at` is allowed above only because it is itself appearAnchor's result — check it. */
+    if (sites.includes("at")) {
+      assert.match(
+        src,
+        /const at = this\.appearAnchor\(host\);/,
+        "appearAt is set from a variable named `at`, which must be appearAnchor(host)",
+      );
+    }
+  });
+
+  run("appearAnchor clamps against the panel's own max-height", () => {
+    const fn = src.slice(src.indexOf("appearAnchor(host) {"));
+    const whole = fn.slice(0, fn.indexOf("\n  }"));
+    /* Comments stripped first. The comment above this function quotes the old
+       `Math.min(470, 70vh)` to explain what went wrong, and a check that reads its own
+       documentation fails on a correct fix — which it did. */
+    const body = whole.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    assert.match(body, /window\.innerHeight \* 0\.7/, "appearAnchor must clamp against 70vh");
+    assert.ok(!/Math\.min\(\d+,/.test(body), "appearAnchor must not cap the height with a constant");
+    assert.match(src, /max-height:70vh/, "the panel's CSS must still be the 70vh this mirrors");
+  });
+});

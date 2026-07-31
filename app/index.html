@@ -1505,6 +1505,10 @@ class Component extends DCLogic {
       dd: Object.assign({}, cfg, {
         width,
         x: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)),
+        /* 320 mirrors this popover's own max-height: its option list is capped at
+           300px, plus the search row above it. A constant is right here precisely
+           because the panel's height is a constant — unlike the appearance editor and
+           the regex builder, which are 70vh and must be clamped against 70vh. */
         y: Math.max(8, Math.min(r.bottom + 6, window.innerHeight - 320))
       }),
       ddQuery: "", ddRegex: null, menu: null
@@ -1658,7 +1662,11 @@ class Component extends DCLogic {
     const anchor = document.querySelector('[data-anchor="' + target + '"]');
     const r = anchor ? anchor.getBoundingClientRect() : null;
     const x = r ? Math.min(Math.max(8, r.left), Math.max(8, window.innerWidth - 492)) : 200;
-    const y = r ? Math.max(8, Math.min(r.bottom + 8, window.innerHeight - 260)) : 120;
+    /* The builder is max-height:70vh, so clamp against that rather than a remembered
+       260 — the same mistake the appearance popover had, in the same shape. At the
+       default 940px window the constant let its top reach 680 while it renders to 658,
+       putting the Apply button 398px below a viewport that does not scroll. */
+    const y = r ? Math.max(8, Math.min(r.bottom + 8, window.innerHeight - Math.round(window.innerHeight * 0.7) - 8)) : 120;
     const existing = this.state[target + "Regex"];
     this.setState({
       regexOpen: true, regexTarget: target, regexAt: { x, y },
@@ -2917,7 +2925,15 @@ class Component extends DCLogic {
         if (!host) return;
         e.preventDefault();
         const name = host.getAttribute("data-appear");
-        const at = { x: Math.min(e.clientX, window.innerWidth - 350), y: Math.max(8, Math.min(e.clientY, window.innerHeight - 470)) };
+        /* appearAnchor(host), not a second calculation. This computed its own anchor
+           from the POINTER with a hard-coded 470px clamp — the two things appearAnchor
+           was written to stop doing — so every element without a context menu of its
+           own (the composer, a notification, the settings panel, the tab strip) opened
+           the editor on top of itself and hanging off the bottom of the window. At the
+           default 940px height it clamped the top to 470 while the panel renders to
+           70vh = 658, putting its foot 188px past a viewport that cannot scroll.
+           Two ways of opening the same editor should not disagree about where it goes. */
+        const at = this.appearAnchor(host);
         if (e.shiftKey) { this.setState({ appearOpen: true, appearTarget: name, appearAt: at, appearColorDraft: null }); return; }
         this.menuAt(e, name, [
           { key: "appear", icon: "🎨", label: CX.i18n.t("menu.editAppearanceFor", { name: name }), click: () => this.setState({ menu: null, appearOpen: true, appearTarget: name, appearAt: at, appearColorDraft: null }) },
@@ -4075,6 +4091,10 @@ class Component extends DCLogic {
       calMonth: month.getTime(),
       calAt: {
         x: r ? Math.max(8, Math.min(r.left, window.innerWidth - 312)) : 200,
+        /* 360 mirrors this popover's own fixed height: a 300px-wide grid of six
+           28px week rows plus its header, footer and 12px padding. It carries no
+           max-height in vh, so unlike the appearance editor and the regex builder a
+           constant is the correct thing to clamp against here. */
         y: r ? Math.max(8, Math.min(r.bottom + 6, window.innerHeight - 360)) : 120
       }
     });
