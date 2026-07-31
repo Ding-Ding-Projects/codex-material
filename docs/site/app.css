@@ -504,3 +504,24 @@ footer .linkrow { margin-top: .7em; }
   [role="tabpanel"][hidden] { display: block !important; }
   body { background: #fff; color: #000; }
 }
+
+/* The colour translator's rows are buttons so a keyboard can reach all twelve. They
+   must not look like buttons — they are values you copy, and a row of twelve chips
+   would read as twelve actions rather than one list of the same colour. */
+.trans__copy {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.trans__copy:hover { text-decoration: underline; }
+.trans__copy:focus-visible {
+  outline: 2px solid var(--m3-primary);
+  outline-offset: 2px;
+}

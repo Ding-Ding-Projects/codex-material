@@ -188,6 +188,60 @@
         b: 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s
       };
     },
+    /* The lab/lch half of the translator. Kept beside oklab so the two families sit
+       together and nobody has to guess which white point each assumes: both use D65,
+       the same one sRGB is defined against. */
+    lab: function (c) {
+      var r = this.lin(c.r), g = this.lin(c.g), b = this.lin(c.b);
+      var x = (0.4124564 * r + 0.3575761 * g + 0.1804375 * b) / 0.95047;
+      var y = 0.2126729 * r + 0.7151522 * g + 0.0721750 * b;
+      var z = (0.0193339 * r + 0.1191920 * g + 0.9503041 * b) / 1.08883;
+      function f(v) { return v > 0.008856 ? Math.pow(v, 1 / 3) : 7.787 * v + 16 / 116; }
+      var fx = f(x), fy = f(y), fz = f(z);
+      return { l: 116 * fy - 16, a: 500 * (fx - fy), b: 200 * (fy - fz) };
+    },
+    lch: function (c) {
+      var l = this.lab(c);
+      var h = Math.atan2(l.b, l.a) * 180 / Math.PI;
+      return { l: l.l, c: Math.sqrt(l.a * l.a + l.b * l.b), h: h < 0 ? h + 360 : h };
+    },
+    oklab: function (c) {
+      var r = this.lin(c.r), g = this.lin(c.g), b = this.lin(c.b);
+      var L = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+      var M = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+      var S = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+      return {
+        l: 0.2104542553 * L + 0.7936177850 * M - 0.0040720468 * S,
+        a: 1.9779984951 * L - 2.4285922050 * M + 0.4505937099 * S,
+        b: 0.0259040371 * L + 0.7827717662 * M - 0.8086757660 * S
+      };
+    },
+    hwb: function (c) {
+      var hsv = this.rgbToHsv(c);
+      return { h: hsv.h, w: Math.min(c.r, c.g, c.b) / 255 * 100, b: 100 - Math.max(c.r, c.g, c.b) / 255 * 100 };
+    },
+    cmyk: function (c) {
+      var r = c.r / 255, g = c.g / 255, b = c.b / 255;
+      var k = 1 - Math.max(r, g, b);
+      if (k >= 1) { return { c: 0, m: 0, y: 0, k: 100 }; }
+      return {
+        c: (1 - r - k) / (1 - k) * 100,
+        m: (1 - g - k) / (1 - k) * 100,
+        y: (1 - b - k) / (1 - k) * 100,
+        k: k * 100
+      };
+    },
+
+    /** The named CSS colours this reads back. Not the full 148 — the ones somebody
+     *  actually types — and every one of them round-trips through parse(). */
+    NAMED: {
+      black: "#000000", white: "#ffffff", red: "#ff0000", lime: "#00ff00", blue: "#0000ff",
+      yellow: "#ffff00", cyan: "#00ffff", magenta: "#ff00ff", silver: "#c0c0c0", gray: "#808080",
+      grey: "#808080", maroon: "#800000", olive: "#808000", green: "#008000", purple: "#800080",
+      teal: "#008080", navy: "#000080", orange: "#ffa500", pink: "#ffc0cb", brown: "#a52a2a",
+      gold: "#ffd700", indigo: "#4b0082", violet: "#ee82ee", coral: "#ff7f50", salmon: "#fa8072",
+      crimson: "#dc143c", tomato: "#ff6347", turquoise: "#40e0d0", plum: "#dda0dd", khaki: "#f0e68c"
+    },
     oklch: function (c) {
       var o = this.oklab(c);
       return { l: o.l, c: Math.hypot(o.a, o.b), h: (Math.atan2(o.b, o.a) * 180 / Math.PI + 360) % 360 };
@@ -198,19 +252,137 @@
       return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
     },
     /** Every representation the translator shows, in the order it shows them. */
+    /** Twelve notations plus the named colours, matching the app's own translator so a
+     *  value copied from one pastes into the other. Alpha travels: HEX8 and RGBA keep
+     *  it rather than dropping it silently, which is the failure that makes a
+     *  translator untrustworthy — you cannot tell a lost alpha from a colour that
+     *  never had one. */
     translate: function (hex) {
       var rgb = this.hexToRgb(hex);
       if (!rgb) { return []; }
       function n(v, d) { return Number(v.toFixed(d === undefined ? 1 : d)); }
-      var hsl = this.rgbToHsl(rgb), hsv = this.rgbToHsv(rgb), ok = this.oklch(rgb);
-      return [
+      var a = rgb.a === undefined ? 1 : rgb.a;
+      var hsl = this.rgbToHsl(rgb), hsv = this.rgbToHsv(rgb);
+      var hwb = this.hwb(rgb), lab = this.lab(rgb), lch = this.lch(rgb);
+      var okl = this.oklab(rgb), ok = this.oklch(rgb), cmyk = this.cmyk(rgb);
+      var named = null;
+      var self = this;
+      Object.keys(this.NAMED).forEach(function (k) {
+        if (!named && self.NAMED[k].toLowerCase() === self.rgbToHex(rgb).toLowerCase()) { named = k; }
+      });
+      var rows = [
         ["HEX", this.rgbToHex(rgb).toUpperCase()],
+        ["HEX8", (this.rgbToHex(rgb) + Math.round(a * 255).toString(16).padStart(2, "0")).toUpperCase()],
         ["RGB", "rgb(" + Math.round(rgb.r) + " " + Math.round(rgb.g) + " " + Math.round(rgb.b) + ")"],
+        ["RGBA", "rgb(" + Math.round(rgb.r) + " " + Math.round(rgb.g) + " " + Math.round(rgb.b) + " / " + n(a, 2) + ")"],
         ["HSL", "hsl(" + n(hsl.h) + " " + n(hsl.s) + "% " + n(hsl.l) + "%)"],
         ["HSV", "hsv(" + n(hsv.h) + " " + n(hsv.s) + "% " + n(hsv.v) + "%)"],
-        ["OKLCH", "oklch(" + n(ok.l, 3) + " " + n(ok.c, 3) + " " + n(ok.h) + ")"]
+        ["HWB", "hwb(" + n(hwb.h) + " " + n(hwb.w) + "% " + n(hwb.b) + "%)"],
+        ["LAB", "lab(" + n(lab.l, 2) + "% " + n(lab.a, 2) + " " + n(lab.b, 2) + ")"],
+        ["LCH", "lch(" + n(lch.l, 2) + "% " + n(lch.c, 2) + " " + n(lch.h) + ")"],
+        ["OKLAB", "oklab(" + n(okl.l, 4) + " " + n(okl.a, 4) + " " + n(okl.b, 4) + ")"],
+        ["OKLCH", "oklch(" + n(ok.l, 3) + " " + n(ok.c, 3) + " " + n(ok.h) + ")"],
+        ["CMYK", "cmyk(" + n(cmyk.c) + "% " + n(cmyk.m) + "% " + n(cmyk.y) + "% " + n(cmyk.k) + "%)"]
       ];
-    }
+      if (named) { rows.push(["NAMED", named]); }
+      return rows;
+    },
+
+    /** Read any of them back. The translator printing a notation it cannot parse is
+     *  the defect this exists to prevent: the panel would show you `oklch(0.85 0.06
+     *  300)` and then refuse that exact string typed into the field beneath it.
+     *  Returns a hex string, or null — never a guess. */
+    parse: function (text) {
+      var s = String(text == null ? "" : text).trim().toLowerCase();
+      if (!s) { return null; }
+      if (Object.prototype.hasOwnProperty.call(this.NAMED, s)) { return this.NAMED[s].toUpperCase(); }
+      if (/^#?[0-9a-f]{3,8}$/.test(s)) {
+        var viaHex = this.hexToRgb(s);
+        return viaHex ? this.rgbToHex(viaHex).toUpperCase() : null;
+      }
+      var m = s.match(/^([a-z]+)\(([^)]*)\)$/);
+      if (!m) { return null; }
+      var fn = m[1];
+      /* Both spellings: the legacy comma form and the modern space-with-slash-alpha
+         form. A translator that emits one and reads the other is half a translator. */
+      var parts = m[2].replace(/\//g, " ").split(/[\s,]+/).filter(Boolean).map(function (p) {
+        return parseFloat(p.replace("%", ""));
+      });
+      if (parts.some(function (p) { return !isFinite(p); })) { return null; }
+      var rgb = null;
+      if (fn === "rgb" || fn === "rgba") {
+        rgb = { r: parts[0], g: parts[1], b: parts[2] };
+      } else if (fn === "hsl" || fn === "hsla") {
+        rgb = this.hslToRgb({ h: parts[0], s: parts[1], l: parts[2] });
+      } else if (fn === "hsv" || fn === "hsb") {
+        rgb = this.hsvToRgb({ h: parts[0], s: parts[1], v: parts[2] });
+      } else if (fn === "hwb") {
+        rgb = this.hsvToRgb({ h: parts[0], s: 100 - parts[1] / (1 - parts[2] / 100 || 1), v: 100 - parts[2] });
+        var w = parts[1] / 100, bl = parts[2] / 100;
+        var pure = this.hsvToRgb({ h: parts[0], s: 100, v: 100 });
+        rgb = {
+          r: pure.r * (1 - w - bl) + w * 255,
+          g: pure.g * (1 - w - bl) + w * 255,
+          b: pure.b * (1 - w - bl) + w * 255
+        };
+      } else if (fn === "lab") {
+        rgb = this.labToRgb({ l: parts[0], a: parts[1], b: parts[2] });
+      } else if (fn === "lch") {
+        rgb = this.labToRgb({
+          l: parts[0],
+          a: parts[1] * Math.cos(parts[2] * Math.PI / 180),
+          b: parts[1] * Math.sin(parts[2] * Math.PI / 180)
+        });
+      } else if (fn === "oklab") {
+        rgb = this.oklabToRgb({ l: parts[0], a: parts[1], b: parts[2] });
+      } else if (fn === "oklch") {
+        rgb = this.oklabToRgb({
+          l: parts[0],
+          a: parts[1] * Math.cos(parts[2] * Math.PI / 180),
+          b: parts[1] * Math.sin(parts[2] * Math.PI / 180)
+        });
+      } else if (fn === "cmyk") {
+        var k = parts[3] / 100;
+        rgb = {
+          r: 255 * (1 - parts[0] / 100) * (1 - k),
+          g: 255 * (1 - parts[1] / 100) * (1 - k),
+          b: 255 * (1 - parts[2] / 100) * (1 - k)
+        };
+      }
+      if (!rgb || [rgb.r, rgb.g, rgb.b].some(function (v) { return !isFinite(v); })) { return null; }
+      return this.rgbToHex(rgb).toUpperCase();
+    },
+
+    /* The inverses the parser needs. Same D65 white point as lab()/oklab() above. */
+    labToRgb: function (l) {
+      function inv(v) { return v * v * v > 0.008856 ? v * v * v : (v - 16 / 116) / 7.787; }
+      var fy = (l.l + 16) / 116, fx = fy + l.a / 500, fz = fy - l.b / 200;
+      var x = inv(fx) * 0.95047, y = inv(fy), z = inv(fz) * 1.08883;
+      return this.fromLinear(
+        3.2404542 * x - 1.5371385 * y - 0.4985314 * z,
+        -0.9692660 * x + 1.8760108 * y + 0.0415560 * z,
+        0.0556434 * x - 0.2040259 * y + 1.0572252 * z
+      );
+    },
+    oklabToRgb: function (o) {
+      var L = Math.pow(o.l + 0.3963377774 * o.a + 0.2158037573 * o.b, 3);
+      var M = Math.pow(o.l - 0.1055613458 * o.a - 0.0638541728 * o.b, 3);
+      var S = Math.pow(o.l - 0.0894841775 * o.a - 1.2914855480 * o.b, 3);
+      return this.fromLinear(
+        4.0767416621 * L - 3.3077115913 * M + 0.2309699292 * S,
+        -1.2684380046 * L + 2.6097574011 * M - 0.3413193965 * S,
+        -0.0041960863 * L - 0.7034186147 * M + 1.7076147010 * S
+      );
+    },
+    /** Linear-light back to 8-bit sRGB, clamped. Out-of-gamut LAB and OKLCH values
+     *  clip here rather than wrapping into a different colour entirely. */
+    fromLinear: function (r, g, b) {
+      function ch(v) {
+        var s = v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(Math.max(v, 0), 1 / 2.4) - 0.055;
+        return clamp(Math.round(s * 255), 0, 255);
+      }
+      return { r: ch(r), g: ch(g), b: ch(b) };
+    },
   };
 
   /* =================================================================== theme */
@@ -1502,12 +1674,17 @@
     left.appendChild(hue);
 
     var entry = el("div", { style: "display:flex;gap:8px;flex-wrap:wrap;margin-top:10px" });
-    var hexIn = el("input", { type: "text", "class": "plain", size: "9", "aria-label": "Hex value", value: colour.rgbToHex(rgb).toUpperCase() });
-    var rgbIn = el("input", { type: "text", "class": "plain", size: "16", "aria-label": "RGB value" });
-    var hslIn = el("input", { type: "text", "class": "plain", size: "18", "aria-label": "HSL value" });
-    entry.appendChild(hexIn);
-    entry.appendChild(rgbIn);
-    entry.appendChild(hslIn);
+    /* One field, every notation. Three fields that each read one space meant the
+       panel could print `oklch(0.85 0.06 300)` and then refuse that exact string,
+       because nothing was listening for it. */
+    var anyIn = el("input", {
+      type: "text", "class": "plain", size: "34",
+      "aria-label": "Colour value in any notation the translator writes",
+      placeholder: "#D0BCFF, rgb(208 188 255), oklch(0.85 0.06 300), plum…",
+      value: colour.rgbToHex(rgb).toUpperCase()
+    });
+    var hexIn = anyIn;
+    entry.appendChild(anyIn);
     left.appendChild(entry);
     grid.appendChild(left);
 
@@ -1545,7 +1722,21 @@
       dl.innerHTML = "";
       colour.translate(hex).forEach(function (row) {
         dl.appendChild(el("dt", null, esc(row[0])));
-        dl.appendChild(el("dd", null, esc(row[1])));
+        /* A button, not a <dd> with a click handler: twelve values a keyboard user
+           cannot reach is a list to read, not a translator to use. Each is named for
+           its own space so a screen reader does not announce twelve identical
+           "Copy" controls. */
+        var dd = el("dd");
+        var copy = el("button", {
+          type: "button", "class": "trans__copy",
+          "aria-label": "Copy the " + row[0] + " value, " + row[1],
+          title: "Copy the " + row[0] + " value"
+        }, esc(row[1]));
+        copy.addEventListener("click", function () {
+          copyText(row[1], row[0]);
+        });
+        dd.appendChild(copy);
+        dl.appendChild(dd);
       });
 
       var surfaceHex = readSurfaceHex();
@@ -1556,11 +1747,7 @@
         (ratio >= 7 ? "AAA text" : pass ? "AA text" : ratio >= 3 ? "AA large text only" : "below AA") + "</span>";
 
       if (syncFields !== false) {
-        hexIn.value = hex;
-        var r2 = colour.hexToRgb(hex);
-        rgbIn.value = "rgb(" + r2.r + " " + r2.g + " " + r2.b + ")";
-        var h2 = colour.rgbToHsl(r2);
-        hslIn.value = "hsl(" + h2.h.toFixed(1) + " " + h2.s.toFixed(1) + "% " + h2.l.toFixed(1) + "%)";
+        anyIn.value = hex;
         hue.value = String(Math.round(hsv.h));
       }
     }
@@ -1589,22 +1776,19 @@
     });
     hue.addEventListener("input", function () { hsv.h = Number(hue.value); paint(); });
 
-    hexIn.addEventListener("change", function () {
-      var parsed = colour.hexToRgb(hexIn.value);
-      if (!parsed) { toast("error", "That is not a hex colour", "Expected three or six hex digits, for example #6750A4."); paint(); return; }
-      hsv = colour.rgbToHsv(parsed);
-      paint();
-    });
-    rgbIn.addEventListener("change", function () {
-      var m = rgbIn.value.match(/(\d{1,3})\D+(\d{1,3})\D+(\d{1,3})/);
-      if (!m) { toast("error", "That is not an RGB value", "Expected three numbers from 0 to 255, for example rgb(103 80 164)."); paint(); return; }
-      hsv = colour.rgbToHsv({ r: clamp(+m[1], 0, 255), g: clamp(+m[2], 0, 255), b: clamp(+m[3], 0, 255) });
-      paint();
-    });
-    hslIn.addEventListener("change", function () {
-      var m = hslIn.value.match(/(-?[\d.]+)\D+([\d.]+)%\D+([\d.]+)%/);
-      if (!m) { toast("error", "That is not an HSL value", "Expected hue in degrees then two percentages, for example hsl(258 30% 48%)."); paint(); return; }
-      hsv = colour.rgbToHsv(colour.hslToRgb({ h: ((+m[1]) % 360 + 360) % 360, s: clamp(+m[2], 0, 100), l: clamp(+m[3], 0, 100) }));
+    anyIn.addEventListener("change", function () {
+      var parsed = colour.parse(anyIn.value);
+      if (!parsed) {
+        toast(
+          "error",
+          "That is not a colour this reads",
+          "Every notation in the list below parses: hex, hex8, rgb, hsl, hsv, hwb, lab, lch, oklab, oklch, cmyk, " +
+            "and the named colours. Both the comma form and the space form work."
+        );
+        paint();
+        return;
+      }
+      hsv = colour.rgbToHsv(colour.hexToRgb(parsed));
       paint();
     });
 
