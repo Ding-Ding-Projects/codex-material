@@ -1058,6 +1058,15 @@ test("app/index.html — no user-visible string bypasses CX.i18n", () => {
     ["Georgia", "the typeface's own name"],
     ["Helvetica Neue", "the typeface's own name"],
     ["", "the sentinel the dropdown clears itself with"],
+    ["▸ ", "a decorative marker prefixed to a row built from data, not a word"],
+    ["codex ", "the command prefix a palette row is built from — `codex ` + the subcommand"],
+    ["/", "the slash a slash-command row is built from — `/` + the command"],
+    ["features.", "the config-key prefix a feature row is built from — `features.` + the key"],
+    ["v", "the version prefix a plugin row is built from — `v` + the version"],
+    ["approval_policy = never, sandbox_mode = danger-full-access",
+     "the two config settings YOLO writes, quoted exactly as config.toml spells them"],
+    ["C:/src/vendor", "an example filesystem path — a path is not a sentence"],
+    ["composer.submit", "an example keybinding action id, which is an identifier"],
   ]);
 
   const run = (name, fn) => {
@@ -1073,7 +1082,12 @@ test("app/index.html — no user-visible string bypasses CX.i18n", () => {
 
   for (const prop of ["label", "hint", "title", "desc", "subtitle", "placeholder"]) {
     run(`no hard-coded ${prop}`, () => {
-      const found = [...src.matchAll(new RegExp(`\b${prop}: "([^"]*)"`, "g"))].map((m) => m[1]);
+      /* `\\b`, not `\b`. Inside a template literal a single backslash-b is the
+         BACKSPACE character, so this searched for U+0008 followed by `label: "…"` and
+         matched nothing — six assertions that could never fail, reporting coverage
+         that did not exist. It was appended to this file by a shell heredoc, which
+         ate the second backslash. */
+      const found = [...src.matchAll(new RegExp(`\\b${prop}: "([^"]*)"`, "g"))].map((m) => m[1]);
       const leaked = found.filter((text) => !ALLOWED.has(text));
       assert.deepEqual(
         leaked,

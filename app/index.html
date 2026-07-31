@@ -1797,11 +1797,16 @@ class Component extends DCLogic {
     }
     if (x.kind === "registry") { this.toast("Registries are managed below — right-click to remove or copy the CLI command"); return; }
     if (x.kind === "catalog") {
-      CX.bridge.invoke(x.on ? "codex_plugin_uninstall" : "codex_plugin_install", { name: x.id }).then(() => {
-        CX.vcs.commit((x.on ? "Uninstall" : "Install") + " plugin " + x.id, "change");
-        this.setState({ tick: this.state.tick + 1 });
-        this.toast((x.on ? "Removed " : "Installed ") + x.id + " — " + this.extCommand(x));
-      });
+      CX.bridge.invoke(x.on ? "codex_plugin_uninstall" : "codex_plugin_install", { name: x.id })
+        .then(() => {
+          CX.vcs.commit((x.on ? "Uninstall" : "Install") + " plugin " + x.id, "change");
+          this.toast((x.on ? "Removed " : "Installed ") + x.id + " — " + this.extCommand(x));
+          /* Re-read before re-rendering: the row is drawn from CX.sim, and a tick
+             alone redraws it from the copy taken before this call. */
+          return CX.live.hydrate(this.expandPath(this.profile().cwd));
+        })
+        .then(() => this.setState({ tick: this.state.tick + 1 }))
+        .catch((e) => this.notifyError("extend", e));
       return;
     }
     if (x.kind === "feature") { CX.bridge.invoke("codex_set_feature", { key: x.id, value: !x.on }).then(() => { CX.vcs.commit((x.on ? "Disable" : "Enable") + " feature " + x.id, "change"); this.setState({ tick: this.state.tick + 1 }); }); return; }
@@ -1817,7 +1822,14 @@ class Component extends DCLogic {
        the promise rejected, nothing was listening, and the switch simply never moved. */
     if (map[x.kind]) {
       CX.bridge.invoke(map[x.kind], Object.assign({ name: x.id }, x.ref || {}))
-        .then(() => { CX.vcs.commit((x.on ? "Disable" : "Enable") + " " + x.kind + " " + x.id, "change"); this.setState({ tick: this.state.tick + 1 }); })
+        .then(() => {
+          CX.vcs.commit((x.on ? "Disable" : "Enable") + " " + x.kind + " " + x.id, "change");
+          /* The switch is drawn from CX.sim. Without this the call succeeded on disk
+             and the row went on showing the old value until something else happened
+             to re-hydrate — which reads exactly like the toggle not working. */
+          return CX.live.hydrate(this.expandPath(this.profile().cwd));
+        })
+        .then(() => this.setState({ tick: this.state.tick + 1 }))
         .catch((e) => this.notifyError("extend", e));
     }
   }
