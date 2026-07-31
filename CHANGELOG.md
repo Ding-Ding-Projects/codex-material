@@ -81,18 +81,6 @@ system is reimplemented.
   settings changes are committed with a label describing what changed; an undo is
   written as a new revision rather than popping the stack, so an undo can itself be
   undone. Unchanged state records nothing.
-- **Ten command-palette entries had no title.** The "Go to" rows read their label
-  from the `NAV` array, which stopped carrying one when the labels moved into the
-  string table — so every one of them rendered as a blank row with a blank subtitle.
-  The palette is not captured and not audited, so nothing noticed until the smoke
-  test's overlay phase opened it.
-
-- **The Runtime panel rendered an empty control on any machine without WSL.**
-  `CX.sim.wslDistros[0]` is `undefined` when no distribution is installed — which is
-  most machines — so the distribution button's binding never resolved and the dropdown
-  offered nothing. It says "No WSL installed" now, and the dropdown explains how to
-  install one. The development machine has WSL, which is why this survived; the smoke
-  test caught it on the first CI runner it ran on.
 
 - **There is a full smoke test** (`npm run smoke`, `tools/smoke.mjs`). Unit tests
   exercise modules in a `node:vm` with a browser shim and the capture harness proves
@@ -102,20 +90,7 @@ system is reimplemented.
   and the real IPC channel are all in the path, not bypassed — then opens all ten
   panels and checks for unresolved bindings and thrown renders. It runs in CI before
   the installers are built, so a broken app cannot be packaged.
-- **`skillToggle` validates its argument.** A malformed call reached
-  `path.join(undefined, …)` and surfaced as `The "path" argument must be of type
-  string`, which tells the user nothing — in a function that *renames a directory*.
 
-- **The funny slider's second step does something now.** 140 sentence-length keys had
-  a level 2 that was a byte-for-byte copy of level 1 in both languages, so moving
-  either slider from 1 to 2 changed nothing. They have a distinct, still-professional
-  level 2. The 106 keys left identical are one- or two-word labels — "Chats", "Hue",
-  "Codex Studio" — where a level 2 would have to be invented rather than written, and
-  a product name must never vary at all.
-- **Three keys were defined twice in the string table.** `tab.closed`, `tab.overflow`
-  and `tab.unsaved`. In a JS object literal the later definition silently wins, so the
-  earlier one was dead data that read exactly like coverage — the same shape as the
-  `nav.chats`/`nav.chat` mismatch found earlier.
 - **`tab.reorder` described a gesture and a key that do not exist.** It said "Drag to
   reorder, or press Alt+Shift+Arrow" at every level. There is no drag-to-reorder, and
   the binding is <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>←</kbd>/<kbd>→</kbd>. It went
@@ -369,15 +344,39 @@ system is reimplemented.
   job must pass before the release job runs, and the release publishes one uniquely
   tagged, non-draft GitHub Release carrying both installers and the build's dim sum
   photograph.
-- **Test suites**: 23 frontend module tests (`tools/test-frontend.mjs`) and 22 backend
+- **Test suites**: 34 frontend module tests (`tools/test-frontend.mjs`) and 33 backend
   tests (`tools/test-backend.mjs`), both dependency-free, neither requiring Electron or
-  a `codex` binary.
+  a `codex` binary, plus the full smoke test which needs both.
 
 ### Fixed
 
 These correct defects in the design prototype and the first shell, both committed
 earlier within this same unreleased version — not in any shipped release.
 
+- **Ten command-palette entries had no title.** The "Go to" rows read their label
+  from the `NAV` array, which stopped carrying one when the labels moved into the
+  string table — so every one of them rendered as a blank row with a blank subtitle.
+  The palette is not captured and not audited, so nothing noticed until the smoke
+  test's overlay phase opened it.
+- **The Runtime panel rendered an empty control on any machine without WSL.**
+  `CX.sim.wslDistros[0]` is `undefined` when no distribution is installed — which is
+  most machines — so the distribution button's binding never resolved and the dropdown
+  offered nothing. It says "No WSL installed" now, and the dropdown explains how to
+  install one. The development machine has WSL, which is why this survived; the smoke
+  test caught it on the first CI runner it ran on.
+- **`skillToggle` validates its argument.** A malformed call reached
+  `path.join(undefined, …)` and surfaced as `The "path" argument must be of type
+  string`, which tells the user nothing — in a function that *renames a directory*.
+- **The funny slider's second step does something now.** 140 sentence-length keys had
+  a level 2 that was a byte-for-byte copy of level 1 in both languages, so moving
+  either slider from 1 to 2 changed nothing. They have a distinct, still-professional
+  level 2. The 106 keys left identical are one- or two-word labels — "Chats", "Hue",
+  "Codex Studio" — where a level 2 would have to be invented rather than written, and
+  a product name must never vary at all.
+- **Three keys were defined twice in the string table.** `tab.closed`, `tab.overflow`
+  and `tab.unsaved`. In a JS object literal the later definition silently wins, so the
+  earlier one was dead data that read exactly like coverage — the same shape as the
+  `nav.chats`/`nav.chat` mismatch found earlier.
 - **`app/cx-appearance.js` was never loaded by the page.** No `<script src>` tag listed
   it, so `window.CX_APPEARANCE` did not exist at runtime: appearance export, import and
   every named preset hit their `if (!A)` guard and reported that the module was missing
