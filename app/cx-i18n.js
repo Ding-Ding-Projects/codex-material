@@ -2263,6 +2263,247 @@
       en: ["Find tabs", "Find tabs", "Find tabs", "Find tabs", "Find tabs"],
       yue: ["搵分頁", "搵分頁", "搵 tab", "搵 tab", "搵返啲 tab"]
     },
+/* Batch 8 — the Studio settings panel: six section headings, their descriptions, and
+   every row's title, description and button word. These reached the interface as
+   positional arguments to pick()/toggle()/slider()/action(), which is why no sweep for
+   `label:` ever saw them.
+
+   The disclosure text is the one place the funny slider explains itself, so it holds
+   its facts hardest: at every level it still says the level changes voice only, that
+   errors and destructive confirmations are included, and that no category is exempt.
+   A disclosure that got funnier by disclosing less would be the one joke this app must
+   not make. */
+
+    "act.reveal": {
+      en: ["Reveal", "Reveal", "Reveal", "Show me", "Show me where"],
+      yue: ["顯示位置", "顯示位置", "顯示位置", "帶我去睇", "帶我去睇吓喺邊"]
+    },
+    "act.prune": {
+      en: ["Prune", "Prune", "Prune", "Trim it", "Trim it down"],
+      yue: ["修剪", "修剪", "剪走舊嘅", "剪走舊嘅", "剪走啲舊嘢"]
+    },
+    "act.preview": {
+      en: ["Preview", "Preview", "Preview", "Show me", "Show me one"],
+      yue: ["預覽", "預覽", "預覽", "畀我睇吓", "畀我睇吓一個"]
+    },
+    "act.resetAll": {
+      en: ["Reset all", "Reset all", "Reset all", "Reset the lot", "Reset the lot"],
+      yue: ["全部重設", "全部重設", "全部打返原形", "全部打返原形", "成批打返原形"]
+    },
+
+    "studio.langTitle": {
+      en: ["Language", "Language", "Language", "Language", "Language"],
+      yue: ["語言", "語言", "語言", "語言", "語言"]
+    },
+    "studio.langDesc": {
+      en: ["Three modes and two independent funny sliders. The level changes the voice only — every message still names the file, the count and what is irreversible, at level 1 and at level 5 alike. This includes errors, warnings and destructive confirmations; no category is exempt.",
+        "Three modes and two independent funny sliders. The level changes the voice only — every message still names the file, the count and what is irreversible, at level 1 and at level 5 alike. This includes errors, warnings and destructive confirmations; no category is exempt.",
+        "Three modes and two independent funny sliders. The level changes the voice only: every message still names the file, the count and what is irreversible, at level 1 and at level 5 alike. Errors, warnings and destructive confirmations are included; no category is exempt.",
+        "Three modes and two funny sliders that move independently. The level changes the voice and nothing else — every message still names the file, the count and what cannot be undone, at level 1 and at level 5 alike. Errors, warnings and destructive confirmations included; nothing is exempt.",
+        "Three modes and two funny sliders that move independently. The level changes the voice and nothing else — every message still names the file, the count and what cannot be undone, at level 1 and at level 5 alike. Errors, warnings and destructive confirmations included; nothing is exempt, however much it might like to be."],
+      yue: ["三種模式，兩個獨立嘅玩味滑桿。等級淨係改語氣 —— 每段訊息一樣會講明係邊個檔案、幾多個、邊啲唔可以回頭，level 1 同 level 5 一模一樣。錯誤、警告同刪除確認全部包括在內，冇一類豁免。",
+        "三種模式，兩個獨立嘅玩味滑桿。等級淨係改語氣 —— 每段訊息一樣會講明係邊個檔案、幾多個、邊啲唔可以回頭，level 1 同 level 5 一模一樣。錯誤、警告同刪除確認全部包括在內，冇一類豁免。",
+        "三種模式，兩個獨立玩味滑桿。等級淨係改語氣：每段訊息一樣講明邊個檔案、幾多個、邊啲返唔到轉頭，level 1 同 level 5 一樣。錯誤、警告、刪除確認全部計埋，冇一類豁免。",
+        "三種模式，兩個滑桿各行各路。等級淨係改語氣，其他乜都唔改 —— 每段訊息一樣講明邊個檔案、幾多個、邊啲返唔到轉頭，level 1 同 level 5 一樣。錯誤、警告、刪除確認全部計埋，一個都走唔甩。",
+        "三種模式，兩個滑桿各行各路。等級淨係改語氣，其他乜都唔改 —— 每段訊息一樣講明邊個檔案、幾多個、邊啲返唔到轉頭，level 1 同 level 5 一樣。錯誤、警告、刪除確認全部計埋，一個都走唔甩，想扮唔關事都唔得。"]
+    },
+    "studio.langModeRow": {
+      en: ["Language mode", "Language mode", "Language mode", "Language mode", "Language mode"],
+      yue: ["語言模式", "語言模式", "語言模式", "語言模式", "語言模式"]
+    },
+    "studio.langModeRowDesc": {
+      en: ["English · playful Hong Kong Cantonese · bilingual", "English · playful Hong Kong Cantonese · bilingual", "English · playful Hong Kong Cantonese · both at once", "English, playful Hong Kong Cantonese, or both at once", "English, playful Hong Kong Cantonese, or both at once"],
+      yue: ["英文 · 港式廣東話 · 雙語", "英文 · 港式廣東話 · 雙語", "英文 · 港式廣東話 · 兩種一齊", "英文、港式廣東話，或者兩種一齊上", "英文、港式廣東話，或者兩種一齊上"]
+    },
+    "studio.funnyEn": {
+      en: ["Funny level — English", "Funny level — English", "Funny level — English", "Funny level — English", "Funny level — English"],
+      yue: ["玩味程度 —— 英文", "玩味程度 —— 英文", "英文玩味程度", "英文嗰邊玩幾大", "英文嗰邊玩幾大"]
+    },
+    "studio.funnyEnDesc": {
+      en: ["How playfully the English copy is written. Level 1 reads fully professional.", "How playfully the English copy is written. Level 1 reads fully professional.", "How playful the English copy is. Level 1 reads fully professional.", "How playful the English gets. Level 1 is completely straight-faced.", "How playful the English gets. Level 1 is completely straight-faced."],
+      yue: ["英文文案寫得幾玩味。Level 1 完全專業。", "英文文案寫得幾玩味。Level 1 完全專業。", "英文寫得幾玩。Level 1 好正經。", "英文可以玩到幾盡。Level 1 一啲都唔笑。", "英文可以玩到幾盡。Level 1 一啲都唔笑。"]
+    },
+    "studio.funnyYue": {
+      en: ["Funny level — 廣東話", "Funny level — 廣東話", "Funny level — 廣東話", "Funny level — 廣東話", "Funny level — 廣東話"],
+      yue: ["玩味程度 —— 廣東話", "玩味程度 —— 廣東話", "廣東話玩味程度", "廣東話嗰邊玩幾大", "廣東話嗰邊玩幾大"]
+    },
+    "studio.funnyYueDesc": {
+      en: ["How playfully the Cantonese copy is written. Level 1 reads fully professional.", "How playfully the Cantonese copy is written. Level 1 reads fully professional.", "How playful the Cantonese copy is. Level 1 reads fully professional.", "How playful the Cantonese gets. Level 1 is completely straight-faced.", "How playful the Cantonese gets. Level 1 is completely straight-faced."],
+      yue: ["廣東話嗰邊嘅玩味程度。1 係好正經，5 係玩到盡。", "廣東話嗰邊嘅玩味程度。1 係好正經，5 係玩到盡。", "廣東話寫得幾玩。1 好正經，5 玩到盡。", "廣東話可以玩到幾盡。1 一本正經，5 就冇嘢救。", "廣東話可以玩到幾盡。1 一本正經，5 就冇嘢救。"]
+    },
+
+    "studio.narratorTitle": {
+      en: ["Spoken narrator", "Spoken narrator", "Spoken narrator", "The voice", "The voice"],
+      yue: ["語音旁白", "語音旁白", "語音旁白", "把聲", "把聲"]
+    },
+    "studio.narratorDesc": {
+      en: ["Off by default. When on it speaks one line at a time through a serialised queue, never overlapping, and yields to an active screen reader. Spoken errors still name the actual failure and are never suppressed by the rate limit.",
+        "Off by default. When on it speaks one line at a time through a serialised queue, never overlapping, and yields to an active screen reader. Spoken errors still name the actual failure and are never suppressed by the rate limit.",
+        "Off by default. When on it speaks one line at a time, never overlapping, and gets out of the way of an active screen reader. Spoken errors still name the actual failure and are never held back by the rate limit.",
+        "Off unless you turn it on. One line at a time, never talking over itself, and it shuts up for an active screen reader. Spoken errors still name the actual failure and the rate limit never swallows one.",
+        "Off unless you turn it on. One line at a time, never talking over itself, and it shuts up the moment a screen reader speaks. Spoken errors still name the actual failure, and the rate limit never swallows one."],
+      yue: ["預設關閉。開咗之後會逐句講，經一條序列化隊列，唔會重疊，遇著螢幕閱讀器會讓路。講錯誤嗰陣一樣會講明真正出咗咩事，唔會俾頻率限制食咗。",
+        "預設關閉。開咗之後會逐句講，經一條序列化隊列，唔會重疊，遇著螢幕閱讀器會讓路。講錯誤嗰陣一樣會講明真正出咗咩事，唔會俾頻率限制食咗。",
+        "預設熄咗。開咗就逐句講，唔會撞聲，螢幕閱讀器一出聲佢就讓路。講錯誤一樣會講明真正出咗咩事，唔會俾頻率限制食咗。",
+        "你唔開佢就唔會出聲。一次一句，唔會自己嘈自己，螢幕閱讀器一出聲佢即刻收聲。講錯誤一樣會講明真正出咗咩事，一句都唔會俾頻率限制食咗。",
+        "你唔開佢就唔會出聲。一次一句，唔會自己嘈自己，螢幕閱讀器一出聲佢即刻收聲。講錯誤一樣會講明真正出咗咩事，一句都唔會俾頻率限制食咗。"]
+    },
+    "studio.narrateEvents": {
+      en: ["Narrate app events", "Narrate app events", "Narrate app events", "Say things out loud", "Say things out loud"],
+      yue: ["讀出應用程式事件", "讀出應用程式事件", "講返 app 度發生咩事", "有嘢發生就講出嚟", "有嘢發生就講出嚟"]
+    },
+    "studio.narrateEventsDesc": {
+      en: ["Uses the platform voice. Off unless you turn it on.", "Uses the platform voice. Off unless you turn it on.", "Uses the platform voice. Off unless you turn it on.", "Uses whatever voice Windows has. Off unless you turn it on.", "Uses whatever voice Windows has. Off unless you turn it on."],
+      yue: ["用系統嘅語音。你唔開就唔會出聲。", "用系統嘅語音。你唔開就唔會出聲。", "用系統把聲。你唔開就唔出聲。", "Windows 有咩聲就用咩聲。你唔開就唔出聲。", "Windows 有咩聲就用咩聲。你唔開就唔出聲。"]
+    },
+    "studio.narratedLang": {
+      en: ["Narrated language", "Narrated language", "Narrated language", "Which language it speaks", "Which language it speaks"],
+      yue: ["旁白語言", "旁白語言", "旁白講邊種話", "佢用邊種話講", "佢用邊種話講"]
+    },
+    "studio.narratedLangDesc": {
+      en: ["Both speaks English first, then 廣東話, strictly one after the other.", "Both speaks English first, then 廣東話, strictly one after the other.", "Both speaks English first, then 廣東話, strictly one after the other.", "Both means English first, then 廣東話 — one after the other, never together.", "Both means English first, then 廣東話 — one after the other, never on top of each other."],
+      yue: ["揀「兩種」會先講英文，再講廣東話，一句跟一句。", "揀「兩種」會先講英文，再講廣東話，一句跟一句。", "揀「兩種」就先英文後廣東話，一句跟一句。", "揀「兩種」即係先英文後廣東話 —— 一句跟一句，唔會一齊嗌。", "揀「兩種」即係先英文後廣東話 —— 一句跟一句，唔會一齊嗌。"]
+    },
+
+    "studio.dimsumTitle": {
+      en: ["Dim sum surprise", "Dim sum surprise", "Dim sum surprise", "Dim sum surprise", "Dim sum surprise"],
+      yue: ["點心驚喜", "點心驚喜", "點心驚喜", "點心驚喜", "點心驚喜"]
+    },
+    "studio.dimsumDesc": {
+      en: ["A 1-in-100 chance at launch of a randomly chosen dim sum dish, named in both languages. It never blocks startup, never steals focus, and never appears on a first run or during an error.",
+        "A 1-in-100 chance at launch of a randomly chosen dim sum dish, named in both languages. It never blocks startup, never steals focus, and never appears on a first run or during an error.",
+        "A 1-in-100 chance at launch of a random dim sum dish, named in both languages. It never blocks startup, never steals focus, and never turns up on a first run or during an error.",
+        "One launch in a hundred, a random dim sum dish turns up, named in both languages. It never blocks startup, never steals focus, and never shows its face on a first run or during an error.",
+        "One launch in a hundred, a random dim sum dish turns up, named in both languages. It never blocks startup, never steals focus, and has the good manners to stay away on a first run or during an error."],
+      yue: ["每次開 app 有百分之一機會出現一碟隨機點心，兩種語言都有名。佢唔會阻住開機、唔會搶焦點，第一次用同出錯嗰陣都唔會出現。",
+        "每次開 app 有百分之一機會出現一碟隨機點心，兩種語言都有名。佢唔會阻住開機、唔會搶焦點，第一次用同出錯嗰陣都唔會出現。",
+        "開一百次 app 大概中一次，出一碟隨機點心，兩種語言都有名。唔阻開機、唔搶焦點，第一次用同出錯嗰陣唔會出。",
+        "開一百次撞中一次，會有碟隨機點心行出嚟，兩種語言都有名。唔阻開機、唔搶焦點，第一次用同出錯嗰陣識做唔會出。",
+        "開一百次撞中一次，會有碟隨機點心行出嚟，兩種語言都有名。唔阻開機、唔搶焦點，第一次用同出錯嗰陣好識做，梗係唔出嚟阻你。"]
+    },
+    "studio.showDimsum": {
+      en: ["Show the dim sum surprise", "Show the dim sum surprise", "Show the dim sum surprise", "Let the dim sum turn up", "Let the dim sum turn up"],
+      yue: ["顯示點心驚喜", "顯示點心驚喜", "畀點心出嚟", "畀啲點心出嚟", "畀啲點心行出嚟"]
+    },
+    "studio.showDimsumDesc": {
+      en: ["One fresh draw per launch, at most 1%. Bundled artwork, no network.", "One fresh draw per launch, at most 1%. Bundled artwork, no network.", "One fresh draw per launch, 1% at most. Bundled artwork, no network.", "One fresh draw per launch, 1% at most. The pictures ship with the app; nothing is fetched.", "One fresh draw per launch, 1% at most. The pictures ship with the app; nothing is fetched from anywhere."],
+      yue: ["每次開機抽一次，最多 1%。相片內置，唔上網。", "每次開機抽一次，最多 1%。相片內置，唔上網。", "每次開機抽一次，最多 1%。啲相內置，唔使上網。", "每次開機抽一次，最多 1%。啲相跟住 app 一齊帶，唔會去邊度攞。", "每次開機抽一次，最多 1%。啲相跟住 app 一齊帶，唔會去邊度攞。"]
+    },
+    "studio.showOneNow": {
+      en: ["Show one now", "Show one now", "Show one now", "Show me one now", "Show me one right now"],
+      yue: ["即刻出一個", "即刻出一個", "即刻出一碟嚟睇", "即刻畀我睇一碟", "即刻畀我睇一碟"]
+    },
+    "studio.showOneNowDesc": {
+      en: ["Preview the surface without waiting for the draw.", "Preview the surface without waiting for the draw.", "Preview it without waiting for the draw.", "See it now instead of waiting to get lucky.", "See it now instead of waiting a hundred launches to get lucky."],
+      yue: ["唔使等抽中，即刻預覽。", "唔使等抽中，即刻預覽。", "唔使等抽中，即刻睇。", "唔使等好運，而家就睇。", "唔使等一百次先撞中，而家就睇。"]
+    },
+
+    "studio.editorTitle": {
+      en: ["External editor", "External editor", "External editor", "External editor", "External editor"],
+      yue: ["外部編輯器", "外部編輯器", "外部編輯器", "外部編輯器", "外部編輯器"]
+    },
+    "studio.editorDesc": {
+      en: ["Opens the active profile's working directory in the editor you choose. Only editors actually found on this machine are offered.", "Opens the active profile's working directory in the editor you choose. Only editors actually found on this machine are offered.", "Opens the active profile's working directory in the editor you pick. Only editors actually found on this machine are offered.", "Opens the active profile's working directory in whichever editor you pick. Only editors actually found on this machine are offered.", "Opens the active profile's working directory in whichever editor you pick. Only editors actually sitting on this machine are offered — no wishful thinking."],
+      yue: ["用你揀嘅編輯器開啟目前設定檔嘅工作目錄。淨係列出部機真係搵到嘅編輯器。", "用你揀嘅編輯器開啟目前設定檔嘅工作目錄。淨係列出部機真係搵到嘅編輯器。", "用你揀嗰個編輯器開目前 profile 嘅工作目錄。淨係列部機真係有嘅。", "你揀邊個編輯器就用邊個開目前 profile 嘅工作目錄。淨係列部機真係有嗰啲。", "你揀邊個編輯器就用邊個開目前 profile 嘅工作目錄。淨係列部機真係有嗰啲，唔會靠估。"]
+    },
+    "studio.editorRow": {
+      en: ["Editor", "Editor", "Editor", "Editor", "Editor"],
+      yue: ["編輯器", "編輯器", "編輯器", "編輯器", "編輯器"]
+    },
+    "studio.editorDetected": {
+      en: ["{count} detected on this machine", "{count} detected on this machine", "{count} found on this machine", "{count} found on this machine", "{count} found on this machine"],
+      yue: ["喺部機搵到 {count} 個", "喺部機搵到 {count} 個", "部機搵到 {count} 個", "部機搵到 {count} 個", "部機搵到 {count} 個"]
+    },
+    "studio.editorNone": {
+      en: ["No supported editor was found — install one, or use Reveal in Explorer.", "No supported editor was found — install one, or use Reveal in Explorer.", "No supported editor was found. Install one, or use Reveal in Explorer.", "No supported editor turned up. Install one, or fall back to Reveal in Explorer.", "No supported editor turned up. Install one, or fall back to Reveal in Explorer."],
+      yue: ["搵唔到支援嘅編輯器 —— 裝一個，或者用「喺檔案總管顯示」。", "搵唔到支援嘅編輯器 —— 裝一個，或者用「喺檔案總管顯示」。", "搵唔到支援嘅編輯器。裝一個，或者用「喺檔案總管顯示」。", "一個支援嘅編輯器都搵唔到。裝一個，唔係就用「喺檔案總管顯示」頂住先。", "一個支援嘅編輯器都搵唔到。裝一個，唔係就用「喺檔案總管顯示」頂住先。"]
+    },
+    "studio.openWorkingDir": {
+      en: ["Open the working directory", "Open the working directory", "Open the working directory", "Open the working directory", "Open the working directory"],
+      yue: ["開啟工作目錄", "開啟工作目錄", "開個工作目錄", "開個工作目錄", "開個工作目錄嚟睇"]
+    },
+    "studio.revealExplorer": {
+      en: ["Reveal in File Explorer", "Reveal in File Explorer", "Reveal in File Explorer", "Show it in File Explorer", "Show it in File Explorer"],
+      yue: ["喺檔案總管顯示", "喺檔案總管顯示", "喺檔案總管度開", "喺檔案總管度開返佢", "喺檔案總管度揾畀你睇"]
+    },
+    "studio.revealExplorerDesc": {
+      en: ["Always available, even with no editor installed.", "Always available, even with no editor installed.", "Always available, even with no editor installed.", "Always there, even if you have no editor at all.", "Always there, even if you have no editor at all."],
+      yue: ["一定用得，就算冇裝編輯器都得。", "一定用得，就算冇裝編輯器都得。", "一定用得，冇編輯器都用得。", "一定喺度，你一個編輯器都冇都用得。", "一定喺度，你一個編輯器都冇都用得。"]
+    },
+
+    "studio.historyTitle": {
+      en: ["Local version history", "Local version history", "Local version history", "Local version history", "Local version history"],
+      yue: ["本機版本歷史", "本機版本歷史", "本機版本歷史", "本機版本歷史", "本機版本歷史"]
+    },
+    "studio.historyDesc": {
+      en: ["A git repository beside the app's own data — never inside your project, never pushed. Restoring writes a new revision instead of rewinding, so an undo can itself be undone.",
+        "A git repository beside the app's own data — never inside your project, never pushed. Restoring writes a new revision instead of rewinding, so an undo can itself be undone.",
+        "A git repository beside the app's own data. Never inside your project, never pushed. Restoring writes a new revision instead of rewinding, so an undo can itself be undone.",
+        "A git repository beside the app's own data — never inside your project, never pushed anywhere. Restoring writes a new revision rather than rewinding, so an undo can itself be undone.",
+        "A git repository beside the app's own data — never inside your project, never pushed anywhere. Restoring writes a new revision rather than rewinding, so you can undo an undo, and then undo that."],
+      yue: ["一個 git 倉庫，擺喺 app 自己啲資料隔籬 —— 唔會擺入你個 project，亦都唔會 push 出去。還原係寫一個新版本，唔係倒帶，所以撤銷咗都可以再撤銷返。",
+        "一個 git 倉庫，擺喺 app 自己啲資料隔籬 —— 唔會擺入你個 project，亦都唔會 push 出去。還原係寫一個新版本，唔係倒帶，所以撤銷咗都可以再撤銷返。",
+        "一個 git 倉庫，擺喺 app 自己啲資料隔籬。唔會入你個 project，亦唔會 push 出去。還原係寫個新版本，唔係倒帶，所以撤銷咗都撤銷得返。",
+        "一個 git 倉庫，擺喺 app 自己啲資料隔籬 —— 唔會入你個 project，亦唔會 push 去邊。還原係寫個新版本而唔係倒帶，所以撤銷都撤銷得返。",
+        "一個 git 倉庫，擺喺 app 自己啲資料隔籬 —— 唔會入你個 project，亦唔會 push 去邊。還原係寫個新版本而唔係倒帶，所以你撤銷咗可以再撤銷，再撤銷多次都得。"]
+    },
+    "studio.openHistoryRepo": {
+      en: ["Open the history repository", "Open the history repository", "Open the history repository", "Open the history repository", "Open the history repository"],
+      yue: ["開啟歷史倉庫", "開啟歷史倉庫", "開個歷史倉庫", "開個歷史倉庫", "開個歷史倉庫睇吓"]
+    },
+    "studio.pruneRevisions": {
+      en: ["Prune old revisions", "Prune old revisions", "Prune old revisions", "Trim the old revisions", "Trim the old revisions"],
+      yue: ["清理舊版本", "清理舊版本", "剪走舊版本", "剪走啲舊版本", "剪走啲舊版本"]
+    },
+    "studio.pruneRevisionsDesc": {
+      en: ["Keeps the newest {keep}. Only you can trigger this; nothing is pruned automatically.", "Keeps the newest {keep}. Only you can trigger this; nothing is pruned automatically.", "Keeps the newest {keep}. Only you can start it — nothing is pruned automatically.", "Keeps the newest {keep}. Only you can start it; nothing is ever pruned behind your back.", "Keeps the newest {keep}. Only you can start it; nothing is ever pruned behind your back."],
+      yue: ["保留最新 {keep} 個。淨係你自己撳先會做，唔會自動剪。", "保留最新 {keep} 個。淨係你自己撳先會做，唔會自動剪。", "留低最新 {keep} 個。要你自己撳先會剪，唔會自動。", "留低最新 {keep} 個。要你自己撳先會剪，唔會喺你背後偷偷剪。", "留低最新 {keep} 個。要你自己撳先會剪，唔會喺你背後偷偷剪。"]
+    },
+
+    "studio.appearanceTitle": {
+      en: ["Appearance", "Appearance", "Appearance", "Appearance", "How it all looks"],
+      yue: ["外觀", "外觀", "外觀", "外觀", "個樣點"]
+    },
+    "studio.appearanceDesc": {
+      en: ["Theme and density apply live. Every individual element also has its own editor — right-click any surface and choose Edit appearance.", "Theme and density apply live. Every individual element also has its own editor — right-click any surface and choose Edit appearance.", "Theme and density apply live. Every individual element also has its own editor: right-click any surface and choose Edit appearance.", "Theme and density apply live. Every single element has its own editor too — right-click any surface and choose Edit appearance.", "Theme and density apply live. Every single element has its own editor too — right-click anything at all and choose Edit appearance."],
+      yue: ["主題同密度即時生效。每一個元素都有自己嘅編輯器 —— 喺任何介面右 click，揀「編輯外觀」。", "主題同密度即時生效。每一個元素都有自己嘅編輯器 —— 喺任何介面右 click，揀「編輯外觀」。", "主題同密度即時生效。每個元素都有自己嘅編輯器：喺任何介面右 click，揀「編輯外觀」。", "主題同密度即時生效。每一粒元素都有自己嘅編輯器 —— 喺任何嘢度右 click，揀「編輯外觀」。", "主題同密度即時生效。每一粒元素都有自己嘅編輯器 —— 見到乜都右 click 得，揀「編輯外觀」。"]
+    },
+    "studio.themeRow": {
+      en: ["Theme", "Theme", "Theme", "Theme", "Theme"],
+      yue: ["主題", "主題", "主題", "主題", "主題"]
+    },
+    "studio.themeRowDesc": {
+      en: ["Material 3 light and dark palettes.", "Material 3 light and dark palettes.", "Material 3 light and dark palettes.", "The Material 3 light and dark palettes.", "The Material 3 light and dark palettes."],
+      yue: ["Material 3 淺色同深色色盤。", "Material 3 淺色同深色色盤。", "Material 3 淺色同深色色盤。", "Material 3 嘅淺色同深色色盤。", "Material 3 嘅淺色同深色色盤。"]
+    },
+    "studio.exportAppearance": {
+      en: ["Export appearance to a file", "Export appearance to a file", "Export the appearance to a file", "Save the whole look to a file", "Save the whole look to a file"],
+      yue: ["將外觀匯出做檔案", "將外觀匯出做檔案", "將外觀 export 做一個檔", "將成個樣儲做一個檔", "將成個樣儲做一個檔"]
+    },
+    "studio.exportAppearanceDesc": {
+      en: ["Every saved element style, as a file you can keep, share or re-import after a reinstall.", "Every saved element style, as a file you can keep, share or re-import after a reinstall.", "Every saved element style, in a file you can keep, share or import back after a reinstall.", "Every saved element style, in one file you can keep, pass on, or import back after a reinstall.", "Every saved element style, in one file you can keep, pass on, or import back after a reinstall."],
+      yue: ["所有已儲存嘅元素樣式，出一個檔，你可以留低、share 畀人，或者重裝之後再 import 返。", "所有已儲存嘅元素樣式，出一個檔，你可以留低、share 畀人，或者重裝之後再 import 返。", "所有儲低咗嘅元素樣式，寫成一個檔，留得、share 得、重裝之後 import 返都得。", "所有儲低咗嘅元素樣式，一個檔搞掂：留得、畀得人、重裝之後 import 返都得。", "所有儲低咗嘅元素樣式，一個檔搞掂：留得、畀得人、重裝之後 import 返都得。"]
+    },
+    "studio.importAppearance": {
+      en: ["Import an appearance file", "Import an appearance file", "Import an appearance file", "Bring in an appearance file", "Bring in an appearance file"],
+      yue: ["匯入外觀檔案", "匯入外觀檔案", "import 一個外觀檔", "揀個外觀檔 import 入嚟", "揀個外觀檔 import 入嚟"]
+    },
+    "studio.importAppearanceDesc": {
+      en: ["Anything the file asks for that this build cannot represent is reported, never dropped in silence.", "Anything the file asks for that this build cannot represent is reported, never dropped in silence.", "Anything the file asks for that this build cannot represent is reported, never dropped in silence.", "If the file asks for something this build cannot do, you are told — it is never dropped in silence.", "If the file asks for something this build cannot do, you are told. It is never dropped in silence and pretended away."],
+      yue: ["個檔要求嘅嘢如果呢個版本做唔到，會話你知，唔會靜靜雞掉咗佢。", "個檔要求嘅嘢如果呢個版本做唔到，會話你知，唔會靜靜雞掉咗佢。", "個檔要求嘅嘢呢個版本做唔到嘅，會話你知，唔會靜靜雞丟咗。", "個檔要求啲呢個版本做唔到嘅嘢，會話你知 —— 唔會靜雞雞掉咗當冇事。", "個檔要求啲呢個版本做唔到嘅嘢，會話你知 —— 唔會靜雞雞掉咗，再扮冇發生過。"]
+    },
+    "studio.presetsRow": {
+      en: ["Named presets", "Named presets", "Named presets", "Saved looks", "Saved looks"],
+      yue: ["已命名預設", "已命名預設", "已命名預設", "儲低咗嘅樣", "儲低咗嘅樣"]
+    },
+    "studio.resetEveryElement": {
+      en: ["Reset every element", "Reset every element", "Reset every element", "Put every element back", "Put every element back"],
+      yue: ["重設所有元素", "重設所有元素", "所有元素打返原形", "所有元素打返原形", "全部元素打返原形"]
+    },
+    "studio.resetEveryElementDesc": {
+      en: ["Clears all per-element appearance overrides. Recorded in History, so it is undoable.", "Clears all per-element appearance overrides. Recorded in History, so it is undoable.", "Clears every per-element appearance override. Recorded in History, so it is undoable.", "Clears every per-element appearance override. It is recorded in History, so you can undo it.", "Clears every per-element appearance override. It goes into History like everything else, so you can undo it."],
+      yue: ["清除所有逐個元素嘅外觀覆寫。會記落歷史，所以撤銷得返。", "清除所有逐個元素嘅外觀覆寫。會記落歷史，所以撤銷得返。", "清走每個元素嘅外觀覆寫。會記落歷史，撤銷得返。", "清走每個元素嘅外觀覆寫。會記落歷史，所以你撤銷得返。", "清走每個元素嘅外觀覆寫。同其他嘢一樣會記落歷史，所以你撤銷得返。"]
+    },
   };
 
   function resolve(key, mode, funny) {

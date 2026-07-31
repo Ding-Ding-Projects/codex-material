@@ -1037,3 +1037,68 @@ test("assets/screenshots — README, manifest and disk agree", () => {
     assert.ok(!/\/home\/[a-z]/.test(raw), "the committed manifest contains an absolute home path");
   });
 });
+
+/* Every user-visible string in the frontend must reach the interface through
+   CX.i18n. A literal that slips back in renders English in Cantonese mode and is
+   invisible to the smoke test, which only ever sees what the app happens to draw —
+   so it is checked structurally here instead. */
+
+test("app/index.html — no user-visible string bypasses CX.i18n", () => {
+  const b = bucket("app/index.html");
+  const src = fs.readFileSync(path.join(ROOT, "app", "index.html"), "utf8");
+
+  /* Literals that are correct as literals, with the reason each one is exempt. A
+     name is not translated out of its own language, and a command is not a word. */
+  const ALLOWED = new Map([
+    ["codex login", "the command being run"],
+    ["codex logout", "the command being run"],
+    ["codex cloud", "the command being run"],
+    ["廣東話", "a language's name in its own language"],
+    ["Georgia", "the typeface's own name"],
+    ["Helvetica Neue", "the typeface's own name"],
+    ["", "the sentinel the dropdown clears itself with"],
+  ]);
+
+  const run = (name, fn) => {
+    try {
+      fn();
+      b.pass += 1;
+    } catch (error) {
+      b.fail += 1;
+      process.exitCode = 1;
+      throw error;
+    }
+  };
+
+  for (const prop of ["label", "hint", "title", "desc", "subtitle", "placeholder"]) {
+    run(`no hard-coded ${prop}`, () => {
+      const found = [...src.matchAll(new RegExp(`\b${prop}: "([^"]*)"`, "g"))].map((m) => m[1]);
+      const leaked = found.filter((text) => !ALLOWED.has(text));
+      assert.deepEqual(
+        leaked,
+        [],
+        `these ${prop} values never reach CX.i18n, so they stay English in every mode: ` +
+          leaked.map((t) => JSON.stringify(t)).join(", "),
+      );
+    });
+  }
+
+  run("the slash wizard is rebuilt per render, not frozen at load", () => {
+    /* It was a module-level const, so its CX.i18n.t() calls resolved exactly once and
+       the dialog kept showing whatever language the app started in. */
+    assert.match(src, /function slashWizards\(\) \{ return \{/, "slashWizards must be a function");
+    assert.ok(!/const SLASH_WIZARDS =/.test(src), "SLASH_WIZARDS must not be a module-level const again");
+  });
+
+  run("every key the frontend asks for is defined in the table", () => {
+    const table = fs.readFileSync(path.join(ROOT, "app", "cx-i18n.js"), "utf8");
+    const defined = new Set([...table.matchAll(/^    "([\w.]+)": \{$/gm)].map((m) => m[1]));
+    const asked = new Set([...src.matchAll(/CX\.i18n\.t\("([\w.]+)"/g)].map((m) => m[1]));
+    // A literal ending in a dot is a prefix being concatenated with an id at runtime
+    // — t("nav." + n.id) — so there is no whole key here to look up.
+    const missing = [...asked].filter((k) => !k.endsWith(".") && !defined.has(k));
+    // resolve() returns the key itself when it is missing, so the interface would
+    // render "menu.deleteSession" at the user rather than failing anywhere visible.
+    assert.deepEqual(missing, [], `asked for but never defined: ${missing.join(", ")}`);
+  });
+});

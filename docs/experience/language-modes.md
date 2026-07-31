@@ -217,8 +217,20 @@ Run each of these in **all three modes**, at funny level **1** and level **5** f
 8. Set the narrated language to Both and confirm English finishes before Cantonese starts.
 9. Search the Studio panel for `funny` (plain text) and `funn.` (regex, via the anchored builder)
    and confirm both find the sliders.
-10. Grep the tree for hard-coded user-facing strings that bypass `CX.i18n.t()`:
+10. Check for user-facing strings that bypass `CX.i18n.t()`. This is a test now, not a grep —
+    `app/index.html — no user-visible string bypasses CX.i18n` in `tools/test-frontend.mjs` sweeps
+    `label`, `hint`, `title`, `desc`, `subtitle` and `placeholder` against a named allow-list, and
+    also verifies that every key the frontend asks for is actually defined:
     ```bash
-    grep -n 'label: "' app/index.html | grep -v 'CX.i18n.t'
+    node tools/test-frontend.mjs
     ```
-    Every hit is either a developer-facing string or a bug.
+    The allow-list holds seven entries, each with its reason in the test: three CLI command names
+    (`codex login`, `codex logout`, `codex cloud`), two typeface names (Georgia, Helvetica Neue),
+    `廣東話` — a language's name in its own language — and the empty sentinel the dropdown clears
+    itself with. Anything else is a bug.
+
+    > [!NOTE]
+    > The grep this replaced only looked at `label: "…"`, so it never saw the settings rows (their
+    > text is a positional argument to `pick()`/`toggle()`/`slider()`/`action()`), the palette
+    > (`group` and `hint`), or any label inside a ternary. That is why the count in an earlier
+    > handoff read 92 when the real figure was over 200.

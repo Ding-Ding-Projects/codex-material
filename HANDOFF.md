@@ -56,9 +56,13 @@ node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/captur
 
 **Open, in priority order**
 
-1. **92 secondary labels are still hard-coded English** — mostly the Console flag panel and the Config section list, plus labels living inside ternaries and positional arguments that a mechanical pass cannot reach. Bilingual mode is therefore not complete.
-2. **The appearance editor covers eight typography properties**, not the word-processor set the rules describe.
-3. **The installers are unsigned.** That needs a code-signing certificate this project does not have, so SmartScreen warns on first run. Blocked, not pending.
+1. **The appearance editor covers eight typography properties**, not the word-processor set the rules describe.
+2. **The installers are unsigned.** That needs a code-signing certificate this project does not have, so SmartScreen warns on first run. Blocked, not pending.
+
+**Closed since the previous handoff**
+
+- **Bilingual mode is complete.** The earlier entry here said 92 hard-coded labels remained; the real number was over 200, because the audit behind it grepped `label: "…"` and that pattern cannot see a positional argument to `pick()`, a palette `group`, or a label inside a ternary. 327 `CX.i18n.t()` call sites now, against a 559-key table, and the audit is a test rather than a grep — `app/index.html — no user-visible string bypasses CX.i18n` sweeps six props against a seven-entry allow-list and separately checks that every key the frontend asks for is defined.
+- **Releases carry a dim sum code name again.** The index moved to the run number (past 590) while the list it indexed was the 72-dish bundled photo slice, so every build past #72 published unnamed. Names come from `app/dimsum/roster.json` — all 703 catalog dishes, 356 KB — and a missing photo no longer costs a build its name.
 
 **Two traps worth knowing before you touch the harnesses**
 
@@ -206,40 +210,19 @@ process.
 Every entry below was re-verified against this commit. Four gaps recorded in the previous
 handoff are now closed and appear under *Recently closed* instead — do not re-report them.
 
-### 1. The language mode still misses some secondary labels
-
-The app's **primary** surface is done — navigation rail, Extend categories, window chrome — and
-so are the tab, destructive-action and copy/export menus. The rest is not.
-
-Measured at this commit: **160** `CX.i18n.t()` call sites, against **29** literal text nodes in
-the template and **92** hard-coded `label:` values (down from 116). What remains is mostly the
-Console flag panel, the Config section list, and labels that live inside ternaries or positional
-arguments rather than a plain `label: "…"`.
-
-```bash
-grep -c "CX.i18n.t(" app/index.html
-```
-
-> [!NOTE]
-> **Check for unreachable keys before adding new ones.** The table already contained navigation
-> entries keyed `nav.chats`, `nav.extend` and `nav.config`, while the navigation ids are `chat`,
-> `ext` and `settings` — so nothing ever looked them up, and from the outside the table looked
-> like it had coverage it did not have. Those three are reconciled; assume others like them
-> exist. A key that resolves to itself is a key nothing is using.
-
-### 2. The appearance editor's typography is eight properties deep
+### 1. The appearance editor's typography is eight properties deep
 
 Family, size, weight, italic, underline, strike, a letter-spacing toggle and colour. The rules
 describe a word-processor standard — variable axes, small caps, super/subscript, highlight,
 outline, shadow, baseline offset, direction and the rest — with unsupported properties staying
 visible and explained rather than absent.
 
-### 3. The installers are unsigned
+### 2. The installers are unsigned
 
 `electron-builder` signs with whatever certificate the host offers; there is no code-signing
 identity configured, so Windows SmartScreen will warn on first run.
 
-### 4. Content-Security-Policy is set but permissive
+### 3. Content-Security-Policy is set but permissive
 
 `unsafe-eval` is required: the design-compiler runtime compiles the template with
 `new Function`. Removing it stops the app from starting. This is the source of the one console
@@ -261,6 +244,7 @@ message every capture reports, and it is expected.
 | The colour translator was one-way — it printed twelve representations and read back only hex | `CX.color.parse` reads all twelve plus named colours, preserving alpha. Proven by a round trip: every space emitted, parsed back, worst channel drift 1 |
 | Appearance changes could not be undone from the History panel | `patchAppear` and both resets commit a revision now — debounced by 900 ms so a colour drag records one entry, not one per frame |
 | Documentation described a backend that no longer exists | Closed. `grep -rn "src-tauri\|Tauri 2" docs/` matches four files and every match is deliberate history or an explicit negative — nothing describes Tauri as the current backend |
+| 92 interface labels were hard-coded English, so bilingual mode was incomplete | Closed, and the real figure was over 200 — the old audit grepped only `label: "…"`, which cannot see a positional argument to `pick()`, a palette `group`, or a label inside a ternary. 327 `CX.i18n.t()` call sites now, against a 559-key table. Guarded by a test rather than a grep: **app/index.html — no user-visible string bypasses CX.i18n** sweeps six props against a seven-entry allow-list and checks every key the frontend asks for is defined |
 | 228 unique UI-audit findings across 1646 occurrences | 17 / 124, all of them the deliberate-ellipsis note |
 
 ## Skipped by decision

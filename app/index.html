@@ -3899,28 +3899,28 @@ class Component extends DCLogic {
     return [
       {
         key: "lang",
-        title: "Language",
-        desc: "Three modes and two independent funny sliders. The level changes the voice only — every message still names the file, the count and what is irreversible, at level 1 and at level 5 alike. This includes errors, warnings and destructive confirmations; no category is exempt.",
+        title: CX.i18n.t("studio.langTitle"),
+        desc: CX.i18n.t("studio.langDesc"),
         rows: [
-          pick("Language mode", "English · playful Hong Kong Cantonese · bilingual", "langmode",
+          pick(CX.i18n.t("studio.langModeRow"), CX.i18n.t("studio.langModeRowDesc"), "langmode",
             st.lang === "en" ? "English" : st.lang === "yue" ? "廣東話" : "Bilingual · EN + 粵",
             (e) => this.openDropdown(e, {
               title: CX.i18n.t("dlg.languageMode"), value: st.lang, width: 280,
               options: [{ value: "en", label: CX.i18n.t("opt.langEnglish") }, { value: "yue", label: CX.i18n.t("opt.langCantonese") }, { value: "bi", label: CX.i18n.t("opt.langBilingual") }],
               onPick: (o) => { CX.i18n.setMode(o.value); this.setState({ lang: o.value, dd: null }); CX.vcs.commit("Language mode set to " + o.value, "settings"); }
             })),
-          slider("Funny level — English", "How playfully the English copy is written. Level 1 reads fully professional.", "funnyen", funny.en || 3,
+          slider(CX.i18n.t("studio.funnyEn"), CX.i18n.t("studio.funnyEnDesc"), "funnyen", funny.en || 3,
             (e) => { CX.i18n.setFunny("en", e.target.value); this.setState({ tick: this.state.tick + 1 }); }),
-          slider("Funny level — 廣東話", "廣東話 嗰邊嘅玩味程度。1 係好正經，5 係玩到盡。", "funnyyue", funny.yue || 4,
+          slider(CX.i18n.t("studio.funnyYue"), CX.i18n.t("studio.funnyYueDesc"), "funnyyue", funny.yue || 4,
             (e) => { CX.i18n.setFunny("yue", e.target.value); this.setState({ tick: this.state.tick + 1 }); })
         ]
       },
       {
         key: "narrator",
-        title: "Spoken narrator",
-        desc: "Off by default. When on it speaks one line at a time through a serialised queue, never overlapping, and yields to an active screen reader. Spoken errors still name the actual failure and are never suppressed by the rate limit.",
+        title: CX.i18n.t("studio.narratorTitle"),
+        desc: CX.i18n.t("studio.narratorDesc"),
         rows: [
-          toggle("Narrate app events", "Uses the platform voice. Off unless you turn it on.", "tts", !!se.get("narrator", false),
+          toggle(CX.i18n.t("studio.narrateEvents"), CX.i18n.t("studio.narrateEventsDesc"), "tts", !!se.get("narrator", false),
             () => {
               const on = !se.get("narrator", false);
               se.set("narrator", on);
@@ -3928,7 +3928,7 @@ class Component extends DCLogic {
               CX.vcs.commit((on ? "Enabled" : "Disabled") + " the spoken narrator", "settings");
               this.setState({ tick: this.state.tick + 1 });
             }),
-          pick("Narrated language", "Both speaks English first, then 廣東話, strictly one after the other.", "ttslang",
+          pick(CX.i18n.t("studio.narratedLang"), CX.i18n.t("studio.narratedLangDesc"), "ttslang",
             se.get("narratorLang", "en") === "en" ? "English" : se.get("narratorLang", "en") === "yue" ? "廣東話" : "Both",
             (e) => this.openDropdown(e, {
               title: CX.i18n.t("dlg.narratedLanguage"), value: se.get("narratorLang", "en"), width: 260,
@@ -3939,47 +3939,47 @@ class Component extends DCLogic {
       },
       {
         key: "delight",
-        title: "Dim sum surprise",
-        desc: "A 1-in-100 chance at launch of a randomly chosen dim sum dish, named in both languages. It never blocks startup, never steals focus, and never appears on a first run or during an error.",
+        title: CX.i18n.t("studio.dimsumTitle"),
+        desc: CX.i18n.t("studio.dimsumDesc"),
         rows: [
-          toggle("Show the dim sum surprise", "One fresh draw per launch, at most 1%. Bundled artwork, no network.", "dimsum", !!se.get("dimSum", true),
+          toggle(CX.i18n.t("studio.showDimsum"), CX.i18n.t("studio.showDimsumDesc"), "dimsum", !!se.get("dimSum", true),
             () => {
               const on = !se.get("dimSum", true);
               se.set("dimSum", on);
               CX.vcs.commit((on ? "Enabled" : "Disabled") + " the dim sum surprise", "settings");
               this.setState({ tick: this.state.tick + 1 });
             }),
-          action("Show one now", "Preview the surface without waiting for the draw.", "dimsumtest", "Preview", "var(--m3-primary)",
+          action(CX.i18n.t("studio.showOneNow"), CX.i18n.t("studio.showOneNowDesc"), "dimsumtest", CX.i18n.t("act.preview"), "var(--m3-primary)",
             () => { const cat = window.CX_DIMSUM; const d = cat ? cat.draw(1) : null; if (d) { clearTimeout(this._dimTimer); this.setState({ dimSum: d }); this._dimTimer = setTimeout(() => this.setState({ dimSum: null }), 9000); } })
         ]
       },
       {
         key: "editor",
-        title: "External editor",
-        desc: "Opens the active profile's working directory in the editor you choose. Only editors actually found on this machine are offered.",
+        title: CX.i18n.t("studio.editorTitle"),
+        desc: CX.i18n.t("studio.editorDesc"),
         rows: [
-          pick("Editor", st.editors.length ? st.editors.length + " detected on this machine" : "No supported editor was found — install one, or use Reveal in Explorer.", "editor", editorLabel,
+          pick(CX.i18n.t("studio.editorRow"), st.editors.length ? CX.i18n.t("studio.editorDetected", { count: st.editors.length }) : CX.i18n.t("studio.editorNone"), "editor", editorLabel,
             (e) => this.openDropdown(e, {
               title: CX.i18n.t("dlg.externalEditor"), value: se.get("editor", ""), width: 320,
               options: st.editors.map((x) => ({ value: x.id, label: x.label })),
               onPick: (o) => { se.set("editor", o.value); this.setState({ dd: null }); CX.vcs.commit("External editor set to " + o.value, "settings"); }
             })),
-          action("Open the working directory", this.profile().cwd, "openext", "Open", "var(--m3-primary)",
+          action(CX.i18n.t("studio.openWorkingDir"), this.profile().cwd, "openext", CX.i18n.t("act.open"), "var(--m3-primary)",
             () => CX.bridge.invoke("codex_open_external", { path: this.profile().cwd, editor: CX.settings.get("editor", "") })
               .then((r) => this.toast(CX.i18n.t("editor.opened", { path: r.opened }), "success"))
               .catch((e) => this.notifyError("editor", e))),
-          action("Reveal in File Explorer", "Always available, even with no editor installed.", "reveal", "Reveal", "var(--m3-on-surface)",
+          action(CX.i18n.t("studio.revealExplorer"), CX.i18n.t("studio.revealExplorerDesc"), "reveal", CX.i18n.t("act.reveal"), "var(--m3-on-surface)",
             () => CX.bridge.invoke("codex_reveal", { path: this.profile().cwd }).catch((e) => this.notifyError("editor", e)))
         ]
       },
       {
         key: "history",
-        title: "Local version history",
-        desc: "A git repository beside the app's own data — never inside your project, never pushed. Restoring writes a new revision instead of rewinding, so an undo can itself be undone.",
+        title: CX.i18n.t("studio.historyTitle"),
+        desc: CX.i18n.t("studio.historyDesc"),
         rows: [
-          action("Open the history repository", CX.sim.codexHome + "/studio", "histopen", "Reveal", "var(--m3-on-surface)",
+          action(CX.i18n.t("studio.openHistoryRepo"), CX.sim.codexHome + "/studio", "histopen", CX.i18n.t("act.reveal"), "var(--m3-on-surface)",
             () => CX.bridge.invoke("codex_reveal", { path: CX.sim.codexHome + "/studio" }).catch((e) => this.notifyError("history", e))),
-          action("Prune old revisions", "Keeps the newest " + se.get("historyKeep", 200) + ". Only you can trigger this; nothing is pruned automatically.", "histprune", "Prune", "var(--m3-error)",
+          action(CX.i18n.t("studio.pruneRevisions"), CX.i18n.t("studio.pruneRevisionsDesc", { keep: se.get("historyKeep", 200) }), "histprune", CX.i18n.t("act.prune"), "var(--m3-error)",
             () => CX.bridge.invoke("codex_history_prune", { keep: se.get("historyKeep", 200) })
               .then((r) => this.toast(CX.i18n.t("history.pruned", { count: r.pruned, kept: r.kept }), "success"))
               .catch((e) => this.notifyError("history", e)))
@@ -3987,22 +3987,22 @@ class Component extends DCLogic {
       },
       {
         key: "appearance",
-        title: "Appearance",
-        desc: "Theme and density apply live. Every individual element also has its own editor — right-click any surface and choose Edit appearance.",
+        title: CX.i18n.t("studio.appearanceTitle"),
+        desc: CX.i18n.t("studio.appearanceDesc"),
         rows: [
-          pick("Theme", "Material 3 light and dark palettes.", "theme", st.theme === "dark" ? "Dark" : "Light",
+          pick(CX.i18n.t("studio.themeRow"), CX.i18n.t("studio.themeRowDesc"), "theme", st.theme === "dark" ? "Dark" : "Light",
             (e) => this.openDropdown(e, {
               title: CX.i18n.t("dlg.theme"), value: st.theme, width: 240,
               options: [{ value: "dark", label: CX.i18n.t("opt.themeDark") }, { value: "light", label: CX.i18n.t("opt.themeLight") }],
               onPick: (o) => { document.documentElement.setAttribute("data-theme", o.value); CX.store.set("theme", o.value); this.setState({ theme: o.value, dd: null }); }
             })),
-          action("Export appearance to a file", "Every saved element style, as a file you can keep, share or re-import after a reinstall.", "appexport", "Export", "var(--m3-on-surface)",
+          action(CX.i18n.t("studio.exportAppearance"), CX.i18n.t("studio.exportAppearanceDesc"), "appexport", CX.i18n.t("act.export"), "var(--m3-on-surface)",
             () => this.exportAppearance()),
-          action("Import an appearance file", "Anything the file asks for that this build cannot represent is reported, never dropped in silence.", "appimport", "Import", "var(--m3-on-surface)",
+          action(CX.i18n.t("studio.importAppearance"), CX.i18n.t("studio.importAppearanceDesc"), "appimport", CX.i18n.t("act.import"), "var(--m3-on-surface)",
             () => this.importAppearance()),
-          pick("Named presets", this.presetSummary(), "apppresets", this.presetSummary(),
+          pick(CX.i18n.t("studio.presetsRow"), this.presetSummary(), "apppresets", this.presetSummary(),
             (e) => this.openPresetMenu(e)),
-          action("Reset every element", "Clears all per-element appearance overrides. Recorded in History, so it is undoable.", "appreset", "Reset all", "var(--m3-error)",
+          action(CX.i18n.t("studio.resetEveryElement"), CX.i18n.t("studio.resetEveryElementDesc"), "appreset", CX.i18n.t("act.resetAll"), "var(--m3-error)",
             () => { CX.store.set("appearance", {}); CX.vcs.commit("Reset every element appearance", "appearance"); this.setState({ appearance: {} }); })
         ]
       }
