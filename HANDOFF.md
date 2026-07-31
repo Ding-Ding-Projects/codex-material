@@ -6,12 +6,12 @@ Nothing here is predicted, and nothing is claimed green that was not observed gr
 
 | | |
 | --- | --- |
-| **Snapshot commit** | `bc10ede` — *Stop the appearance pass erasing the template's own inline styles* |
+| **Snapshot commit** | `70be15d` — *Reconcile the appearance page with itself* |
 | **Branch** | `main` |
 | **Captured** | 2026-07-30 |
 | **Platform** | Windows-only Electron app (`electron/main.js`), no macOS or Linux target |
 | **Public repo** | `Ding-Ding-Projects/codex-material` |
-| **Newest release** | `v0.1.0+build.595` — non-draft, carrying a real NSIS `.exe` and `.msi`, code-named *Iced Gem Biscuits · 七彩糖珠餅* |
+| **Newest release** | `v0.1.0+build.596` — non-draft, carrying a real NSIS `.exe` and `.msi`, code-named *Chocolate Coconut Snowballs · 巧克力椰絲雪球* |
 
 ## Verification block
 
@@ -21,16 +21,16 @@ Run these five. Every figure in this document came from them.
 node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/capture.mjs && node tools/audit-ui.mjs && node tools/smoke.mjs
 ```
 
-| Command | Observed at `bc10ede` |
+| Command | Observed at `70be15d` |
 | --- | --- |
-| `node tools/test-frontend.mjs` | **27 passed, 0 failed** |
+| `node tools/test-frontend.mjs` | **29 passed, 0 failed** |
 | `node tools/test-backend.mjs` | **33 passed, 0 failed** |
 | `node tools/capture.mjs` | **exit 0** — 25 shots written, 1 console message (the expected CSP notice) |
-| `node tools/audit-ui.mjs` | **23 findings across 240 cells, 0 severity high** — all 23 are the harness noting a deliberately ellipsised label |
+| `node tools/audit-ui.mjs` | **25 findings across 240 cells, 0 severity high** — all 25 are the harness noting a deliberately ellipsised label |
 | `node tools/smoke.mjs` | **PASSED** — CLI answered; 40 IPC ok / 7 refused as designed / 8 skipped / 0 failed; 10 panels, 7 overlays and 3 language modes ok; 0 console errors |
 
 > [!NOTE]
-> **All 23 remaining audit findings are the harness noting a deliberately ellipsised label.**
+> **All 25 remaining audit findings are the harness noting a deliberately ellipsised label.**
 > That is evidence a label no longer fits its box, not a defect: the capture fixture contains a
 > 76-character session name specifically to exercise truncation. There are currently **no
 > unaddressed real findings** in the UI audit. Before this session there were 228 unique
@@ -64,6 +64,30 @@ node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/captur
 - **The appearance editor covers 23 typography properties**, the word-processor set the rules describe, and the three things this build genuinely cannot represent are shown in the editor with the reason rather than being absent.
 - **`app/cx-appearance.js` is loaded by the page.** It never was: no `<script src>` tag listed it, so `window.CX_APPEARANCE` did not exist at runtime and export, import and every named preset hit their `if (!A)` guard while the module's own tests passed throughout — the test runner reads module files directly through `node:vm` rather than through the page. Two tests guard it now: no `app/*.js` may be missing a script tag, and every `CX_*` global the page reads must be assigned by something the page loads.
 - **Releases carry a dim sum code name again.** The index moved to the run number (past 590) while the list it indexed was the 72-dish bundled photo slice, so every build past #72 published unnamed. Names come from `app/dimsum/roster.json` — all 703 catalog dishes, 356 KB — and a missing photo no longer costs a build its name.
+
+**A multi-agent audit found twelve features that passed every test and did not work**
+
+Each was verified by three independent skeptics before being touched. They all had the same shape
+— the control is present, the tests are green, and nothing happens. Worth reading before adding a
+test, because none of the tests that existed could have caught any of them.
+
+| Was | Why no test saw it |
+| --- | --- |
+| `app/cx-appearance.js` was never in the page, so export, import and every named preset hit their `if (!A)` guard | The test runner reads module files directly through `node:vm`, never through the page |
+| Three Extend toggles sent `{ name }` to handlers reading `dir`, `event`/`index`, and one command that was never registered anywhere | The promise had no `.catch()`, so every rejection went nowhere and the switch simply never moved |
+| The narrator had no caller anywhere in the app, and read a settings key nothing writes | Nothing asserts that a written function is ever called |
+| Four messages rendered a literal `{placeholder}` at the user | `interpolate()` leaves an unknown placeholder **visible** by design, so the bug renders and every test stays green |
+| The regex builder rendered English in all three language modes | The i18n sweep looked at `label:`, and the builder uses none |
+| The CLI-staging step could not reach its own graceful fallback | GitHub's pwsh wrapper exits on `$LASTEXITCODE` before the code deciding to continue can run |
+| A legacy `italic: true` could never be switched off | `normalise()` re-derived `slant` from it every time the control cleared `slant` |
+
+Four tests cover those classes now: every `app/*.js` is in the page, every `CX_*` global the page
+reads is assigned by something loaded, every call site passes the variables its entry declares,
+and no entry with placeholders is resolved without them. The last two were proven by putting a
+fixed bug back and watching them fail.
+
+The audit produced 46 candidates across six dimensions. The rest were documentation figures — 23
+of them, in 13 files — and are corrected.
 
 **Two traps worth knowing before you touch the harnesses**
 

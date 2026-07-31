@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-07-31T03:28:47.187Z",
+  "generatedAt": "2026-07-31T04:15:18.598Z",
   "harness": "tools/audit-ui.mjs + tools/audit-ui-main.cjs",
   "auditedFrom": "the real app — app/index.html with electron/preload.js and electron/commands.js",
   "electron": "40.10.6",
   "chrome": "144.0.7559.236",
   "tree": {
-    "head": "ec1bf2f",
+    "head": "70be15d",
     "frontendUncommitted": true,
     "sha256": {
-      "app/index.html": "68b274c689f63344",
-      "app/codex-core.js": "aab0c0c0e6bdf09a",
-      "app/cx-i18n.js": "8a98bd54b8be4a5a",
+      "app/index.html": "5c76c8f873139e8d",
+      "app/codex-core.js": "f13f00febadb4471",
+      "app/cx-i18n.js": "df24d9607616a2b5",
       "app/cx-tabs.js": "62a1f5095c8c8910",
       "app/support.js": "8fe7df74405f3c55"
     }
@@ -76,38 +76,38 @@
     "elementsThatShowedFocus": 998
   },
   "summary": {
-    "uniqueFindings": 23,
-    "totalOccurrences": 90,
+    "uniqueFindings": 25,
+    "totalOccurrences": 92,
     "bySeverity": {
-      "medium": 23
+      "medium": 25
     },
     "byCheck": {
-      "offscreen": 23
+      "offscreen": 25
     },
     "bySection": {
       "chat": 4,
       "console": 8,
-      "ext": 7,
+      "ext": 8,
       "settings": 3,
       "cost": 1,
       "runtime": 5,
       "health": 1,
       "history": 1,
       "changelog": 2,
-      "studio": 2
+      "studio": 3
     },
     "byWidth": {
-      "960": 23,
+      "960": 25,
       "1280": 6
     },
     "byZoom": {
-      "2": 23,
+      "2": 25,
       "1.25": 1,
       "1.5": 6
     },
     "byLang": {
       "en": 17,
-      "bi": 23
+      "bi": 25
     }
   },
   "findings": [
@@ -1233,6 +1233,55 @@
     {
       "check": "offscreen",
       "severity": "medium",
+      "selector": "div#tabpanel-main > div:nth-of-type(2) > div:nth-of-type(3) > button:nth-of-type(7) > span:nth-of-type(2) > span:nth-of-type(2) > span",
+      "tag": "span",
+      "role": "",
+      "appear": "",
+      "text": "88 · Experimental switches, straight out of config.toml · 實驗性開關，直接喺 co…",
+      "message": "Rendered past the right edge of the viewport, but an ancestor truncates it with text-overflow: ellipsis. Deliberate truncation rather than silent loss — read this one as evidence the label no longer fits, not as a defect on its own.",
+      "measured": {
+        "right": 613.4,
+        "viewportRight": 480,
+        "overhang": 133.4,
+        "documentScrollWidth": 480,
+        "clippedBy": "div#tabpanel-main > div:nth-of-type(2) > div:nth-of-type(3) > button:nth-of-type(7) > span:nth-of-type(2) > span:nth-of-type(2)",
+        "clipperOverflowX": "hidden",
+        "ellipsisTruncated": true,
+        "scrollable": false
+      },
+      "worst": {
+        "right": 613.4,
+        "viewportRight": 480,
+        "overhang": 133.4,
+        "documentScrollWidth": 480,
+        "clippedBy": "div#tabpanel-main > div:nth-of-type(2) > div:nth-of-type(3) > button:nth-of-type(7) > span:nth-of-type(2) > span:nth-of-type(2)",
+        "clipperOverflowX": "hidden",
+        "ellipsisTruncated": true,
+        "scrollable": false
+      },
+      "count": 1,
+      "sections": [
+        "ext"
+      ],
+      "widths": [
+        960
+      ],
+      "zooms": [
+        2
+      ],
+      "langs": [
+        "bi"
+      ],
+      "firstSeen": {
+        "section": "ext",
+        "width": 960,
+        "zoom": 2,
+        "lang": "bi"
+      }
+    },
+    {
+      "check": "offscreen",
+      "severity": "medium",
       "selector": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > span",
       "tag": "span",
       "role": "",
@@ -1274,6 +1323,55 @@
       ],
       "firstSeen": {
         "section": "ext",
+        "width": 960,
+        "zoom": 2,
+        "lang": "bi"
+      }
+    },
+    {
+      "check": "offscreen",
+      "severity": "medium",
+      "selector": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2) > div > div:nth-of-type(3) > div:nth-of-type(4) > button > span:nth-of-type(1) > span",
+      "tag": "span",
+      "role": "",
+      "appear": "",
+      "text": "English only, plain and simple · 淨係講英文，唔撈粵語",
+      "message": "Rendered past the right edge of the viewport, but an ancestor truncates it with text-overflow: ellipsis. Deliberate truncation rather than silent loss — read this one as evidence the label no longer fits, not as a defect on its own.",
+      "measured": {
+        "right": 568.7,
+        "viewportRight": 480,
+        "overhang": 88.7,
+        "documentScrollWidth": 480,
+        "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2) > div > div:nth-of-type(3) > div:nth-of-type(4) > button > span:nth-of-type(1)",
+        "clipperOverflowX": "hidden",
+        "ellipsisTruncated": true,
+        "scrollable": false
+      },
+      "worst": {
+        "right": 568.7,
+        "viewportRight": 480,
+        "overhang": 88.7,
+        "documentScrollWidth": 480,
+        "clippedBy": "div#tabpanel-main > div:nth-of-type(3) > div:nth-of-type(2) > div > div:nth-of-type(3) > div:nth-of-type(4) > button > span:nth-of-type(1)",
+        "clipperOverflowX": "hidden",
+        "ellipsisTruncated": true,
+        "scrollable": false
+      },
+      "count": 1,
+      "sections": [
+        "studio"
+      ],
+      "widths": [
+        960
+      ],
+      "zooms": [
+        2
+      ],
+      "langs": [
+        "bi"
+      ],
+      "firstSeen": {
+        "section": "studio",
         "width": 960,
         "zoom": 2,
         "lang": "bi"
@@ -3315,7 +3413,7 @@
         "documentScrollWidth": 480,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 7,
+        "cutOffRight": 8,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -3323,7 +3421,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 7
+      "findings": 8
     },
     {
       "width": 960,
@@ -3511,7 +3609,7 @@
         "documentScrollWidth": 480,
         "pageOverflows": false,
         "escapedRight": 0,
-        "cutOffRight": 2,
+        "cutOffRight": 3,
         "contrastChecked": 0,
         "minContrastRatio": null,
         "documentHasFocus": false,
@@ -3519,7 +3617,7 @@
         "focusIndicated": 0
       },
       "notes": [],
-      "findings": 2
+      "findings": 3
     },
     {
       "width": 1280,
