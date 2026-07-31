@@ -525,3 +525,75 @@ footer .linkrow { margin-top: .7em; }
   outline: 2px solid var(--m3-primary);
   outline-offset: 2px;
 }
+
+/* ============================================================ tab groups
+   A group's colour is a rule under its members, not a filled background: the tab
+   already carries a selected state, and two competing fills make neither readable. */
+.tab--grouped { box-shadow: inset 0 -3px 0 0 var(--tab-group, var(--m3-primary)); }
+
+/* ================================================================= sheets
+   Non-modal on purpose. The page behind stays live and readable, so a reader can
+   compare a search result against what is already on screen. */
+.sheet__wrap {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 6vh 16px 16px;
+  pointer-events: none;
+  z-index: 60;
+}
+.sheet {
+  position: relative;
+  pointer-events: auto;
+  width: min(560px, 100%);
+  max-height: 76vh;
+  overflow: auto;
+  background: var(--m3-surface-high, var(--m3-surface));
+  border: 1px solid var(--m3-outline-variant);
+  border-radius: 20px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .34);
+  padding: 18px 20px 20px;
+}
+.sheet__title { font-size: 1.05rem; margin: 0 0 6px; }
+.sheet__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  border: 1px solid var(--m3-outline-variant);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.sheet__bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+.sheet__bar .plain { flex: 1 1 220px; min-width: 0; }
+.sheet__list { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.sheet__row {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: var(--m3-surface-container, transparent);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.sheet__row:hover { border-color: var(--m3-outline-variant); }
+.sheet__row:focus-visible { outline: 2px solid var(--m3-primary); outline-offset: 2px; }
+.sheet__rowLabel { flex: 1 1 auto; min-width: 0; }
+/* Where a result lives — which group, whether pinned. A result you cannot locate is
+   a result you cannot act on. */
+.sheet__rowWhere { flex: 0 0 auto; font-size: .74rem; color: var(--m3-on-surface-variant); }
+.linkchip--mono { font-family: var(--cx-mono); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet { transition: none; }
+}

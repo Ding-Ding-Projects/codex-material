@@ -635,6 +635,406 @@
   ];
 
   function isPinned(id) { return prefs.pinned.indexOf(id) !== -1; }
+
+  /* ============================================================ tab groups
+     Groups, reordering and the four tab-discovery searches. The strip already had
+     pinning and an overflow surface; these are the rest of what the shared
+     instructions ask a tabbed surface to carry.
+
+     Everything persists: group membership, each group's name and colour, whether it
+     is collapsed, and the manual order of the strip. A group that forgets it was
+     collapsed the moment you reload is a decoration, not a feature. */
+
+  function groups() {
+    if (!Array.isArray(prefs.groups)) { prefs.groups = []; }
+    return prefs.groups;
+  }
+
+  function groupOf(tabId) {
+    var all = groups();
+    for (var i = 0; i < all.length; i++) {
+      if (all[i].members.indexOf(tabId) !== -1) { return all[i]; }
+    }
+    return null;
+  }
+
+  function saveGroups() { savePref("groups", groups()); buildStrip(); }
+
+  function createGroup(name, colour) {
+    var g = {
+      id: "g" + (groups().length + 1) + "-" + Math.random().toString(36).slice(2, 7),
+      name: name || "Group " + (groups().length + 1),
+      colour: colour || "#6750A4",
+      collapsed: false,
+      members: []
+    };
+    prefs.groups = groups().concat([g]);
+    return g;
+  }
+
+  function assignToGroup(tabId, groupId) {
+    prefs.groups = groups().map(function (g) {
+      var members = g.members.filter(function (m) { return m !== tabId; });
+      if (g.id === groupId) { members = members.concat([tabId]); }
+      return Object.assign({}, g, { members: members });
+    });
+    saveGroups();
+  }
+
+  /** Removing a group keeps every tab it held — the tabs are the site's sections and
+   *  there is nothing to close. Only the grouping goes. */
+  function removeGroup(groupId) {
+    prefs.groups = groups().filter(function (g) { return g.id !== groupId; });
+    saveGroups();
+  }
+
+  /* ------------------------------------------------------------- reordering */
+
+  function manualOrder() {
+    if (!Array.isArray(prefs.order) || !prefs.order.length) {
+      prefs.order = TABS.map(function (x) { return x.id; });
+    }
+    /* A tab added by a later build is not in a stored order, and one removed still is.
+       Reconcile against TABS rather than trusting what was written months ago. */
+    var known = TABS.map(function (x) { return x.id; });
+    var kept = prefs.order.filter(function (id) { return known.indexOf(id) !== -1; });
+    known.forEach(function (id) { if (kept.indexOf(id) === -1) { kept.push(id); } });
+    prefs.order = kept;
+    return kept;
+  }
+
+  /** Move within the tab's own region. A pinned tab cannot be shuffled in among the
+   *  loose ones and back out again — the pinned region is the point of pinning. */
+  function moveTab(id, delta) {
+    var order = manualOrder().slice();
+    var region = order.filter(function (x) { return isPinned(x) === isPinned(id); });
+    var at = region.indexOf(id);
+    var to = at + delta;
+    if (at === -1 || to < 0 || to >= region.length) { return false; }
+    var swap = region[to];
+    order[order.indexOf(id)] = swap;
+    order[order.indexOf(swap)] = id;
+    prefs.order = order;
+    savePref("order", order);
+    buildStrip();
+    return true;
+  }
+
+
+  /* ------------------------------------------- the four tab-discovery searches
+     Four separate surfaces, each with its own anchored regex builder, because the
+     instructions ask for four and they answer four different questions: what is in
+     this strip, what is in one group, which group is called what, and where is that
+     tab across everything. One shared field would silently apply the last query you
+     typed to whichever surface you opened next. */
+
+  function tabSearchRows(scope, groupId) {
+    var rows = [];
+    manualOrder().forEach(function (id) {
+      var tab = tabById(id);
+      if (!tab) { return; }
+      var g = groupOf(id);
+      if (scope === "group" && (!g || g.id !== groupId)) { return; }
+      rows.push({
+        id: id,
+        label: t(tab.key),
+        group: g ? g.name : "",
+        groupId: g ? g.id : "",
+        pinned: isPinned(id),
+        collapsed: g ? !!g.collapsed : false
+      });
+    });
+    return rows;
+  }
+
+  /** One search dialog, four callers. `spec` says what it is searching and how to
+   *  describe a result, so the shared plumbing never has to guess which surface it is
+   *  on — and each caller keeps its own query, pattern, flags and mode. */
+  function openTabSearch(spec) {
+    var state = { q: "", regex: !!prefs.regex };
+
+    var host = el("div", { "class": "sheet", role: "dialog", "aria-modal": "false", "aria-label": spec.title });
+    host.appendChild(el("h3", { "class": "sheet__title" }, esc(spec.title)));
+    host.appendChild(el("p", { "class": "section-note" }, esc(spec.note)));
+
+    var bar = el("div", { "class": "sheet__bar" });
+    var field = el("input", {
+      type: "search", "class": "plain", "aria-label": spec.title,
+      placeholder: spec.placeholder || "Type to filter…"
+    });
+    var mode = el("button", {
+      type: "button", "class": "linkchip",
+      "aria-pressed": state.regex ? "true" : "false",
+      title: "Plain text is the default. Turn this on to match with a regular expression."
+    }, state.regex ? ".*" : "abc");
+    var builder = el("button", { type: "button", "class": "linkchip", title: "Open the regex builder for this search" }, "Builder");
+    bar.appendChild(field);
+    bar.appendChild(mode);
+    bar.appendChild(builder);
+    host.appendChild(bar);
+
+    var status = el("p", { "class": "section-note", role: "status", "aria-live": "polite" });
+    host.appendChild(status);
+    var list = el("ul", { "class": "sheet__list" });
+    host.appendChild(list);
+
+    function matches(row) {
+      if (!state.q) { return true; }
+      var hay = spec.haystack(row);
+      if (!state.regex) { return hay.toLowerCase().indexOf(state.q.toLowerCase()) !== -1; }
+      var res = safeRegex(state.q, hay);
+      return res.ok && res.matches.length > 0;
+    }
+
+    function paint() {
+      var rows = spec.rows().filter(matches);
+      list.innerHTML = "";
+      if (!rows.length) {
+        status.textContent = state.q
+          ? "Nothing matches “" + state.q + "”" + (state.regex ? " as a regular expression." : " as plain text.")
+          : spec.empty;
+        return;
+      }
+      status.textContent = rows.length + (rows.length === 1 ? " result" : " results") +
+        (state.q ? (state.regex ? " matching that pattern." : " containing that text.") : ".");
+      rows.forEach(function (row) {
+        var li = el("li");
+        var b = el("button", { type: "button", "class": "sheet__row" });
+        b.appendChild(el("span", { "class": "sheet__rowLabel" }, esc(row.label)));
+        /* Every result says where it lives — which strip, which group, whether it is
+           pinned — because a result you cannot locate is a result you cannot act on. */
+        var where = [];
+        if (row.pinned) { where.push("pinned"); }
+        if (row.group) { where.push("in " + row.group + (row.collapsed ? ", collapsed" : "")); }
+        if (where.length) { b.appendChild(el("span", { "class": "sheet__rowWhere" }, esc(where.join(" · ")))); }
+        b.addEventListener("click", function () { spec.pick(row); closeSheet(); });
+        li.appendChild(b);
+        list.appendChild(li);
+      });
+    }
+
+    field.addEventListener("input", function () { state.q = field.value; paint(); });
+    mode.addEventListener("click", function () {
+      state.regex = !state.regex;
+      mode.textContent = state.regex ? ".*" : "abc";
+      mode.setAttribute("aria-pressed", state.regex ? "true" : "false");
+      paint();
+    });
+    /* The builder writes back into THIS field, not into whichever search bar happened
+       to open it last. */
+    builder.addEventListener("click", function () {
+      openRegexBuilder(state.q, function (pattern) {
+        state.q = pattern;
+        state.regex = true;
+        field.value = pattern;
+        mode.textContent = ".*";
+        mode.setAttribute("aria-pressed", "true");
+        paint();
+      });
+    });
+
+    paint();
+    showSheet(host, field);
+  }
+
+  function openStripSearch() {
+    openTabSearch({
+      title: "Search this tab strip",
+      note: "Every tab in the strip you are looking at, in its current order.",
+      empty: "This strip has no tabs, which should not be possible.",
+      rows: function () { return tabSearchRows("strip"); },
+      haystack: function (r) { return r.label; },
+      pick: function (r) { activate(r.id, true); }
+    });
+  }
+
+  function openGroupPicker() {
+    var all = groups();
+    if (!all.length) {
+      toast("info", "There are no groups yet", "Right-click a tab and choose “Move to a new group…” to make one.");
+      return;
+    }
+    openTabSearch({
+      title: "Which group?",
+      note: "Pick a group, then search inside it.",
+      empty: "No groups yet.",
+      rows: function () {
+        return all.map(function (g) {
+          return { id: g.id, label: g.name, group: "", groupId: g.id, pinned: false, collapsed: !!g.collapsed,
+            count: g.members.length };
+        });
+      },
+      haystack: function (r) { return r.label; },
+      pick: function (r) { openInGroupSearch(r.id); }
+    });
+  }
+
+  function openInGroupSearch(groupId) {
+    var g = groups().filter(function (x) { return x.id === groupId; })[0];
+    openTabSearch({
+      title: "Search “" + (g ? g.name : "group") + "”",
+      note: "Only the tabs in this group.",
+      empty: "This group is empty.",
+      rows: function () { return tabSearchRows("group", groupId); },
+      haystack: function (r) { return r.label; },
+      pick: function (r) {
+        /* Revealing a result inside a collapsed group must not destroy the collapsed
+           preference — expand to show it, and put it back the way it was is not
+           possible once the user is looking at it, so say so instead of guessing. */
+        if (g && g.collapsed) {
+          g.collapsed = false;
+          saveGroups();
+          toast("info", "“" + g.name + "” was expanded", "It was collapsed, and a result you cannot see is not a result.");
+        }
+        activate(r.id, true);
+      }
+    });
+  }
+
+  function openGroupsSearch() {
+    openTabSearch({
+      title: "Search tab groups",
+      note: "Groups by their visible name.",
+      empty: "No groups yet. Right-click a tab and choose “Move to a new group…”.",
+      rows: function () {
+        return groups().map(function (g) {
+          return { id: g.id, label: g.name + " (" + g.members.length + ")", group: "", groupId: g.id,
+            pinned: false, collapsed: !!g.collapsed };
+        });
+      },
+      haystack: function (r) { return r.label; },
+      pick: function (r) { openInGroupSearch(r.id); }
+    });
+  }
+
+  function openMasterSearch() {
+    openTabSearch({
+      title: "Every tab, everywhere",
+      note: "Every tab this site owns, whatever strip or group it sits in.",
+      empty: "Nothing to search.",
+      rows: function () { return tabSearchRows("strip"); },
+      /* The master search matches the group name too — that is what makes it the
+         master one rather than a second copy of the strip search. */
+      haystack: function (r) { return r.label + " " + r.group; },
+      pick: function (r) { activate(r.id, true); }
+    });
+  }
+
+
+  /* ------------------------------------------------------ sheets and the builder
+     A non-modal sheet, so the page behind it stays live and readable, and a compact
+     regex builder that opens beside the field that asked for it rather than sending
+     the reader to a different page to compose a pattern and carry it back by hand. */
+
+  var openSheetNode = null;
+  var sheetReturn = null;
+
+  function closeSheet() {
+    if (openSheetNode && openSheetNode.parentNode) { openSheetNode.parentNode.removeChild(openSheetNode); }
+    openSheetNode = null;
+    if (sheetReturn && sheetReturn.focus) { sheetReturn.focus(); }
+    sheetReturn = null;
+  }
+
+  function showSheet(node, focusMe) {
+    closeSheet();
+    sheetReturn = document.activeElement;
+    var wrap = el("div", { "class": "sheet__wrap" });
+    var close = el("button", { type: "button", "class": "sheet__close", "aria-label": "Close" }, "✕");
+    close.addEventListener("click", closeSheet);
+    node.appendChild(close);
+    wrap.appendChild(node);
+    document.body.appendChild(wrap);
+    openSheetNode = wrap;
+    if (focusMe && focusMe.focus) { focusMe.focus(); }
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && openSheetNode) { closeSheet(); }
+  });
+
+  /** Bounded match, using the same engine and the same refusals as everything else on
+   *  this page. A search that quietly used a different regex dialect from the builder
+   *  beside it would be worse than no builder. */
+  function safeRegex(pattern, sample) {
+    var res = evaluate(pattern, prefs.regexFlags || "gi", sample);
+    return { ok: res.ok, matches: res.matches || [], error: res.error };
+  }
+
+  /** The compact builder. Same constructs, same flags and the same bounded engine as
+   *  the full one on the docs page — this is that builder sized for a popover, not a
+   *  reduced imitation of it. `onApply` receives the pattern, so the field that opened
+   *  it is the field that gets it. */
+  function openRegexBuilder(seed, onApply) {
+    var pattern = seed || "";
+    var flags = prefs.regexFlags || "gi";
+    var sample = TABS.map(function (x) { return t(x.key); }).join("\n");
+
+    var host = el("div", { "class": "sheet", role: "dialog", "aria-modal": "false", "aria-label": "Regex builder" });
+    host.appendChild(el("h3", { "class": "sheet__title" }, "Regex builder"));
+    host.appendChild(el("p", { "class": "section-note" },
+      "Applies to the search that opened it, and to no other. JavaScript RegExp — the same engine the page filters " +
+      "with, so what matches here is what will match there."));
+
+    var input = el("input", { type: "text", "class": "plain", "aria-label": "Pattern", value: pattern, style: "width:100%" });
+    host.appendChild(input);
+
+    var flagRow = el("div", { "class": "sheet__bar", role: "group", "aria-label": "Flags" });
+    FLAG_LIST.forEach(function (f) {
+      var on = flags.indexOf(f[0]) !== -1;
+      var b = el("button", { type: "button", "class": "linkchip", "aria-pressed": on ? "true" : "false",
+        title: f[1] }, f[0]);
+      b.addEventListener("click", function () {
+        flags = flags.indexOf(f[0]) !== -1 ? flags.replace(f[0], "") : flags + f[0];
+        b.setAttribute("aria-pressed", flags.indexOf(f[0]) !== -1 ? "true" : "false");
+        paint();
+      });
+      flagRow.appendChild(b);
+    });
+    host.appendChild(flagRow);
+
+    CONSTRUCTS.forEach(function (grp) {
+      var box = el("div", { style: "margin-top:10px" });
+      box.appendChild(el("div", { "class": "section-note", style: "margin-bottom:4px" }, esc(grp.group)));
+      var row = el("div", { "class": "sheet__bar" });
+      grp.items.forEach(function (item) {
+        var b = el("button", { type: "button", "class": "linkchip linkchip--mono", title: item[1] }, esc(item[0]));
+        b.addEventListener("click", function () {
+          pattern += item[0];
+          input.value = pattern;
+          paint();
+        });
+        row.appendChild(b);
+      });
+      box.appendChild(row);
+      host.appendChild(box);
+    });
+
+    var status = el("p", { "class": "section-note", role: "status", "aria-live": "polite" });
+    host.appendChild(status);
+
+    var apply = el("button", { type: "button", "class": "linkchip linkchip--next" }, "Apply to the search");
+    apply.addEventListener("click", function () {
+      if (typeof onApply === "function") { onApply(input.value, flags); }
+      savePref("regexFlags", flags);
+      closeSheet();
+    });
+    host.appendChild(apply);
+
+    function paint() {
+      pattern = input.value;
+      if (!pattern) { status.textContent = "Nothing to match yet."; return; }
+      var res = evaluate(pattern, flags, sample);
+      if (!res.ok) { status.textContent = res.error; return; }
+      status.textContent = res.matches.length + " match" + (res.matches.length === 1 ? "" : "es") +
+        " against this strip's tab names" + (res.truncated ? ", truncated" : "") + ".";
+    }
+
+    input.addEventListener("input", paint);
+    paint();
+    showSheet(host, input);
+  }
+
   function tabById(id) {
     for (var i = 0; i < TABS.length; i++) { if (TABS[i].id === id) { return TABS[i]; } }
     return null;
@@ -643,7 +1043,19 @@
    *  relative order within it — the same rule the app's own strip uses. */
   function orderedTabs() {
     var pinned = [], loose = [];
-    for (var i = 0; i < TABS.length; i++) { (isPinned(TABS[i].id) ? pinned : loose).push(TABS[i]); }
+    /* The stored manual order first, then the pinned/loose split — so reordering
+       inside a region is preserved and pinning still wins over it. */
+    manualOrder().forEach(function (id) {
+      var tab = tabById(id);
+      if (!tab) { return; }
+      var g = groupOf(id);
+      /* A collapsed group hides its members from the strip but never from the
+         searches: that is what makes collapsing safe to use. The active tab is never
+         hidden, because a strip that can swallow the tab you are reading is worse
+         than one that cannot collapse at all. */
+      if (g && g.collapsed && id !== prefs.tab) { return; }
+      (isPinned(id) ? pinned : loose).push(tab);
+    });
     return pinned.concat(loose);
   }
 
@@ -663,6 +1075,14 @@
           title: (isPinned(tab.id) ? "Pinned. " : "") + "Press P to " + (isPinned(tab.id) ? "unpin" : "pin") + ", or open the context menu."
         });
         if (isPinned(tab.id)) { btn.appendChild(el("span", { "class": "tab__pin", "aria-hidden": "true" }, "📌")); }
+        var grp = groupOf(tab.id);
+        if (grp) {
+          /* The colour is decoration; the group's name goes to the accessible name so
+             a screen-reader user learns the grouping too. */
+          btn.style.setProperty("--tab-group", grp.colour);
+          btn.classList.add("tab--grouped");
+          btn.appendChild(el("span", { "class": "vh" }, " (in " + grp.name + ")"));
+        }
         btn.appendChild(el("span", { "class": "tab__label" }, esc(t(tab.key))));
         if (isPinned(tab.id)) { btn.appendChild(el("span", { "class": "vh" }, "(pinned)")); }
         btn.addEventListener("click", function () { activate(tab.id, true); });
@@ -686,6 +1106,14 @@
     else if (e.key === "p" || e.key === "P") {
       e.preventDefault();
       togglePin(e.currentTarget.getAttribute("data-tab"));
+      return;
+    } else if (e.ctrlKey && e.shiftKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+      e.preventDefault();
+      var id = e.currentTarget.getAttribute("data-tab");
+      if (moveTab(id, e.key === "ArrowRight" ? 1 : -1)) {
+        var again = $("tablist").querySelector('[data-tab="' + id + '"]');
+        if (again) { again.focus(); }
+      }
       return;
     } else { return; }
     e.preventDefault();
@@ -753,18 +1181,76 @@
   });
 
   function openTabMenu(tab, anchor) {
-    popupMenu(anchor, [
+    var g = groupOf(tab.id);
+    var items = [
       { label: "Open " + t(tab.key), run: function () { activate(tab.id, true); } },
       { label: isPinned(tab.id) ? "Unpin this tab" : "Pin this tab", hint: "P", run: function () { togglePin(tab.id); } },
-      { label: "Copy a link to this tab", run: function () {
-        copyText(location.href.split("#")[0] + "#" + tab.id, "the link");
+      { label: "Move left", hint: "Ctrl+Shift+←", run: function () { moveTab(tab.id, -1); } },
+      { label: "Move right", hint: "Ctrl+Shift+→", run: function () { moveTab(tab.id, 1); } },
+      { label: "Move to a new group…", run: function () {
+        var name = window.prompt("Name the group", "Group " + (groups().length + 1));
+        if (name === null) { return; }
+        var made = createGroup(name.trim() || null);
+        assignToGroup(tab.id, made.id);
+        toast("success", "Grouped", "“" + t(tab.key) + "” is now in “" + made.name + "”.");
       } }
-    ], null);
+    ];
+    groups().forEach(function (other) {
+      if (g && other.id === g.id) { return; }
+      items.push({ label: "Move to “" + other.name + "”", run: function () { assignToGroup(tab.id, other.id); } });
+    });
+    if (g) {
+      items.push({ label: "Take out of “" + g.name + "”", run: function () { assignToGroup(tab.id, null); } });
+      items.push({ label: g.collapsed ? "Expand “" + g.name + "”" : "Collapse “" + g.name + "”", run: function () {
+        g.collapsed = !g.collapsed;
+        saveGroups();
+      } });
+      items.push({ label: "Rename “" + g.name + "”…", run: function () {
+        var name = window.prompt("Rename the group", g.name);
+        if (name === null) { return; }
+        g.name = name.trim() || g.name;
+        saveGroups();
+      } });
+      items.push({ label: "Colour for “" + g.name + "”…", run: function () {
+        var c = window.prompt("A colour for this group — any notation the translator reads", g.colour);
+        if (c === null) { return; }
+        var hex = colour.parse(c);
+        if (!hex) { toast("error", "That is not a colour this reads", "Try #6750A4, rgb(103 80 164), oklch(…), or a name like plum."); return; }
+        g.colour = hex;
+        saveGroups();
+      } });
+      items.push({ label: "Ungroup (keeps every tab)", run: function () { removeGroup(g.id); } });
+      items.push({ label: "Search “" + g.name + "”…", run: function () { openInGroupSearch(g.id); } });
+    }
+    items.push({ label: "Copy a link to this tab", run: function () {
+      copyText(location.href.split("#")[0] + "#" + tab.id, "the link");
+    } });
+    popupMenu(anchor, items, null);
   }
 
   /** Hide the tabs that do not fit and list them in the overflow menu. Pinned tabs
    *  and the active tab are never hidden — an overflow that can swallow the tab you
    *  are reading is worse than no overflow at all. */
+  /* The four searches hang off one button, because four buttons in a strip that
+     already overflows is how you get a strip that overflows. Each opens its own sheet
+     with its own query, pattern, flags and mode — never a shared one. */
+  function wireFindTabs() {
+    var btn = document.getElementById("findTabsBtn");
+    if (!btn) { return; }
+    btn.addEventListener("click", function () {
+      /* `btn` as the trigger, not null. The document-level dismiss handler closes any
+         open menu unless the click landed inside the menu or its trigger — so opening
+         from a click with no trigger declared opens and closes on the same event, and
+         the menu appears never to open at all. It also sets aria-expanded. */
+      popupMenu(btn, [
+        { label: "Search this tab strip…", run: openStripSearch },
+        { label: "Search inside a group…", run: openGroupPicker },
+        { label: "Search tab groups by name…", run: openGroupsSearch },
+        { label: "Search every tab, everywhere…", run: openMasterSearch }
+      ], btn);
+    });
+  }
+
   function layoutStrip() {
     var list = $("tablist");
     var btn = $("overflowBtn");
@@ -1872,6 +2358,7 @@
 
     buildBuilder();
     buildStrip();
+    wireFindTabs();
 
     var hashTab = location.hash.slice(1);
     activate(tabById(hashTab) ? hashTab : prefs.tab, false);

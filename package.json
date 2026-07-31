@@ -13,7 +13,8 @@
     "capture": "node tools/capture.mjs",
     "smoke": "node tools/smoke.mjs",
     "dist": "node tools/sync-changelog.mjs && node tools/fetch-codex.mjs && electron-builder --win nsis msi --publish never",
-    "prepare:cli": "node tools/fetch-codex.mjs"
+    "prepare:cli": "node tools/fetch-codex.mjs",
+    "check-site": "node tools/check-site.mjs"
   },
   "devDependencies": {
     "electron": "^40.5.0",

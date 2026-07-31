@@ -253,6 +253,14 @@ jobs:
           # case relaxes the CLI phase; every other failure still fails the build.
           CODEX_STUDIO_SMOKE_CLI_OPTIONAL: ${{ steps.cli.outputs.bundled == 'true' && '0' || '1' }}
 
+      - name: Landing page check
+        # Beside the smoke test and for the same reason: `node --check` proves the site
+        # parses and says nothing about whether it boots. This loads the exact bytes
+        # GitHub Pages serves, in a real browser, and fails on a console error, a strip
+        # that did not render, a missing required control, or a Find-tabs menu offering
+        # fewer than the four searches the shared instructions require.
+        run: node tools/check-site.mjs
+
       - name: Build the Windows installers
         run: npx electron-builder --win nsis msi --publish never
 
