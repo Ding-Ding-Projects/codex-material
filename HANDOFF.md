@@ -6,12 +6,12 @@ Nothing here is predicted, and nothing is claimed green that was not observed gr
 
 | | |
 | --- | --- |
-| **Snapshot commit** | `70be15d` — *Reconcile the appearance page with itself* |
+| **Snapshot commit** | `e335f5c` — *Stop the Cantonese voice reading an English body* |
 | **Branch** | `main` |
-| **Captured** | 2026-07-30 |
+| **Captured** | 2026-07-31 |
 | **Platform** | Windows-only Electron app (`electron/main.js`), no macOS or Linux target |
 | **Public repo** | `Ding-Ding-Projects/codex-material` |
-| **Newest release** | `v0.1.0+build.596` — non-draft, carrying a real NSIS `.exe` and `.msi`, code-named *Chocolate Coconut Snowballs · 巧克力椰絲雪球* |
+| **Newest release** | `v0.1.0+build.626` — non-draft, carrying a real NSIS `.exe` and `.msi`, code-named *Watercress Honey Drink · 西洋菜蜜* |
 
 ## Verification block
 
@@ -21,9 +21,9 @@ Run these five. Every figure in this document came from them.
 node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/capture.mjs && node tools/audit-ui.mjs && node tools/smoke.mjs
 ```
 
-| Command | Observed at `70be15d` |
+| Command | Observed at `e335f5c` |
 | --- | --- |
-| `node tools/test-frontend.mjs` | **29 passed, 0 failed** |
+| `node tools/test-frontend.mjs` | **36 passed, 0 failed** |
 | `node tools/test-backend.mjs` | **33 passed, 0 failed** |
 | `node tools/capture.mjs` | **exit 0** — 25 shots written, 1 console message (the expected CSP notice) |
 | `node tools/audit-ui.mjs` | **25 findings across 240 cells, 0 severity high** — all 25 are the harness noting a deliberately ellipsised label |
