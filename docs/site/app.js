@@ -1973,6 +1973,7 @@
 
     /* ---- accent colour ---- */
     panel.appendChild(renderPicker());
+    panel.appendChild(renderPresets());
 
     /* ---- language ---- */
     var lang = el("div", { "class": "card" });
@@ -2134,6 +2135,202 @@
   }
 
   /* ------------------------------------------- continuous colour picker */
+
+  /* ======================================================= named presets
+     A saved look, kept by name, exportable to a file and importable back. The point of
+     a preset is surviving a reinstall and being shared; one that lives only in this
+     browser's localStorage satisfies neither, which is why export writes a real file
+     rather than copying to the clipboard. */
+
+  var PRESET_FORMAT = "codex-studio-site-appearance";
+  var PRESET_VERSION = 1;
+  /* Exactly the preferences an appearance covers. Deliberately NOT everything in
+     prefs: a preset that carried `tab` would move you to a different page, and one
+     that carried `pinned` would rearrange your strip, neither of which is what
+     "apply this look" means. */
+  var PRESET_KEYS = ["theme", "accent", "font", "fontScale", "density"];
+
+  function presets() {
+    if (!prefs.presets || typeof prefs.presets !== "object") { prefs.presets = {}; }
+    return prefs.presets;
+  }
+
+  function currentAppearance() {
+    var out = {};
+    PRESET_KEYS.forEach(function (k) { out[k] = prefs[k]; });
+    return out;
+  }
+
+  function savePreset(name) {
+    var clean = String(name || "").trim();
+    if (!clean) { return null; }
+    var all = presets();
+    var existed = Object.prototype.hasOwnProperty.call(all, clean);
+    all[clean] = currentAppearance();
+    savePref("presets", all);
+    toast(
+      "success",
+      existed ? "Replaced “" + clean + "”" : "Saved “" + clean + "”",
+      existed
+        ? "A preset by that name already existed, and the copy you had is gone."
+        : PRESET_KEYS.join(", ") + " — the look, not the page you are on."
+    );
+    return clean;
+  }
+
+  function applyPreset(name) {
+    var p = presets()[name];
+    if (!p) { toast("error", "No preset called “" + name + "”", "It may have been deleted in another tab."); return; }
+    /* Only keys this build understands are applied, and anything else in a stored
+       preset is left where it is rather than being written blindly into prefs. */
+    PRESET_KEYS.forEach(function (k) {
+      if (Object.prototype.hasOwnProperty.call(p, k)) { savePref(k, p[k]); }
+    });
+    applyAppearance();
+    renderActive();
+    toast("success", "Applied “" + name + "”", "Every element wearing it now.");
+  }
+
+  function deletePreset(name) {
+    var all = presets();
+    if (!Object.prototype.hasOwnProperty.call(all, name)) { return; }
+    var gone = all[name];
+    delete all[name];
+    savePref("presets", all);
+    /* Deleting is one click, so it gets an undo rather than a confirmation dialog:
+       a blocking prompt for something this cheap to reverse is the wrong trade. */
+    toast("success", "Deleted “" + name + "”", "", );
+    var host = $("toasts");
+    if (host && host.lastChild) {
+      var undo = el("button", { type: "button", "class": "linkchip" }, "Undo");
+      undo.addEventListener("click", function () {
+        var back = presets();
+        back[name] = gone;
+        savePref("presets", back);
+        renderActive();
+        toast("success", "Restored “" + name + "”");
+      });
+      host.lastChild.appendChild(undo);
+    }
+  }
+
+  function exportPresets() {
+    var doc = {
+      format: PRESET_FORMAT,
+      version: PRESET_VERSION,
+      exportedAt: new Date().toISOString(),
+      current: currentAppearance(),
+      presets: presets()
+    };
+    var blob = new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "codex-studio-site-appearance.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast("success", "Exported", Object.keys(presets()).length + " preset(s) and the current look, as a file you can keep or share.");
+  }
+
+  function importPresets(file) {
+    var reader = new FileReader();
+    reader.onerror = function () {
+      toast("error", "That file could not be read", file.name + " — nothing was imported and your look is untouched.");
+    };
+    reader.onload = function () {
+      var doc;
+      try { doc = JSON.parse(String(reader.result || "")); }
+      catch (e) {
+        toast("error", "That is not an appearance file", file.name + " does not parse as JSON: " + e.message);
+        return;
+      }
+      if (!doc || doc.format !== PRESET_FORMAT) {
+        toast("error", "That is not an appearance file", "Expected format “" + PRESET_FORMAT + "”, found “" + (doc && doc.format) + "”.");
+        return;
+      }
+      /* Never silently drop what it cannot represent: every rejection is named with the
+         reason, so the reader can tell a value that was ignored from one that was
+         applied. A theme that quietly loses half its settings is worse than one that
+         refuses outright, because there is no way to tell which half went. */
+      var dropped = [];
+      var kept = 0;
+      var incoming = doc.presets && typeof doc.presets === "object" ? doc.presets : {};
+      var all = presets();
+      Object.keys(incoming).forEach(function (name) {
+        var p = incoming[name];
+        if (!p || typeof p !== "object") { dropped.push(name + ": not a set of appearance values"); return; }
+        var clean = {};
+        Object.keys(p).forEach(function (k) {
+          if (PRESET_KEYS.indexOf(k) === -1) { dropped.push(name + "." + k + ": this build has no such setting"); return; }
+          clean[k] = p[k];
+        });
+        if (!Object.keys(clean).length) { dropped.push(name + ": nothing in it applies here"); return; }
+        all[name] = clean;
+        kept += 1;
+      });
+      savePref("presets", all);
+      renderActive();
+      if (dropped.length) {
+        toast("warning", "Imported " + kept + ", with " + dropped.length + " value(s) left out",
+          dropped.slice(0, 6).join("\n") + (dropped.length > 6 ? "\n…and " + (dropped.length - 6) + " more" : ""));
+      } else {
+        toast("success", "Imported " + kept + " preset" + (kept === 1 ? "" : "s"), "From " + file.name + ".");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  /** The presets card for the settings panel. */
+  function renderPresets() {
+    var card = el("div", { "class": "card" });
+    card.appendChild(el("h3", { "class": "section-title", style: "font-size:1.05rem" }, "Named presets"));
+    card.appendChild(el("p", { "class": "section-note" }, inline(
+      "Save the current look under a name, apply one, or carry them to another machine as a file. A preset holds " +
+      "**theme, accent, font, font scale and density** — the look, not which page you happen to be reading.")));
+
+    var names = Object.keys(presets()).sort();
+    var list = el("div", { "class": "sheet__bar" });
+    if (!names.length) {
+      list.appendChild(el("span", { "class": "section-note" }, "No presets saved yet."));
+    }
+    names.forEach(function (name) {
+      var row = el("span", { "class": "chip", style: "display:inline-flex;gap:6px;align-items:center" });
+      var apply = el("button", { type: "button", "class": "trans__copy", title: "Apply “" + name + "”" }, esc(name));
+      apply.addEventListener("click", function () { applyPreset(name); });
+      var del = el("button", { type: "button", "class": "trans__copy", "aria-label": "Delete the preset “" + name + "”", title: "Delete" }, "✕");
+      del.addEventListener("click", function () { deletePreset(name); renderActive(); });
+      row.appendChild(apply);
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+    card.appendChild(list);
+
+    var actions = el("div", { "class": "sheet__bar" });
+    var save = el("button", { type: "button", "class": "linkchip linkchip--next" }, "Save the current look…");
+    save.addEventListener("click", function () {
+      var name = window.prompt("Name this preset", "Preset " + (Object.keys(presets()).length + 1));
+      if (name === null) { return; }
+      if (savePreset(name)) { renderActive(); }
+    });
+    var out = el("button", { type: "button", "class": "linkchip" }, "Export to a file");
+    out.addEventListener("click", exportPresets);
+    var inBtn = el("button", { type: "button", "class": "linkchip" }, "Import a file");
+    inBtn.addEventListener("click", function () {
+      var input = document.createElement("input");
+      input.type = "file";
+      input.accept = "application/json,.json";
+      input.addEventListener("change", function () {
+        var f = input.files && input.files[0];
+        if (f) { importPresets(f); }
+      });
+      input.click();
+    });
+    actions.appendChild(save);
+    actions.appendChild(out);
+    actions.appendChild(inBtn);
+    card.appendChild(actions);
+    return card;
+  }
+
   function renderPicker() {
     var card = el("div", { "class": "card" });
     card.appendChild(el("h3", { "class": "section-title", style: "font-size:1.05rem" }, "Accent colour"));

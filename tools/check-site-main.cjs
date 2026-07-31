@@ -72,7 +72,9 @@ app.on("ready", async () => {
     return out;
   })()`);
 
-  /* The colour translator, checked through the page's own module rather than a copy. */
+  /* The settings surface, checked by opening it — the translator's row count and the
+     presets card are the two things the shared instructions name explicitly, and both
+     are rendered only once that panel is on screen. */
   const colour = await win.webContents.executeJavaScript(`(() => {
     try {
       const settings = document.querySelector('[data-tab="settings"]');
@@ -83,13 +85,43 @@ app.on("ready", async () => {
 
   await new Promise((r) => setTimeout(r, 500));
 
+  const settings = await win.webContents.executeJavaScript(`(() => {
+    const out = { notations: 0, spaces: [], presetControls: 0, missing: [] };
+    /* The translator prints one <dt> per notation. Twelve is what the instructions
+       name; five was what this page shipped before. */
+    out.spaces = Array.prototype.map.call(document.querySelectorAll(".trans dt"), (d) => d.textContent.trim());
+    out.notations = out.spaces.length;
+    const text = document.body.textContent || "";
+    [["Named presets", "the named-preset surface"],
+     ["Save the current look", "saving a preset"],
+     ["Export to a file", "exporting presets"],
+     ["Import a file", "importing presets"]].forEach(([needle, what]) => {
+      if (text.indexOf(needle) === -1) out.missing.push(what + '  ("' + needle + '")');
+      else out.presetControls += 1;
+    });
+    return out;
+  })()`);
+
+  let failedEarly = false;
   const lines = [];
   lines.push(`tabs rendered      ${report.tabs}`);
   lines.push(`find-tabs entries  ${report.searches}${report.searchLabels && report.searchLabels.length ? " — " + report.searchLabels.join(" | ") : ""}`);
   lines.push(`settings panel     ${colour.ok ? "opened" : "FAILED — " + colour.error}`);
+  lines.push(`colour notations   ${settings.notations}${settings.spaces.length ? " — " + settings.spaces.join(" ") : ""}`);
+  lines.push(`preset controls    ${settings.presetControls}/4`);
   lines.push(`console errors     ${errors.length}`);
 
-  let failed = false;
+  if (settings.notations < 12) {
+    lines.push(`\nthe colour translator offered ${settings.notations} notations; the instructions name twelve`);
+    failedEarly = true;
+  }
+  if (settings.missing.length) {
+    lines.push("\nmissing from the settings surface:");
+    settings.missing.forEach((m) => lines.push("  " + m));
+    failedEarly = true;
+  }
+
+  let failed = failedEarly;
   if (report.threw) {
     lines.push(`\nthe page threw while being probed: ${report.threw}`);
     failed = true;
