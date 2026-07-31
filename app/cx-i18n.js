@@ -2745,6 +2745,64 @@
       en: ["Reset element", "Reset element", "Reset element", "Reset this element", "Reset this element"],
       yue: ["重設元素", "重設元素", "重設呢個元素", "呢個元素打返原形", "呢個元素打返原形"]
     },
+/* The Extend panel's toggles had no error message because they had no error path —
+   the promise rejected and nothing was listening. Now that one exists, it needs
+   something to say. */
+
+    "err.extend": {
+      en: ["That could not be changed: {detail}", "That could not be changed: {detail}", "That could not be changed — {detail}", "That would not change: {detail}", "That flatly refused to change: {detail}"],
+      yue: ["改唔到：{detail}", "改唔到：{detail}", "改唔郁 — {detail}", "佢唔肯改：{detail}", "佢死都唔肯改：{detail}"]
+    },
+    "ext.pluginLocked": {
+      en: ["The Codex CLI has no enable or disable for plugins — add or remove is the whole story. Use Remove to take one out.",
+        "The Codex CLI has no enable or disable for plugins — add or remove is the whole story. Use Remove to take one out.",
+        "The Codex CLI has no enable or disable for plugins; it only adds and removes them. Use Remove to take one out.",
+        "There is no enable or disable for plugins — the CLI only adds and removes them. Use Remove to take one out.",
+        "There is no enable or disable for plugins. The CLI adds them and removes them, and that is the entire vocabulary. Use Remove to take one out."],
+      yue: ["Codex CLI 冇得將 plugin 開或者熄 —— 淨係加同刪。想唔要就用「移除」。",
+        "Codex CLI 冇得將 plugin 開或者熄 —— 淨係加同刪。想唔要就用「移除」。",
+        "Codex CLI 冇得開或者熄 plugin，佢淨係識加同刪。想唔要就用「移除」。",
+        "plugin 冇得開熄 —— 個 CLI 淨係識加同刪。想唔要就用「移除」。",
+        "plugin 冇得開熄。個 CLI 淨係識加同刪，就係咁多招。想唔要就用「移除」。"]
+    },
+    "ext.hookUntrusted": {
+      en: ["An untrusted hook never runs and cannot be enabled here. Mark it trusted in config.toml first.",
+        "An untrusted hook never runs and cannot be enabled here. Mark it trusted in config.toml first.",
+        "An untrusted hook never runs, so it cannot be enabled here. Mark it trusted in config.toml first.",
+        "An untrusted hook never runs, so this switch will not move it. Mark it trusted in config.toml first.",
+        "An untrusted hook never runs, so this switch will not move it. Mark it trusted in config.toml first."],
+      yue: ["未信任嘅 hook 根本唔會行，喺呢度開唔到。要先喺 config.toml 度標佢做信任。",
+        "未信任嘅 hook 根本唔會行，喺呢度開唔到。要先喺 config.toml 度標佢做信任。",
+        "未信任嘅 hook 唔會行，所以呢度開唔到佢。先去 config.toml 標佢做信任。",
+        "未信任嘅 hook 唔會行，撳呢粒掣都唔會郁。先去 config.toml 標佢做信任。",
+        "未信任嘅 hook 唔會行，撳呢粒掣都唔會郁。先去 config.toml 標佢做信任。"]
+    },
+    "ext.featureRemoved": {
+      en: ["A removed feature cannot be enabled — it is gone from the CLI, not merely switched off.",
+        "A removed feature cannot be enabled — it is gone from the CLI, not merely switched off.",
+        "A removed feature cannot be enabled: it is gone from the CLI, not just switched off.",
+        "A removed feature cannot be enabled. It is gone from the CLI, not merely switched off.",
+        "A removed feature cannot be enabled. It is gone from the CLI entirely, not merely switched off."],
+      yue: ["已移除嘅功能開唔返 —— 佢喺個 CLI 度冇咗，唔係淨係熄咗。",
+        "已移除嘅功能開唔返 —— 佢喺個 CLI 度冇咗，唔係淨係熄咗。",
+        "已移除嘅功能開唔返：佢喺 CLI 度冇咗，唔係熄咗咁簡單。",
+        "已移除嘅功能開唔返。佢喺 CLI 度冇咗，唔係淨係熄咗。",
+        "已移除嘅功能開唔返。佢喺 CLI 度徹底冇咗，唔係淨係熄咗。"]
+    },
+/* Spoken on the switch, so the narrator proves itself the moment it is turned on. */
+
+    "studio.narratorOn": {
+      en: ["The narrator is on. It will read app events aloud, one at a time.",
+        "The narrator is on. It will read app events aloud, one at a time.",
+        "The narrator is on — it reads app events aloud, one at a time.",
+        "The narrator is on. You will hear app events read out, one at a time.",
+        "The narrator is on. You will hear app events read out, one at a time, and this sentence was the first."],
+      yue: ["旁白開咗喇。佢會逐句讀出 app 度發生嘅事。",
+        "旁白開咗喇。佢會逐句讀出 app 度發生嘅事。",
+        "旁白開咗 —— 佢會逐句讀返 app 度發生咩事。",
+        "旁白開咗喇，你會聽到佢逐句讀返 app 度發生嘅事。",
+        "旁白開咗喇，你會聽到佢逐句讀返 app 度發生嘅事 —— 呢句就係第一句。"]
+    },
   };
 
   function resolve(key, mode, funny) {

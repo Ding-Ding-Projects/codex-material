@@ -425,20 +425,26 @@ same `electron/lib/catalog.js` functions in-process: `codex_capture`, `codex_fea
 `codex_session_action`, `codex_session_list`, `codex_set_config`, `codex_skill_list`. The three
 `window_*` commands are called through the preload's `window` wrappers rather than by name.
 
-> **Known call-site mismatches, as of this writing.** `toggleExt()` in `app/index.html` dispatches
-> every Extend toggle as `{ name: x.id }`:
+> **These four call sites disagreed with their handlers, and every one of them failed silently.**
+> `toggleExt()` dispatched every Extend toggle as `{ name: x.id }` regardless of what the handler
+> reads, and the promise had no `.catch()`, so the rejection went nowhere and the switch simply
+> never moved.
 >
-> | Call | Handler expects | Effect |
-> | --- | --- | --- |
-> | `codex_mcp_toggle` | `{ name }` | correct |
-> | `codex_plugin_install` / `codex_plugin_uninstall` | `{ name }` | correct |
-> | `codex_skill_toggle` | `{ dir, cwd? }` | `dir` is `undefined` — the call fails |
-> | `codex_hook_toggle` | `{ event, index? }` | `event` is `undefined` — throws ``no hook undefined#0`` |
-> | `codex_plugin_toggle` | *not a registered command* | the preload refuses it: ``unknown backend command `codex_plugin_toggle` `` |
+> | Call | Handler reads | Was | Now |
+> | --- | --- | --- | --- |
+> | `codex_mcp_toggle` | `{ name }` | correct | unchanged |
+> | `codex_skill_toggle` | `{ dir, cwd? }` | `dir` undefined — threw on every click | the row carries `ref: { dir }` |
+> | `codex_hook_toggle` | `{ event, index? }` | threw `no hook undefined#0` | the row carries `ref: { event, index }` |
+> | `codex_plugin_toggle` | *never registered* | the preload refused it | removed — see below |
 >
-> Do not assume either end is right: run the audit under [Verification](#verification) and fix
-> whichever one is wrong. The shapes documented above are what `electron/commands.js` actually
-> reads.
+> There is no plugin toggle because **the CLI has none**: `codex plugin` offers `add`, `list`,
+> `marketplace` and `remove`, and nothing else. The switch was promising an operation that cannot
+> exist. Plugin rows are `locked` now and say so when clicked, and Remove is the way to take one
+> out.
+>
+> The toggle chain is `.then().catch()`, in that order. A `.catch()` placed first still runs the
+> success handler afterwards, which would have recorded a history revision claiming a failed
+> toggle had worked.
 
 ---
 

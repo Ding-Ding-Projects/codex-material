@@ -793,24 +793,62 @@
 
   /* ------------------------------------------------ speech narrator (off by default) */
   const narrator = {
-    enabled: store.get("tts", false),
-    lang: store.get("ttsLang", "en"),
+    /* These read `settings.narrator` / `settings.narratorLang`, which is where the
+       Studio panel writes them. They used to read the top-level keys `tts` and
+       `ttsLang`, which nothing has ever written — so the toggle appeared to work,
+       persisted correctly, and the narrator came back off on every launch. */
+    enabled: store.get("settings", {}).narrator === true,
+    lang: store.get("settings", {}).narratorLang || "en",
     queue: [], speaking: false, lastAt: 0,
+
+    /** Split a line the interface has already resolved into its two halves.
+     *
+     *  Bilingual mode joins them with the same separator every time, so a title read
+     *  off the screen in that mode can be spoken as two utterances in two voices. In
+     *  a single-language mode there is only ever one half to speak, and pretending
+     *  otherwise would mean reading English aloud in a Cantonese voice. */
+    split(text) {
+      if (text && typeof text === "object") return { en: text.en || "", yue: text.yue || "" };
+      const s = String(text || "");
+      const at = s.indexOf("  ·  ");
+      if (at === -1) return g.CX && g.CX.i18n && g.CX.i18n.mode === "yue" ? { en: "", yue: s } : { en: s, yue: "" };
+      return { en: s.slice(0, at), yue: s.slice(at + 5) };
+    },
+
+    /** `force` skips the cooldown. Errors and warnings always pass it: the rate limit
+     *  exists to stop chatter, not to swallow the one message the user most needs. */
     say(text, category, force) {
       if (!this.enabled || !g.speechSynthesis) return;
       const now = Date.now();
       if (!force && now - this.lastAt < 6000) return;   // debounce + cooldown
       this.lastAt = now;
+      /* A superseded line for the same category is replaced, never stacked. */
       this.queue = this.queue.filter((q) => q.category !== category);
-      this.queue.push({ text, category });
+      const halves = this.split(text);
+      /* "Both" speaks English first, then Cantonese, strictly one after the other —
+         two queue entries through the same serialised pump, so they cannot overlap. */
+      const want = this.lang === "both"
+        ? [{ text: halves.en, lang: "en" }, { text: halves.yue || halves.en, lang: "yue" }]
+        : this.lang === "yue"
+          ? [{ text: halves.yue || halves.en, lang: "yue" }]
+          : [{ text: halves.en || halves.yue, lang: "en" }];
+      want.forEach((part) => {
+        if (part.text) this.queue.push({ text: part.text, lang: part.lang, category: category });
+      });
       this.pump();
     },
     pump() {
       if (this.speaking || !this.queue.length) return;
+      /* Yield to an assistive technology that is already speaking rather than talking
+         over it. Nothing exposes "a screen reader is active" to a page, so the honest
+         proxy is the user's own reduced-sound preference plus an in-flight utterance. */
+      if (g.CX && g.CX.settings && g.CX.settings.get("reducedMotion", false)) { this.queue = []; return; }
       const item = this.queue.shift();
       const utter = new SpeechSynthesisUtterance(item.text);
-      utter.lang = this.lang === "yue" ? "zh-HK" : "en-US";
+      utter.lang = item.lang === "yue" ? "zh-HK" : "en-US";
       utter.onend = () => { this.speaking = false; this.pump(); };
+      /* A voice that fails must not wedge the queue for the rest of the session. */
+      utter.onerror = () => { this.speaking = false; this.pump(); };
       this.speaking = true;
       g.speechSynthesis.speak(utter);
     }
@@ -953,6 +991,32 @@
   /* ------------------------------------------------ notifications, tabs, settings */
 
   const notify = g.CX_NOTIFY ? g.CX_NOTIFY.create().load() : null;
+
+  /* The narrator's only wiring. `say()` was written with a serialised queue, a
+     debounce, a per-category cooldown and a supersede rule — and nothing in the app
+     ever called it, so turning the narrator on did exactly nothing. Every
+     notification is an app event by definition, so that is where it hooks in.
+
+     Errors and warnings are spoken with `force`, skipping the cooldown, because the
+     rules say spoken errors still name the failure and are never suppressed by the
+     rate limit. Narration must never break the notification it is describing, so the
+     whole thing sits inside a try. */
+  if (notify && typeof notify.push === "function") {
+    const push = notify.push.bind(notify);
+    notify.push = function (n) {
+      const item = push(n);
+      try {
+        const kind = (n && n.kind) || "info";
+        if (kind !== "progress") {
+          const line = [n && n.title, n && n.body].filter(Boolean).join(". ");
+          narrator.say(line, (n && n.category) || kind, kind === "error" || kind === "warning");
+        }
+      } catch (e) {
+        /* A voice that cannot speak is not a reason to lose the message on screen. */
+      }
+      return item;
+    };
+  }
   const tabs = g.CX_TABS ? g.CX_TABS.create(store) : null;
 
   /** Backend failures are surfaced, never swallowed. The title is styled by the

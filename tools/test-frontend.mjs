@@ -1155,3 +1155,74 @@ test("app/index.html — every frontend module is actually loaded", () => {
     }
   });
 });
+
+/* A call site and its table entry can name their variables differently, and nothing
+   fails: interpolate() leaves an unknown placeholder VISIBLE by design, so the user
+   reads a literal "{detail}" in an error message and every test stays green. Four
+   messages shipped that way — both appearance-import errors, the export success toast
+   and the bulk-close failure. */
+
+test("app/cx-i18n.js — every call site passes the variables its entry declares", () => {
+  const b = bucket("app/cx-i18n.js");
+  const src = fs.readFileSync(path.join(ROOT, "app", "index.html"), "utf8");
+  const table = fs.readFileSync(path.join(ROOT, "app", "cx-i18n.js"), "utf8");
+
+  /* Which placeholders each entry actually interpolates. Read from the entry's own
+     text rather than a hand-kept list, so it cannot drift. */
+  const declared = new Map();
+  const entry = /^ {4}"([\w.]+)": \{\n([\s\S]*?)\n {4}\},?$/gm;
+  for (const m of table.matchAll(entry)) {
+    declared.set(m[1], new Set([...m[2].matchAll(/\{(\w+)\}/g)].map((p) => p[1])));
+  }
+
+  /* CX.i18n.t("key", { a: …, b: … }) — the object literal only, not a nested call. */
+  const calls = [...src.matchAll(/CX\.i18n\.t\("([\w.]+)",\s*\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}\s*\)/g)];
+  assert.ok(calls.length > 20, `expected many interpolating call sites, found ${calls.length}`);
+
+  const problems = [];
+  for (const [, key, args] of calls) {
+    const want = declared.get(key);
+    if (!want) continue; // a missing key is the other test's job
+    const passed = new Set([...args.matchAll(/(\w+)\s*:/g)].map((p) => p[1]));
+    for (const name of want) {
+      if (!passed.has(name)) problems.push(`${key} declares {${name}} but its call site passes ${[...passed].join(", ") || "nothing"}`);
+    }
+  }
+
+  try {
+    assert.deepEqual(problems, [], problems.join("\n"));
+    b.pass += 1;
+  } catch (error) {
+    b.fail += 1;
+    process.exitCode = 1;
+    throw error;
+  }
+});
+
+test("app/cx-i18n.js — a message with placeholders is never resolved without them", () => {
+  const b = bucket("app/cx-i18n.js");
+  const src = fs.readFileSync(path.join(ROOT, "app", "index.html"), "utf8");
+  const table = fs.readFileSync(path.join(ROOT, "app", "cx-i18n.js"), "utf8");
+
+  const declared = new Map();
+  const entry = /^ {4}"([\w.]+)": \{\n([\s\S]*?)\n {4}\},?$/gm;
+  for (const m of table.matchAll(entry)) {
+    declared.set(m[1], [...m[2].matchAll(/\{(\w+)\}/g)].map((p) => p[1]));
+  }
+
+  // t("key") with no second argument at all. interpolate() returns early, so every
+  // placeholder in the entry reaches the screen as literal braces.
+  const bare = [...src.matchAll(/CX\.i18n\.t\("([\w.]+)"\s*\)/g)].map((m) => m[1]);
+  const problems = bare
+    .filter((k) => (declared.get(k) || []).length)
+    .map((k) => `${k} is resolved with no vars but declares {${[...new Set(declared.get(k))].join("}, {")}}`);
+
+  try {
+    assert.deepEqual([...new Set(problems)], [], problems.join("\n"));
+    b.pass += 1;
+  } catch (error) {
+    b.fail += 1;
+    process.exitCode = 1;
+    throw error;
+  }
+});

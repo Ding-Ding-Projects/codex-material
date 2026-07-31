@@ -1317,7 +1317,10 @@ class Component extends DCLogic {
     if (theme !== this.state.theme) document.documentElement.setAttribute("data-theme", theme);
     const lang = CX.store.get("lang", this.state.lang);
     CX.i18n.mode = lang;
-    if (CX.i18n.load) CX.i18n.load();
+    /* This delegated to `CX.i18n.load()`, which codex-core.js has never defined — so
+       the guard was permanently false and the funny levels were the one restorable
+       setting a restore did not restore. Read them back the same way the mode is. */
+    CX.i18n.funny = CX.store.get("funny", CX.i18n.funny);
     this.setState({
       profiles: CX.store.get("profiles", DEFAULT_PROFILES),
       activeProfile: CX.store.get("activeProfile", this.state.activeProfile),
@@ -1757,10 +1760,10 @@ class Component extends DCLogic {
       subtitle: c.desc + "  —  v" + c.version + " · " + c.author + " · " + c.installs.toLocaleString() + " installs · " + c.tags.join(", "),
       badge: c.marketplace, on: s.plugins.some((p) => p.name === c.name), kind: "catalog"
     }));
-    if (cat === "plugins") return s.plugins.map((p) => ({ id: p.name, title: p.name, subtitle: "v" + p.version + " · " + p.marketplace, badge: "installed", on: p.enabled, kind: "plugin" }));
+    if (cat === "plugins") return s.plugins.map((p) => ({ id: p.name, title: p.name, subtitle: "v" + p.version + " · " + p.marketplace, badge: "installed", on: p.enabled, kind: "plugin", locked: true }));
     if (cat === "marketplaces") return s.marketplaces.map((m) => ({ id: m.name, title: m.name, subtitle: m.url, badge: m.plugins + " plugins", on: true, kind: "registry", mono: true }));
-    if (cat === "skills") return s.skills.map((k) => ({ id: k.name, title: k.name, subtitle: k.path, badge: k.source, on: k.enabled, kind: "skill", mono: true }));
-    if (cat === "hooks") return s.hooks.map((h) => ({ id: h.name, title: h.name, subtitle: h.event + " · " + h.command, badge: h.trusted ? "trusted" : "untrusted", on: h.enabled, kind: "hook", mono: true, locked: !h.trusted }));
+    if (cat === "skills") return s.skills.map((k) => ({ id: k.name, title: k.name, subtitle: k.path, badge: k.source, on: k.enabled, kind: "skill", mono: true, ref: { dir: k.dir } }));
+    if (cat === "hooks") return s.hooks.map((h) => ({ id: h.name, title: h.name, subtitle: h.event + " · " + h.command, badge: h.trusted ? "trusted" : "untrusted", on: h.enabled, kind: "hook", mono: true, locked: !h.trusted, ref: { event: h.event, index: h.index } }));
     const flags = CX.store.get("features", {});
     return DATA.FEATURES.map((f) => ({ id: f.key, title: f.key, subtitle: "features." + f.key, badge: f.stage, on: f.key in flags ? !!flags[f.key] : f.stage === "stable", kind: "feature", mono: true, locked: f.stage === "removed" }));
   }
@@ -1773,7 +1776,14 @@ class Component extends DCLogic {
     return "codex " + x.kind + " " + x.id;
   }
   toggleExt(x) {
-    if (x.locked) { this.toast(x.kind === "hook" ? "Hook is untrusted — trust it before enabling" : "Removed features cannot be enabled"); return; }
+    /* Three different reasons a row cannot be toggled, and they are not
+       interchangeable: a plugin has no enable/disable in the CLI at all, an untrusted
+       hook could be enabled once it is trusted, and a removed feature is simply gone.
+       A single "Locked" message would leave the user guessing which. */
+    if (x.locked) {
+      this.toast(CX.i18n.t(x.kind === "plugin" ? "ext.pluginLocked" : x.kind === "hook" ? "ext.hookUntrusted" : "ext.featureRemoved"));
+      return;
+    }
     if (x.kind === "registry") { this.toast("Registries are managed below — right-click to remove or copy the CLI command"); return; }
     if (x.kind === "catalog") {
       CX.bridge.invoke(x.on ? "codex_plugin_uninstall" : "codex_plugin_install", { name: x.id }).then(() => {
@@ -1784,8 +1794,21 @@ class Component extends DCLogic {
       return;
     }
     if (x.kind === "feature") { CX.bridge.invoke("codex_set_feature", { key: x.id, value: !x.on }).then(() => { CX.vcs.commit((x.on ? "Disable" : "Enable") + " feature " + x.id, "change"); this.setState({ tick: this.state.tick + 1 }); }); return; }
-    const map = { mcp: "codex_mcp_toggle", plugin: "codex_plugin_toggle", skill: "codex_skill_toggle", hook: "codex_hook_toggle" };
-    if (map[x.kind]) CX.bridge.invoke(map[x.kind], { name: x.id }).then(() => { CX.vcs.commit((x.on ? "Disable" : "Enable") + " " + x.kind + " " + x.id, "change"); this.setState({ tick: this.state.tick + 1 }); });
+    /* Each backend reads a different identifier, and sending { name } to all three
+       meant two of them threw on every click and the third was never registered:
+       skillToggle renames a directory and wants `dir`, hookToggle looks a hook up by
+       `event` and `index`, and there is no plugin toggle at all. The row carries what
+       its own backend reads, in `ref`. */
+    const map = { mcp: "codex_mcp_toggle", skill: "codex_skill_toggle", hook: "codex_hook_toggle" };
+    /* .then().catch(), not .catch().then() — a catch in front still runs the success
+       handler afterwards, so a failed toggle would have recorded a revision saying it
+       succeeded. The missing catch is why three broken toggles survived this long:
+       the promise rejected, nothing was listening, and the switch simply never moved. */
+    if (map[x.kind]) {
+      CX.bridge.invoke(map[x.kind], Object.assign({ name: x.id }, x.ref || {}))
+        .then(() => { CX.vcs.commit((x.on ? "Disable" : "Enable") + " " + x.kind + " " + x.id, "change"); this.setState({ tick: this.state.tick + 1 }); })
+        .catch((e) => this.notifyError("extend", e));
+    }
   }
 
   /* ---- per-tab WSL runtimes ---- */
@@ -1794,8 +1817,25 @@ class Component extends DCLogic {
     const i = inst || { distro: CX.sim.wslDistros[0], cwd: "~" };
     return "wsl.exe -d " + i.distro + " --cd " + i.cwd + " -- " + (inner || "codex exec \"…\"");
   }
+  /** A Windows path as WSL sees it.
+   *
+   *  This used to be `"/mnt/c" + cwd.replace(/^~/, "/Users/ding")` — which hard-coded
+   *  one person's account name into every spawn, put every project on drive C whether
+   *  it was there or not, and produced `/mnt/cC:/src` for an ordinary absolute path.
+   *  The name was legible in a published screenshot. `~` now resolves from the real
+   *  CODEX_HOME, which is the user's home with `/.codex` on the end. */
+  toWslPath(p) {
+    let s = String(p || "").replace(/\\/g, "/");
+    if (s.charAt(0) === "~") {
+      const home = String(CX.sim.codexHome || "").replace(/\\/g, "/").replace(/\/\.codex\/?$/, "");
+      if (home) s = home + s.slice(1);
+    }
+    const drive = s.match(/^([A-Za-z]):\//);
+    return drive ? "/mnt/" + drive[1].toLowerCase() + s.slice(2) : s;
+  }
+
   wslSpawn(session, distro) {
-    return CX.bridge.invoke("codex_wsl_spawn", { session: session.id, distro: distro || CX.sim.wslDistros[0], cwd: "/mnt/c" + String(session.cwd || "").replace(/^~/, "/Users/ding").replace(/\\/g, "/") })
+    return CX.bridge.invoke("codex_wsl_spawn", { session: session.id, distro: distro || CX.sim.wslDistros[0], cwd: this.toWslPath(session.cwd) })
       .then(() => { CX.vcs.commit("Spawn WSL for " + session.name, "change"); this.setState({ tick: this.state.tick + 1 }); });
   }
   currentSub() { return DATA.SUBCOMMANDS.find((s) => s.name === this.state.consoleSub) || DATA.SUBCOMMANDS[0]; }
@@ -2344,7 +2384,9 @@ class Component extends DCLogic {
           primary: () => running
             ? CX.bridge.invoke("codex_wsl_stop", { session: s.id }).then(() => this.setState({ tick: st.tick + 1 }))
             : this.wslSpawn(s, inst ? inst.distro : undefined),
-          cwd: inst ? inst.cwd : "/mnt/c/Users/ding",
+          /* The session's own directory as WSL sees it, not a hard-coded account
+             name — that name reached a published screenshot the last time. */
+          cwd: inst ? inst.cwd : this.toWslPath(s.cwd),
           setCwd: (e) => { const cwd = e.target.value; if (inst) CX.bridge.invoke("codex_wsl_set", { session: s.id, patch: { cwd } }).then(() => this.setState({ tick: st.tick + 1 })); },
           command: this.wslCommand(s, inst, "codex --profile " + p.id + " exec \"…\""),
           exec: () => CX.bridge.invoke("codex_wsl_exec", { session: s.id, command: "uname -sr && codex --version" }).then((r) => this.toast((r.lines || []).map((l) => l.text).join("  ·  "))),
@@ -3787,7 +3829,7 @@ class Component extends DCLogic {
 
   reportClose(result) {
     if (!CX.notify) return;
-    if (result.error) { CX.notify.error(CX.i18n.t("err.bulkclose"), result.error, { detail: result.error }); return; }
+    if (result.error) { CX.notify.error(CX.i18n.t("err.bulkclose", { detail: result.error }), result.error, { detail: result.error }); return; }
     CX.notify.success(
       CX.i18n.t("tab.bulkClosed", { count: result.closed.length }),
       result.skipped.length
@@ -4101,10 +4143,14 @@ class Component extends DCLogic {
               se.set("narrator", on);
               CX.narrator.enabled = on;
               CX.vcs.commit((on ? "Enabled" : "Disabled") + " the spoken narrator", "settings");
+              /* Turning it on says so out loud. A voice feature whose only feedback is
+                 a switch moving cannot be told apart from a voice feature that is
+                 broken — which is exactly what this one was until it had a caller. */
+              if (on) this.toast(CX.i18n.t("studio.narratorOn"), "success");
               this.setState({ tick: this.state.tick + 1 });
             }),
           pick(CX.i18n.t("studio.narratedLang"), CX.i18n.t("studio.narratedLangDesc"), "ttslang",
-            se.get("narratorLang", "en") === "en" ? "English" : se.get("narratorLang", "en") === "yue" ? "廣東話" : "Both",
+            CX.i18n.t(se.get("narratorLang", "en") === "en" ? "opt.langEnglish" : se.get("narratorLang", "en") === "yue" ? "opt.langCantonese" : "opt.narratorBoth"),
             (e) => this.openDropdown(e, {
               title: CX.i18n.t("dlg.narratedLanguage"), value: se.get("narratorLang", "en"), width: 260,
               options: [{ value: "en", label: CX.i18n.t("opt.langEnglish") }, { value: "yue", label: "廣東話" }, { value: "both", label: CX.i18n.t("opt.narratorBoth") }],
@@ -4226,7 +4272,7 @@ class Component extends DCLogic {
 
   exportAppearance() {
     const A = window.CX_APPEARANCE;
-    if (!A) { this.toast(CX.i18n.t("err.appearanceImport", { detail: "cx-appearance.js is missing from this build" }), "error"); return; }
+    if (!A) { this.toast(CX.i18n.t("err.appearanceImport", { file: "This build", message: "cx-appearance.js is not loaded." }), "error"); return; }
     const doc = A.export(CX.store.get("appearance", {}), { presets: A.listPresets(CX.store) });
     const text = JSON.stringify(doc, null, 2);
     const blob = new Blob([text], { type: "application/json" });
@@ -4235,14 +4281,14 @@ class Component extends DCLogic {
     a.download = A.filename("appearance");
     a.click();
     URL.revokeObjectURL(a.href);
-    this.toast(CX.i18n.t("appearance.exportedFile", { file: a.download }), "success");
+    this.toast(CX.i18n.t("appearance.exportedFile", { path: a.download }), "success");
   }
 
   /** A file picker rather than a paste box: an appearance travels between machines
    *  as a file, and asking someone to paste 40 lines of JSON is not sharing. */
   importAppearance() {
     const A = window.CX_APPEARANCE;
-    if (!A) { this.toast(CX.i18n.t("err.appearanceImport", { detail: "cx-appearance.js is missing from this build" }), "error"); return; }
+    if (!A) { this.toast(CX.i18n.t("err.appearanceImport", { file: "This build", message: "cx-appearance.js is not loaded." }), "error"); return; }
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "application/json,.json";
@@ -4250,16 +4296,16 @@ class Component extends DCLogic {
       const file = input.files && input.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onerror = () => this.toast(CX.i18n.t("err.appearanceParse", { detail: "the file could not be read" }), "error");
+      reader.onerror = () => this.toast(CX.i18n.t("err.appearanceParse", { file: file.name, message: "It could not be read." }), "error");
       reader.onload = () => {
         const parsed = A.parse(String(reader.result || ""));
         if (!parsed.ok) {
-          CX.notify.error(CX.i18n.t("err.appearanceParse", { detail: parsed.error }), parsed.error, { detail: parsed.error });
+          CX.notify.error(CX.i18n.t("err.appearanceParse", { file: file.name, message: parsed.error }), parsed.error, { detail: parsed.error });
           return;
         }
         const result = A.import(parsed.document);
         if (!result.ok) {
-          CX.notify.error(CX.i18n.t("err.appearanceImport", { detail: result.error || "nothing usable in that file" }), result.error || "");
+          CX.notify.error(CX.i18n.t("err.appearanceImport", { file: file.name, message: result.error || "There was nothing usable in it." }), result.error || "");
           return;
         }
         const before = CX.store.get("appearance", {});
@@ -4276,7 +4322,7 @@ class Component extends DCLogic {
             { actions: [{ label: CX.i18n.t("act.undo"), run: () => { CX.store.set("appearance", before); this.setState({ appearance: before }); } }] }
           );
         } else {
-          this.toast(CX.i18n.t("appearance.imported", { count: count }), "success");
+          this.toast(CX.i18n.t("appearance.imported", { count: count, file: file.name }), "success");
         }
       };
       reader.readAsText(file);
