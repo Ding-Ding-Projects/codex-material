@@ -1011,8 +1011,21 @@
       try {
         const kind = (n && n.kind) || "info";
         if (kind !== "progress") {
-          const line = [n && n.title, n && n.body].filter(Boolean).join(". ");
-          narrator.say(line, (n && n.category) || kind, kind === "error" || kind === "warning");
+          /* Split the title and the body SEPARATELY, then compose each language.
+             Joining them first and splitting once tore the composed line at the first
+             separator, so the Cantonese utterance came out as "刪咗個 profile. 3
+             sessions went with it · 連埋…" — the English body read aloud in a zh-HK
+             voice — while the English utterance lost its body altogether. */
+          const title = narrator.split(n && n.title);
+          const body = narrator.split(n && n.body);
+          narrator.say(
+            {
+              en: [title.en, body.en].filter(Boolean).join(". "),
+              yue: [title.yue, body.yue].filter(Boolean).join("。")
+            },
+            (n && n.category) || kind,
+            kind === "error" || kind === "warning"
+          );
         }
       } catch (e) {
         /* A voice that cannot speak is not a reason to lose the message on screen. */

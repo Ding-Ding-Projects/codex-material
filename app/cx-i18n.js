@@ -2912,6 +2912,35 @@
       en: ["regex", "regex", "regex", "regex", "regex"],
       yue: ["regex", "regex", "regex", "regex", "regex"]
     },
+/* The appearance editor's own heading and its contrast readout — the last two strings
+   in that panel still rendering English in every language mode. The readout's ratio and
+   its verdict are facts about accessibility, so they read identically at every level;
+   only the sentence around them moves. */
+
+    "appear.heading": {
+      en: ["Appearance — {target}", "Appearance — {target}", "Appearance — {target}", "Restyling {target}", "Restyling {target}"],
+      yue: ["外觀 —— {target}", "外觀 —— {target}", "{target} 嘅外觀", "改緊 {target} 個樣", "改緊 {target} 個樣"]
+    },
+    "appear.contrastNeedsColour": {
+      en: ["Enter a valid colour to see contrast.", "Enter a valid colour to see contrast.", "Enter a valid colour to see its contrast.", "Type a colour it can actually read and the contrast appears.", "Type a colour it can actually read and the contrast appears."],
+      yue: ["輸入一個有效嘅顏色先睇到對比度。", "輸入一個有效嘅顏色先睇到對比度。", "打個讀得明嘅顏色先有對比度睇。", "打個佢讀得明嘅顏色，對比度就會出。", "打個佢讀得明嘅顏色，對比度就會出。"]
+    },
+    "appear.contrast": {
+      en: ["Contrast vs surface {ratio}:1 — {verdict}", "Contrast vs surface {ratio}:1 — {verdict}", "Contrast against the surface: {ratio}:1 — {verdict}", "Against the surface behind it: {ratio}:1 — {verdict}", "Against the surface behind it: {ratio}:1 — {verdict}"],
+      yue: ["同底色對比 {ratio}:1 —— {verdict}", "同底色對比 {ratio}:1 —— {verdict}", "同底色嘅對比度：{ratio}:1 —— {verdict}", "同後面塊底比：{ratio}:1 —— {verdict}", "同後面塊底比：{ratio}:1 —— {verdict}"]
+    },
+    "appear.contrastPassesAA": {
+      en: ["passes AA body text", "passes AA body text", "passes AA for body text", "passes AA for body text", "passes AA for body text"],
+      yue: ["內文合乎 AA", "內文合乎 AA", "做內文合乎 AA", "做內文合乎 AA", "做內文合乎 AA"]
+    },
+    "appear.contrastLargeOnly": {
+      en: ["large text only", "large text only", "large text only", "large text only", "large text only"],
+      yue: ["淨係夠大字用", "淨係夠大字用", "淨係夠大字用", "淨係夠大字用", "淨係夠大字用"]
+    },
+    "appear.contrastFails": {
+      en: ["fails AA", "fails AA", "fails AA", "fails AA", "fails AA"],
+      yue: ["唔合乎 AA", "唔合乎 AA", "唔合乎 AA", "唔合乎 AA", "唔合乎 AA"]
+    },
   };
 
   function resolve(key, mode, funny) {

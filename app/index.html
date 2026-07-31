@@ -3010,7 +3010,7 @@ class Component extends DCLogic {
       appearTarget: st.appearTarget || "",
       /* "Tab:9f3c" is a stable key, not something to show a person. Resolve it back
          to the tab's visible title for both the heading and the accessible name. */
-      appearHeading: "Appearance — " + this.appearTargetName(st.appearTarget),
+      appearHeading: CX.i18n.t("appear.heading", { target: this.appearTargetName(st.appearTarget) }),
       appearDialogLabel: CX.i18n.t("appear.dialog", { target: this.appearTargetName(st.appearTarget) }),
       appearTop: st.appearAt.y + "px",
       appearLeft: st.appearAt.x + "px",
@@ -3184,9 +3184,14 @@ class Component extends DCLogic {
       contrastLabel: (() => {
         const fg = CX.color.hexToRgb(appearColor);
         const bg = st.theme === "dark" ? { r: 20, g: 18, b: 24 } : { r: 254, g: 247, b: 255 };
-        if (!fg) return "Enter a valid colour to see contrast.";
+        if (!fg) return CX.i18n.t("appear.contrastNeedsColour");
         const ratio = CX.color.contrast(fg, bg);
-        return "Contrast vs surface " + ratio.toFixed(2) + ":1 — " + (ratio >= 4.5 ? "passes AA body text" : ratio >= 3 ? "large text only" : "fails AA");
+        /* The ratio and the verdict are accessibility facts, so they are identical at
+           every funny level; only the sentence around them moves. */
+        return CX.i18n.t("appear.contrast", {
+          ratio: ratio.toFixed(2),
+          verdict: CX.i18n.t(ratio >= 4.5 ? "appear.contrastPassesAA" : ratio >= 3 ? "appear.contrastLargeOnly" : "appear.contrastFails")
+        });
       })(),
       /* The two resets are discrete, deliberate and destructive, so they commit at once
          rather than waiting out the debounce. An unchanged state records nothing. */

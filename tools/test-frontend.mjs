@@ -1316,9 +1316,20 @@ suite("app/codex-core.js", (ctx, file) => {
     try {
       notify.info("Something happened", "with a detail");
       assert.equal(spoken.length, 1, "an info notification did not reach the narrator");
-      assert.match(spoken[0].text, /Something happened/, "the title was not spoken");
-      assert.match(spoken[0].text, /with a detail/, "the body was not spoken");
+      /* An object, not a string: the title and the body are split per language and
+         recomposed, so the Cantonese voice never reads an English body. */
+      assert.equal(typeof spoken[0].text, "object", "the narrator should receive both languages, not one joined line");
+      assert.match(spoken[0].text.en, /Something happened/, "the title was not spoken");
+      assert.match(spoken[0].text.en, /with a detail/, "the body was not spoken");
       assert.ok(!spoken[0].force, "an info notification should respect the cooldown");
+
+      /* The composed case this exists for: a bilingual title AND a bilingual body. */
+      spoken.length = 0;
+      const J = "  ·  ";
+      notify.info("Deleted it" + J + "刪咗佢", "3 went with it" + J + "連埋 3 個一齊冇咗");
+      assert.equal(spoken[0].text.en, "Deleted it. 3 went with it", "the English utterance lost its body");
+      assert.equal(spoken[0].text.yue, "刪咗佢。連埋 3 個一齊冇咗", "the Cantonese utterance is wrong");
+      assert.ok(!/went with it/.test(spoken[0].text.yue), "an English body leaked into the Cantonese voice");
 
       notify.error("It failed", "because of this");
       assert.equal(spoken.length, 2, "an error did not reach the narrator");

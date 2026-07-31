@@ -70,7 +70,7 @@ system is reimplemented.
   history so a dismissed message is not a lost one. Blocking dialogs are reserved for
   decisions — the bulk-close gate is the only one.
 - **Three language modes** (English, playful Hong Kong Cantonese, bilingual) and two
-  independent funny-level sliders from 1 to 5, one per language, over a 643-key table
+  independent funny-level sliders from 1 to 5, one per language, over a 649-key table
   (`app/cx-i18n.js`). The level changes voice only: every `err.*` and `warn.*` string
   carries the same `{placeholder}` facts at level 1 and level 5, and the test suite
   asserts it.
