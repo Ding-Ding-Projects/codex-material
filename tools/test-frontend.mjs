@@ -1407,3 +1407,79 @@ test("no committed file carries a real account name or absolute home path", () =
     throw error;
   }
 });
+
+/* Numbers the documentation states about the code, checked against the code.
+ *
+ * These have now been corrected twice and drifted twice, because correcting them means
+ * finding every occurrence and a grep finds the first. Six documents disagreed with
+ * each other, and two disagreed with themselves a paragraph apart. So they are measured
+ * here instead: each pattern is searched across every doc, and every captured number
+ * must equal what the tree actually contains. */
+
+test("documentation figures match the tree", () => {
+  const b = bucket("assets/screenshots");
+
+  const count = (file, re) => (fs.readFileSync(path.join(ROOT, file), "utf8").match(re) || []).length;
+  const listing = (dir, re) => fs.readdirSync(path.join(ROOT, dir)).filter((f) => re.test(f)).length;
+
+  const measured = {
+    commands: count("electron/preload.js", /^ {2}"[a-z_]+",$/gm),
+    keys: count("app/cx-i18n.js", /^ {4}"[\w.]+": \{$/gm),
+    dishes: listing("app/dimsum", /\.png$/),
+    roster: JSON.parse(fs.readFileSync(path.join(ROOT, "app/dimsum/roster.json"), "utf8")).dishes.length,
+    shots: JSON.parse(fs.readFileSync(path.join(ROOT, "assets/screenshots/manifest.json"), "utf8")).shots.length,
+  };
+
+  /* Each claim: how the docs phrase it, and which measured value it must equal. The
+     pattern captures the number so the message can say what was found. */
+  const CLAIMS = [
+    /* Only claims about the SIZE of the allow-list. "The renderer names 27 commands"
+       and "25 registered commands are never called directly" are different statistics
+       about the same list, and matching them here would demand they equal 55. */
+    [/\b(\d+) (?:IPC )?commands\b/g, "commands", /allow-list|all \d+ commands|exposes|IPC commands/i],
+    [/\b(\d+)[- ]key table\b/g, "keys", null],
+    [/\b(\d+) keys\b/g, "keys", /string table|i18n|localisation|localization/i],
+    [/\b(\d+) (?:bundled )?(?:dim sum )?photographs\b/g, "dishes", null],
+    [/\b(\d+) (?:harness-captured |)screenshots\b/g, "shots", null],
+    [/\b(\d+)[- ]dish\b/g, null, null], // 72-dish photo slice OR 768-dish roster — both legal
+    [/roster(?:\.json)?[^.\n]{0,40}?\b(\d+) (?:catalog )?dishes\b/g, "roster", null],
+  ];
+
+  const DOCS = ["README.md", "HANDOFF.md", "CHANGELOG.md", "ROADMAP.md"];
+  const walk = (dir) => {
+    for (const e of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
+      if (e.name === "assets") continue;
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (/\.md$/.test(e.name)) DOCS.push(p.split(path.sep).join("/"));
+    }
+  };
+  walk("docs");
+
+  const wrong = [];
+  for (const rel of DOCS) {
+    const text = fs.readFileSync(path.join(ROOT, rel), "utf8");
+    for (const [re, key, context] of CLAIMS) {
+      if (!key) continue;
+      re.lastIndex = 0;
+      let m;
+      while ((m = re.exec(text))) {
+        const line = text.slice(text.lastIndexOf("\n", m.index) + 1, text.indexOf("\n", m.index));
+        if (context && !context.test(line)) continue;
+        const stated = Number(m[1]);
+        if (stated !== measured[key]) {
+          wrong.push(`${rel}: says ${stated} ${key}, tree has ${measured[key]} — "${line.trim().slice(0, 90)}"`);
+        }
+      }
+    }
+  }
+
+  try {
+    assert.deepEqual(wrong, [], "documentation disagrees with the tree:\n  " + wrong.join("\n  "));
+    b.pass += 1;
+  } catch (error) {
+    b.fail += 1;
+    process.exitCode = 1;
+    throw error;
+  }
+});

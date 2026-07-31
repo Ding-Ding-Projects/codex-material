@@ -16,7 +16,7 @@ git clone https://github.com/Ding-Ding-Projects/codex-material
 cd codex-material
 npm install
 npm start        # run it
-npm test         # 29 frontend tests + 33 backend tests + the changelog mirror check
+npm test         # 34 frontend tests + 33 backend tests + the changelog mirror check
 npm run dist     # installers into dist\
 ```
 

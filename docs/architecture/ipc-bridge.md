@@ -416,7 +416,9 @@ which are thin wrappers in the preload.
 
 ## What the UI currently calls
 
-The renderer names 27 commands. 21 registered `codex_*` commands are reachable but not called
+The renderer names 27 commands literally, plus three more through the toggle map in
+`toggleExt()` — `codex_mcp_toggle`, `codex_skill_toggle` and `codex_hook_toggle`, which is why a
+grep for a literal name misses them. 25 registered commands are reachable but not called
 directly today, mostly because their data already arrives through `codex_state`, which runs the
 same `electron/lib/catalog.js` functions in-process: `codex_capture`, `codex_features`,
 `codex_fonts`, `codex_history_diff`, `codex_history_show`, `codex_hook_list`,

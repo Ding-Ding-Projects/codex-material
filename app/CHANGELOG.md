@@ -31,7 +31,7 @@ system is reimplemented.
   Codex works on first launch. Binary resolution is `CODEX_BIN`, then whatever `codex`
   is on PATH, then the bundled copy — the user's own install always wins, because it
   owns their login and their `~/.codex`. The app reports which one it is using.
-- **52 IPC commands** across `electron/lib/`: `cli.js` (find and run the binary,
+- **55 IPC commands** across `electron/lib/`: `cli.js` (find and run the binary,
   stream both pipes concurrently), `config.js` (`config.toml` read/write with a backup
   before every write, dotted-path edits), `catalog.js` (MCP servers, plugins,
   marketplaces, skills, hooks, feature flags, saved sessions, auth, doctor), `wsl.js`
@@ -70,7 +70,7 @@ system is reimplemented.
   history so a dismissed message is not a lost one. Blocking dialogs are reserved for
   decisions — the bulk-close gate is the only one.
 - **Three language modes** (English, playful Hong Kong Cantonese, bilingual) and two
-  independent funny-level sliders from 1 to 5, one per language, over a 200-key table
+  independent funny-level sliders from 1 to 5, one per language, over a 643-key table
   (`app/cx-i18n.js`). The level changes voice only: every `err.*` and `warn.*` string
   carries the same `{placeholder}` facts at level 1 and level 5, and the test suite
   asserts it.
@@ -432,7 +432,7 @@ earlier within this same unreleased version — not in any shipped release.
   number — which is already past 590, having been inflated by an earlier CI trigger
   loop — while the dish list it indexed was the 72-dish photo slice bundled in the
   installer, so every build past #72 published as a bare version number. Code names now
-  come from `app/dimsum/roster.json`, which names all 703 catalog dishes in 356 KB of
+  come from `app/dimsum/roster.json`, which names all 768 catalog dishes in 374 KB of
   text, and a name no longer depends on a photo: `assigned` settles the name, a separate
   `photo` output settles the picture, and a dish outside the bundled slice ships its
   name with the release notes explaining the absent image. Bundling all 703 photos was

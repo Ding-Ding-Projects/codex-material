@@ -196,7 +196,7 @@ Everything listed here is implemented in this tree. Anything designed but unfini
 - **Non-blocking notifications** — corner-anchored toasts; info and success fade, errors and warnings stay until dismissed, and everything ever shown stays reviewable in the notification centre.
 - **Local version history** — a git repository at `$CODEX_HOME/studio`, never a `.git` inside your project and never pushed. Profiles, config, features, appearance, tabs, language, pricing and settings travel in one snapshot, an unchanged state records nothing, and an undo is written as a *new* revert commit — so an undo can itself be undone, forever. Pruning is explicit; nothing runs on a timer.
 - **Changelog viewer** — parses the bundled `CHANGELOG.md`, with date presets, typed date entry, and a text search wired to the regex builder that composes with the date filter rather than overriding it, plus export.
-- **Language modes** — English, playful Hong Kong Cantonese, and bilingual, over a 199-key table where every key carries 5 voices per language.
+- **Language modes** — English, playful Hong Kong Cantonese, and bilingual, over a 643-key table where every key carries 5 voices per language.
 - **Two funny sliders** — one for English, one for Cantonese, 1 (fully professional) to 5 (maximum), persisted, applying to every message category including errors and destructive confirmations. The level changes the voice only: a test asserts that every `err.*`/`warn.*` key keeps its `{placeholder}` at all five levels, so a message can never lose the fact the user has to act on.
 - **Spoken narrator** — off by default, English or Cantonese, one utterance at a time through a serialized queue with a debounce and cooldown.
 - **Dim sum surprise** — a fresh 1% draw per launch from 72 bundled dish photographs, named in both languages, non-blocking, auto-dismissing after nine seconds, never on a first run, and switchable off in settings.
@@ -286,7 +286,7 @@ Every script below is exactly what `package.json` defines.
 | `app/support.js` | Generated dc-runtime — a React-backed template engine. **Do not edit**; it is regenerated from its own source. |
 | `app/codex-core.js` | `window.CX` — the bridge, `localStorage` store, TOML writer, bounded regex engine, colour translation, i18n, narrator, local history, notifications, tabs, settings, dim sum draw, live-state hydration, and the browser-mode simulation. |
 | `app/codex-data.js` | `window.CODEX` — the CLI catalog: 6 models, 26 subcommands, 11 global flags, 52 slash commands, 11 settings sections (108 fields), 88 feature flags, 6 hook events. |
-| `app/cx-i18n.js` | 637 keys, 5 funny levels per language, both languages. |
+| `app/cx-i18n.js` | 643 keys, 5 funny levels per language, both languages. |
 | `app/cx-tabs.js` | Tab strip, groups, pinning, the four searches, bulk-close predicate. |
 | `app/cx-notify.js` | Toasts and the notification centre. |
 | `app/cx-changelog.js` | Keep a Changelog parser, date presets, composed filtering, export. |

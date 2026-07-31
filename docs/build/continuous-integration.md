@@ -54,7 +54,7 @@ Then the five checks that gate the release:
 | Every file parses | A PowerShell step running `node --check` over every `.js` / `.mjs` / `.cjs` under `app/`, `electron/` and `tools/`, excluding `node_modules` |
 | The landing page carries its own assets | `node tools/sync-site-assets.mjs --check` — the published site keeps its own copies rather than hotlinking the repository, and this fails when they drift. It has caught exactly that: 25 retaken screenshots that were never mirrored. |
 
-At the time of writing the two suites report **29 frontend tests** and **33 backend tests**, all
+At the time of writing the two suites report **34 frontend tests** and **33 backend tests**, all
 passing, neither requiring Electron or a `codex` binary.
 
 The parse sweep exists because a syntax error in a module the unit tests never import would sail
@@ -108,7 +108,6 @@ carries one — see [bundled-cli.md](bundled-cli.md). If it does not produce
 `vendor/codex-bin/bin/codex.exe`, the step emits a `::warning::` and sets `bundled=false` instead of
 failing.
 
-> [!NOTE]
 The release still ships, and the generated notes then say plainly that this build does **not**
 bundle the CLI, rather than letting a user find out after installing.
 
@@ -168,7 +167,7 @@ $json = node tools/release-codename.mjs --derive $env:GITHUB_RUN_NUMBER | Conver
   **768** dishes the shared catalog holds; `app/dimsum/manifest.json` describes the **72** whose
   256px photo is bundled in the installer. The catalog's originals are ~2.3 MB each, so bundling
   every photo would add well over a hundred megabytes to an app that draws one dish at 56 CSS
-  pixels, once per hundred launches — while 768 *names* cost about 390 KB. A build named after a dish
+  pixels, once per hundred launches — while 768 *names* cost 374 KB. A build named after a dish
   outside the photo slice publishes the name and no picture, and the release notes say so.
   `roster.json` is excluded from the packaged app in `package.json` ▸ `build.files`: only the
   release tooling reads it, and it runs from the checkout, never from the installed app.

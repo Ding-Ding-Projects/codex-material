@@ -34,7 +34,7 @@ Your own install always wins: it owns your login and your `~/.codex`.
     npm install
     npm start          # run it
     npm test           # the test suites
-    npm run capture    # 20 screenshots, headless — exits non-zero if the app fails to render
+    npm run capture    # 25 screenshots, headless — exits non-zero if the app fails to render
     npm run dist       # NSIS + MSI into dist/
 
 ## Where things live
@@ -52,7 +52,7 @@ Three modes — English, playful Hong Kong Cantonese, and bilingual — with **t
 funny-level sliders**, 1 to 5, one per language. Humour styles the voice, never the facts: a
 destructive label still reads as destructive at level 5, and every placeholder survives.
 
-**Every user-visible string goes through the string table** — 637 keys, 366 call sites. Seven
+**Every user-visible string goes through the string table** — 643 keys, 366 call sites. Seven
 literals remain literal on purpose, each with its reason recorded in the test that allows it:
 three CLI command names (`codex login`, `codex logout`, `codex cloud`), two typeface names
 (Georgia, Helvetica Neue), `廣東話` — a language's name in its own language — and the empty
