@@ -79,14 +79,14 @@ The steps, in order:
 | Step | What it does |
 | --- | --- |
 | **Resolve version and tag** | Reads `version` out of `package.json`, computes the tag, and refuses to continue if the version is blank or the tag already exists. |
-| **Resolve the dim sum code name** | Derives a dish from the run number and stages its photo. Never blocks the release. |
+| **Resolve the dim sum code name** | Derives a dish from the run number, and stages its photo when one is bundled. Never blocks the release, and a missing photo never costs the build its name. |
 | **Mirror the changelog into the frontend** | `node tools/sync-changelog.mjs` |
 | **Stage the bundled Codex CLI** | `node tools/fetch-codex.mjs`, then sets a `bundled` output from whether `vendor/codex-bin/bin/codex.exe` exists. |
 | **Build the Windows installers** | `npx electron-builder --win nsis msi --publish never` |
 | **Verify the installers exist** | Fails the job if `dist\` holds no `.exe` or no `.msi`, and prints each artifact's real size in MB. |
 | **Write release notes** | Generates `release-notes.md` from the tag, the commit, the run, and the commit range. |
 | **Publish the release** | `softprops/action-gh-release@v2`, non-draft, with both installers attached. |
-| **Attach the dim sum photo** | A second, separate upload — only when a code name was resolved. |
+| **Attach the dim sum photo** | A second, separate upload — only when the named dish's photo is bundled. |
 
 ### The installers are verified before anything is published
 
@@ -148,20 +148,29 @@ label for talking about a build, never a replacement for the version.
 $json = node tools/release-codename.mjs --derive $env:GITHUB_RUN_NUMBER | ConvertFrom-Json
 ```
 
-- **Derived, not claimed.** `--derive N` returns `manifest.dishes[N - 1]` from
-  `app/dimsum/manifest.json`. CI deliberately does not use the tool's `--assign` mode, because
+- **Derived, not claimed.** `--derive N` returns `roster.dishes[N - 1]` from
+  `app/dimsum/roster.json`. CI deliberately does not use the tool's `--assign` mode, because
   writing the ledger back would mean the release job pushes to the branch that triggered it — that
   is how a release pipeline becomes an infinite loop. Deriving from the monotonic run number gives
   the same one-dish-per-build guarantee and stays auditable, because the tag reproduces the choice.
-- **Not modulo.** Past the end of the catalog the tool reports `assigned: false` with a reason
-  rather than wrapping, because a code name that identifies two builds identifies neither. The
-  manifest currently bundles **20 dishes**, so runs past #20 ship without one until more are added
-  with `tools/sync-dimsum.ps1`.
-- **The photo is validated before it is published.** The step loads the PNG through
-  `System.Drawing` and prints its dimensions; a truncated image that GitHub would happily serve is
-  worse than no photo.
-- **It never blocks a release.** No dish, a missing file, or an image that will not decode each
-  produce a `::notice::` or `::warning::`, blank outputs, and a release published without it.
+- **The name list and the photo list are different sizes, on purpose.** `roster.json` names all
+  **703** dishes the shared catalog holds; `app/dimsum/manifest.json` describes the **72** whose
+  256px photo is bundled in the installer. The catalog's originals are ~2.3 MB each, so bundling
+  every photo would add well over a hundred megabytes to an app that draws one dish at 56 CSS
+  pixels, once per hundred launches — while 703 *names* cost 356 KB. A build named after a dish
+  outside the photo slice publishes the name and no picture, and the release notes say so.
+  `roster.json` is excluded from the packaged app in `package.json` ▸ `build.files`: only the
+  release tooling reads it, and it runs from the checkout, never from the installed app.
+- **Not modulo.** Past the end of the roster the tool reports `assigned: false` with a reason
+  rather than wrapping, because a code name that identifies two builds identifies neither. Grow the
+  catalog and re-run `tools/sync-dimsum-roster.mjs` to extend the sequence.
+- **The photo is validated before it is published.** When there is one, the step loads the PNG
+  through `System.Drawing` and prints its dimensions; a truncated image that GitHub would happily
+  serve is worse than no photo.
+- **It never blocks a release, and a missing photo never costs a build its name.** The `assigned`
+  output settles the name; a separate `photo` output settles the picture. No dish at all, a file
+  that is not there, or an image that will not decode each produce a `::notice::` or `::warning::`
+  and a release published without the picture — with the code name still in the title.
 - **The photo upload is a separate step** from the installers, on purpose: the installers must fail
   the job if missing, while a missing photo must not stop shipping.
 
@@ -252,7 +261,7 @@ from the **bottom** of the log, where the actual error is.
 | **Build the Windows installers** | `electron-builder` failed. Scroll past the packaging noise to the first `⨯` or `Error:` line; everything after it is fallout. | Reproduce with `npx electron-builder --win nsis msi --publish never` on Windows. A WiX download failure fails the MSI target specifically. |
 | **Verify the installers exist** | The build reported success but produced no `.exe` or no `.msi`. | Read the packaging section of the build log; this is a target problem, not a code problem. |
 | **Publish the release** | The build was fine but the release could not be created. | `403` means the token lacks `contents: write` — check `RELEASE_TOKEN` / `ORG_TOKEN`. `422 already_exists` means the tag was taken. `fail_on_unmatched_files` means the globs matched nothing in `dist\`. |
-| **Attach the dim sum photo** | Only runs when a code name was resolved, and only uploads `release-assets/*.png`. | A failure here means the release and its installers are already published; the photo is missing, nothing else. |
+| **Attach the dim sum photo** | Only runs when the named dish's photo is bundled, and only uploads `release-assets/*.png`. | A failure here means the release and its installers are already published; the photo is missing, nothing else. |
 
 Two things are always true when a run is red:
 

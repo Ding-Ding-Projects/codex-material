@@ -518,3 +518,74 @@ test("every command the preload exposes is registered by the main process", () =
     `these are exposed to the renderer but never registered: ${missing.join(", ")}`,
   );
 });
+
+/* ------------------------------------------------- dim sum release codenames */
+
+const roster = JSON.parse(readFileSync(join(root, "app", "dimsum", "roster.json"), "utf8"));
+
+function codename(...args) {
+  const out = execFileSync(process.execPath, [join(root, "tools", "release-codename.mjs"), ...args], {
+    encoding: "utf8",
+    windowsHide: true,
+  });
+  return JSON.parse(out);
+}
+
+test("the roster names every catalog dish in both languages, with unique ids", () => {
+  assert.ok(Array.isArray(roster.dishes) && roster.dishes.length > 0, "the roster lists no dishes");
+  assert.equal(
+    roster.dishes.length,
+    roster.named,
+    "the roster's own count disagrees with the list it ships",
+  );
+  const ids = roster.dishes.map((d) => d.id);
+  assert.equal(new Set(ids).size, ids.length, "duplicate ids would make --derive ambiguous");
+  for (const d of roster.dishes) {
+    assert.ok(d.en && d.en.trim(), `${d.id} has no English name`);
+    assert.ok(d.yue && d.yue.trim(), `${d.id} has no Cantonese name`);
+    assert.ok(d.slug && d.slug.trim(), `${d.id} has no slug — the release asset is named from it`);
+  }
+});
+
+test("every roster entry claiming a bundled photo has one on disk", () => {
+  for (const d of roster.dishes) {
+    if (!d.image) continue;
+    const path = join(root, "app", d.image);
+    assert.ok(existsSync(path), `${d.id} names ${d.image}, which is not bundled — the release would 404`);
+  }
+});
+
+test("a build past the bundled photo slice is still named", () => {
+  // The defect this pins: the index came from the run number while the roster was the
+  // 72-dish photo slice, so every build past 72 published with no code name at all.
+  const bundled = roster.withBundledImage;
+  assert.ok(roster.dishes.length > bundled, "the roster must outrun the photo slice, or it fixes nothing");
+
+  const beyond = codename("--derive", String(bundled + 1));
+  assert.equal(beyond.assigned, true, `build ${bundled + 1} lost its code name: ${beyond.reason || ""}`);
+  assert.ok(beyond.codeName.includes("·"), "a code name carries both languages");
+  assert.equal(beyond.bundledImage, null, "a dish outside the photo slice must not claim a photo");
+
+  const inside = codename("--derive", "1");
+  assert.equal(inside.assigned, true, "build 1 should be named");
+  assert.ok(inside.bundledImage, "build 1 is inside the photo slice and should carry its photo");
+  assert.ok(existsSync(join(root, "app", inside.bundledImage)), "the photo it names is not on disk");
+});
+
+test("two different builds never share a code name", () => {
+  const seen = new Map();
+  for (const n of [1, 2, 3, 72, 73, 400, roster.dishes.length]) {
+    const dish = codename("--derive", String(n));
+    assert.equal(dish.assigned, true, `build ${n} was not named`);
+    assert.ok(!seen.has(dish.codeName), `builds ${seen.get(dish.codeName)} and ${n} both got ${dish.codeName}`);
+    seen.set(dish.codeName, n);
+  }
+});
+
+test("running out of dishes reports itself and never blocks a release", () => {
+  const past = codename("--derive", String(roster.dishes.length + 1));
+  assert.equal(past.assigned, false, "there is no dish that far out, so it must not claim one");
+  assert.ok(past.reason && past.reason.length > 0, "an unnamed build must say why");
+  // execFileSync would have thrown on a non-zero exit. A release is never gated on
+  // decoration: the installers are the point, the code name is a label beside them.
+});

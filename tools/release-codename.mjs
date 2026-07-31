@@ -5,9 +5,13 @@
  * project: a repeated code name makes two different builds indistinguishable in
  * conversation, which is the one job a code name has.
  *
- * Only dishes with a real bundled image are eligible. The shared catalog is built
- * incrementally, and naming a build after a record whose photo does not exist yet
- * produces a release whose code name renders as a broken image.
+ * Names come from app/dimsum/roster.json — every dish in the shared catalog, text only.
+ * A photo is attached when that dish's 256px derivative happens to be bundled in
+ * app/dimsum/manifest.json, and omitted when it is not. The two lists are deliberately
+ * different sizes: bundling all 703 photos would add over a hundred megabytes to the
+ * installer, while 703 names cost about a third of one. A release named after a dish
+ * whose photo is not bundled ships the name and no picture, which is a smaller loss
+ * than a release with no name at all.
  *
  * Usage:
  *   node tools/release-codename.mjs --peek                 print the next unused dish
@@ -29,6 +33,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const MANIFEST = join(root, "app", "dimsum", "manifest.json");
+const ROSTER = join(root, "app", "dimsum", "roster.json");
 const LEDGER = join(root, "docs", "release-codenames.json");
 
 function readJson(path, fallback) {
@@ -40,7 +45,18 @@ function readJson(path, fallback) {
 }
 
 const manifest = readJson(MANIFEST, null);
+const rosterFile = readJson(ROSTER, null);
 const ledger = readJson(LEDGER, { schema: 1, project: "codex-studio", assignments: [] });
+
+/** Every named dish, whether or not its photo is bundled. Falls back to the bundled
+ *  manifest so an old checkout without a roster still names its builds. */
+const roster =
+  rosterFile && Array.isArray(rosterFile.dishes) && rosterFile.dishes.length
+    ? rosterFile.dishes
+    : manifest?.dishes || [];
+
+/** Photos, keyed by id. A roster entry not in here travels as a name alone. */
+const photos = new Map((manifest?.dishes || []).map((d) => [d.id, d.image]));
 
 function fail(reason) {
   // Not an error exit: the release must still ship.
@@ -63,8 +79,10 @@ function describe(dish, extra) {
     jyutping: dish.jyutping || "",
     id: dish.id,
     slug: dish.slug,
-    /** Bundled 256px derivative — what the app and the site render. */
-    bundledImage: dish.image,
+    /** Bundled 256px derivative — what the app and the site render. Null when this
+     *  dish is named by the roster but its photo is not bundled here; the caller then
+     *  publishes the code name without a picture. */
+    bundledImage: photos.get(dish.id) || null,
     /** Path inside the shared catalog to the native-resolution original. The release
      *  workflow attaches the bundled copy; a local publisher with the catalog checked
      *  out can attach the original instead. */
@@ -82,14 +100,14 @@ const tag = args[1] || "";
 if (mode === "--for") {
   const hit = ledger.assignments.find((a) => a.tag === tag);
   if (!hit) fail(`no code name has been assigned to ${tag}`);
-  const dish = (manifest?.dishes || []).find((d) => d.id === hit.id);
-  if (!dish) fail(`${tag} was assigned ${hit.id}, which is no longer in the bundled manifest`);
+  const dish = roster.find((d) => d.id === hit.id);
+  if (!dish) fail(`${tag} was assigned ${hit.id}, which is no longer in the bundled roster`);
   process.stdout.write(JSON.stringify(describe(dish, { tag: hit.tag, at: hit.at }), null, 2) + "\n");
   process.exit(0);
 }
 
-if (!manifest || !Array.isArray(manifest.dishes) || manifest.dishes.length === 0) {
-  fail("no bundled dim sum manifest — run tools/sync-dimsum.ps1 with the catalog available");
+if (roster.length === 0) {
+  fail("no bundled dim sum roster — run tools/sync-dimsum-roster.mjs with the catalog available");
 }
 
 if (mode === "--derive") {
@@ -100,10 +118,10 @@ if (mode === "--derive") {
   }
   // Deliberately NOT modulo. Wrapping would silently hand two different builds the
   // same code name, and a code name that identifies two builds identifies neither.
-  const dish = manifest.dishes[n - 1];
+  const dish = roster[n - 1];
   if (!dish) {
     fail(
-      `build ${n} is past the ${manifest.dishes.length} bundled dishes — every one has been used by an earlier build. Bundle more with tools/sync-dimsum.ps1.`,
+      `build ${n} is past the ${roster.length} dishes in the roster — every one has been used by an earlier build. Grow the catalog, then re-run tools/sync-dimsum-roster.mjs.`,
     );
   }
   process.stdout.write(JSON.stringify(describe(dish, { build: n }), null, 2) + "\n");
@@ -111,9 +129,12 @@ if (mode === "--derive") {
 }
 
 const used = new Set(ledger.assignments.map((a) => a.id));
-const next = manifest.dishes.find((d) => !used.has(d.id));
+// A local publisher attaches the photo by hand, so prefer a dish that has one; fall
+// back to a name-only dish rather than refusing to name the build at all.
+const unused = roster.filter((d) => !used.has(d.id));
+const next = unused.find((d) => photos.has(d.id)) || unused[0];
 if (!next) {
-  fail(`every one of the ${manifest.dishes.length} bundled dishes is already used; bundle more with tools/sync-dimsum.ps1`);
+  fail(`every one of the ${roster.length} dishes in the roster is already used; grow the catalog, then re-run tools/sync-dimsum-roster.mjs`);
 }
 
 if (mode === "--peek") {

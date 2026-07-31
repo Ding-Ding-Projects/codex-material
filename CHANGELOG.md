@@ -378,6 +378,15 @@ system is reimplemented.
 These correct defects in the design prototype and the first shell, both committed
 earlier within this same unreleased version — not in any shipped release.
 
+- Releases stopped carrying a dim sum code name. The build index moved to the run
+  number — which is already past 590, having been inflated by an earlier CI trigger
+  loop — while the dish list it indexed was the 72-dish photo slice bundled in the
+  installer, so every build past #72 published as a bare version number. Code names now
+  come from `app/dimsum/roster.json`, which names all 703 catalog dishes in 356 KB of
+  text, and a name no longer depends on a photo: `assigned` settles the name, a separate
+  `photo` output settles the picture, and a dish outside the bundled slice ships its
+  name with the release notes explaining the absent image. Bundling all 703 photos was
+  never the answer — the catalog's originals are ~2.3 MB each.
 - The frontend loaded React from a CDN while the shell enforced a `default-src 'self'`
   content-security policy, so the window rendered blank on every machine. React is now
   vendored locally, as are the fonts.

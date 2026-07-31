@@ -34,7 +34,8 @@
       "electron/**/*",
       "app/**/*",
       "CHANGELOG.md",
-      "!**/*.map"
+      "!**/*.map",
+      "!app/dimsum/roster.json"
     ],
     "extraResources": [
       {

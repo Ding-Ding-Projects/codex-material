@@ -1228,7 +1228,7 @@
         ]},
         { h: "Configuration", blocks: [
           p("Studio ▸ the dim sum toggle switches it off, persisted like every other preference and honoured absolutely. A Preview button shows the surface on demand without waiting for the draw."),
-          p("The same catalog names builds. `tools/release-codename.mjs` assigns one dish per build as a code name beside the version — never instead of it — and only dishes with a real bundled image are eligible, because naming a build after a record whose photo does not exist yet produces a release whose code name renders as a broken image.")
+          p("The same catalog names builds. `tools/release-codename.mjs` assigns one dish per build as a code name beside the version — never instead of it — drawing from `app/dimsum/roster.json`, which names all 703 catalog dishes in about 356 KB of text. The photo slice bundled in the installer is deliberately much smaller: the catalog's originals run ~2.3 MB each, and an app that draws one dish at 56 CSS pixels once per hundred launches has no business carrying a hundred megabytes of food photography. A build named after a dish outside that slice publishes the name with no picture, and the release notes say so rather than linking an image that is not there.")
         ]},
         { h: "Failure modes", blocks: [
           ul([

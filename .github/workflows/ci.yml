@@ -28,6 +28,12 @@ on:
 # count of existing releases — two overlapping runs would read the same count and
 # claim the same dish. The index comes from the run number instead: monotonic, unique
 # per run, and unaffected by what any other run is doing.
+#
+# The run number is already in the hundreds, so the index is resolved against
+# app/dimsum/roster.json — every dish the shared catalog names — rather than against
+# the 72-dish photo slice the installer bundles. A build past the end of the photo
+# slice is named without a picture; a build past the end of the roster ships unnamed
+# and says why.
 concurrency:
   group: ci-${{ github.run_id }}
   cancel-in-progress: false
@@ -160,17 +166,33 @@ jobs:
           $index = [int]$env:GITHUB_RUN_NUMBER
           Write-Host "Build $index takes dish #$index."
           $json = node tools/release-codename.mjs --derive $index | ConvertFrom-Json
-          $blank = @('assigned=false', 'codeName=', 'slug=', 'asset=', 'alt=')
+          $blank = @('assigned=false', 'photo=false', 'codeName=', 'slug=', 'asset=', 'alt=')
           if (-not $json.assigned) {
             # A code name is decoration with a purpose, not a gate. Ship anyway.
             Write-Host "::notice::No dim sum code name for this build: $($json.reason)"
             $blank | ForEach-Object { Add-Content -Path $env:GITHUB_OUTPUT -Value $_ }
             return
           }
+
+          # The name is settled from here on. Everything below decides only whether a
+          # photo travels with it, and a missing photo must never cost the build its
+          # name: the roster names all 703 catalog dishes while the installer bundles a
+          # 72-dish slice, so most builds are legitimately named without a picture.
+          Add-Content -Path $env:GITHUB_OUTPUT -Value 'assigned=true'
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "codeName=$($json.codeName)"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "slug=$($json.slug)"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "alt=$($json.altEn)"
+          $noPhoto = @('photo=false', 'asset=')
+
+          if (-not $json.bundledImage) {
+            Write-Host "Code name: $($json.codeName) - named from the roster, photo not bundled."
+            $noPhoto | ForEach-Object { Add-Content -Path $env:GITHUB_OUTPUT -Value $_ }
+            return
+          }
           $src = Join-Path 'app' $json.bundledImage
           if (-not (Test-Path $src)) {
-            Write-Host "::warning::Code name $($json.codeName) resolved but $src is missing; publishing without the photo."
-            $blank | ForEach-Object { Add-Content -Path $env:GITHUB_OUTPUT -Value $_ }
+            Write-Host "::warning::Code name $($json.codeName) names $src, which is missing; publishing the name without the photo."
+            $noPhoto | ForEach-Object { Add-Content -Path $env:GITHUB_OUTPUT -Value $_ }
             return
           }
 
@@ -186,11 +208,8 @@ jobs:
           $asset = "release-assets/codex-studio-$($json.slug).png"
           Copy-Item -LiteralPath $src -Destination $asset -Force
 
-          Add-Content -Path $env:GITHUB_OUTPUT -Value 'assigned=true'
-          Add-Content -Path $env:GITHUB_OUTPUT -Value "codeName=$($json.codeName)"
-          Add-Content -Path $env:GITHUB_OUTPUT -Value "slug=$($json.slug)"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value 'photo=true'
           Add-Content -Path $env:GITHUB_OUTPUT -Value "asset=$(Split-Path -Leaf $asset)"
-          Add-Content -Path $env:GITHUB_OUTPUT -Value "alt=$($json.altEn)"
 
       - name: Mirror the changelog into the frontend
         run: node tools/sync-changelog.mjs
@@ -321,7 +340,7 @@ jobs:
           $codeName = '${{ steps.dish.outputs.codeName }}'
           $asset = '${{ steps.dish.outputs.asset }}'
           $alt = '${{ steps.dish.outputs.alt }}'
-          if ($codeName) {
+          if ($codeName -and $asset) {
             $block = @(
               "| **Code name** | $codeName |",
               '',
@@ -333,6 +352,20 @@ jobs:
               '',
               "呢個 build 嘅點心代號係 **$codeName**，張相 (``$asset``) 一齊附喺呢個 release 度，係 app 自己帶住嘅本地檔，",
               '唔會去第三方攞。認 build 仲係睇上面個版本號，代號淨係方便大家傾偈嗌得出口。'
+            ) -join "`n"
+          } elseif ($codeName) {
+            # Named from the roster, which covers the whole catalog, while only a slice
+            # of the photos is bundled. Say so rather than leaving a reader wondering
+            # where the picture went.
+            $block = @(
+              "| **Code name** | $codeName |",
+              '',
+              "This build's dim sum code name is **$codeName**, drawn from the project's bundled catalog.",
+              'No photo is attached: the app bundles a curated slice of the dish photographs, and this',
+              'one is outside it. The version above is still what identifies this build.',
+              '',
+              "呢個 build 嘅點心代號係 **$codeName**。今次冇附相 — app 淨係帶住部分菜式相，呢碟唔喺嗰批入面。",
+              '認 build 仲係睇上面個版本號，代號淨係方便大家傾偈嗌得出口。'
             ) -join "`n"
           } else {
             $block = ''
@@ -375,7 +408,7 @@ jobs:
         # Separate from the installer upload on purpose: the installers are the reason
         # the release exists and must fail the job if missing, while a missing photo is
         # reported and does not block shipping.
-        if: steps.dish.outputs.assigned == 'true'
+        if: steps.dish.outputs.photo == 'true'
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ env.GH_TOKEN }}

@@ -10,6 +10,11 @@
 # never fetches a food photo from anywhere. Re-run this when the catalog grows.
 #
 #   pwsh -File tools/sync-dimsum.ps1 [-CatalogRoot <path>] [-Count 20] [-Size 256]
+#
+# This handles the PHOTOS. The NAMES of every catalog dish — which release code names
+# index, and which cost about 200 bytes each rather than 2.3 MB — are bundled by
+# tools/sync-dimsum-roster.mjs. Run both when the catalog grows; the roster reads the
+# manifest this writes to work out which dishes it can offer a photo for.
 
 [CmdletBinding()]
 param(

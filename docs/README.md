@@ -48,7 +48,8 @@ electron/               the main process
   lib/editors.js        external editor detection
 tools/                  fetch-codex.mjs (stage the bundled CLI), capture.mjs + capture-main.cjs
                         (screenshot harness), test-frontend.mjs, test-backend.mjs,
-                        sync-changelog.mjs, make-icon.mjs, release-codename.mjs, sync-dimsum.ps1
+                        sync-changelog.mjs, make-icon.mjs, release-codename.mjs, sync-dimsum.ps1,
+                        sync-dimsum-roster.mjs
 vendor/codex-bin/       the bundled Codex CLI (~410 MB, git-ignored, staged by fetch-codex.mjs)
 vendor/codex            git submodule pointing at https://github.com/openai/codex (reference only)
 assets/                 icons, and screenshots written by the capture harness
