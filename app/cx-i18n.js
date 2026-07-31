@@ -2504,6 +2504,247 @@
       en: ["Clears all per-element appearance overrides. Recorded in History, so it is undoable.", "Clears all per-element appearance overrides. Recorded in History, so it is undoable.", "Clears every per-element appearance override. Recorded in History, so it is undoable.", "Clears every per-element appearance override. It is recorded in History, so you can undo it.", "Clears every per-element appearance override. It goes into History like everything else, so you can undo it."],
       yue: ["清除所有逐個元素嘅外觀覆寫。會記落歷史，所以撤銷得返。", "清除所有逐個元素嘅外觀覆寫。會記落歷史，所以撤銷得返。", "清走每個元素嘅外觀覆寫。會記落歷史，撤銷得返。", "清走每個元素嘅外觀覆寫。會記落歷史，所以你撤銷得返。", "清走每個元素嘅外觀覆寫。同其他嘢一樣會記落歷史，所以你撤銷得返。"]
     },
+/* Batch 9 — the appearance editor's typography controls. Group headings, every
+   control's accessible name, the option words, and the platform-capability notes that
+   stay on screen where a control cannot exist. Values a user typed (a pixel offset, a
+   percentage) ride in placeholders and read identically at every level. */
+
+    "appear.groupType": {
+      en: ["Typeface", "Typeface", "Typeface", "Typeface", "Typeface"],
+      yue: ["字體", "字體", "字體", "字體", "字體"]
+    },
+    "appear.groupStyle": {
+      en: ["Style", "Style", "Style", "Style", "Style"],
+      yue: ["樣式", "樣式", "樣式", "樣式", "樣式"]
+    },
+    "appear.groupDecoration": {
+      en: ["Lines", "Lines", "Lines", "Lines", "Lines"],
+      yue: ["線", "線", "線", "線", "線"]
+    },
+    "appear.groupSpacing": {
+      en: ["Spacing", "Spacing", "Spacing", "Spacing", "Spacing"],
+      yue: ["間距", "間距", "間距", "間距", "間距"]
+    },
+    "appear.groupLayout": {
+      en: ["Direction and alignment", "Direction and alignment", "Direction and alignment", "Direction and alignment", "Direction and alignment"],
+      yue: ["方向同對齊", "方向同對齊", "方向同對齊", "方向同對齊", "方向同對齊"]
+    },
+    "appear.groupColour": {
+      en: ["Colour", "Colour", "Colour", "Colour", "Colour"],
+      yue: ["顏色", "顏色", "顏色", "顏色", "顏色"]
+    },
+    "appear.groupEffects": {
+      en: ["Effects", "Effects", "Effects", "Effects", "Effects"],
+      yue: ["效果", "效果", "效果", "效果", "效果"]
+    },
+    "appear.sizeExact": {
+      en: ["Size, exact percent", "Size, exact percent", "Size, exact percent", "Size, type an exact percent", "Size, type an exact percent"],
+      yue: ["大小，準確百分比", "大小，準確百分比", "大小，準確百分比", "大小，自己打個百分比", "大小，自己打個百分比"]
+    },
+    "appear.size": {
+      en: ["Size {value}", "Size {value}", "Size {value}", "Size {value}", "Size {value}"],
+      yue: ["大小 {value}", "大小 {value}", "大小 {value}", "大小 {value}", "大小 {value}"]
+    },
+    "appear.weight": {
+      en: ["Weight {value}", "Weight {value}", "Weight {value}", "Weight {value}", "Weight {value}"],
+      yue: ["字重 {value}", "字重 {value}", "字重 {value}", "字重 {value}", "字重 {value}"]
+    },
+    "appear.slant": {
+      en: ["Slant", "Slant", "Slant", "Slant", "Slant"],
+      yue: ["傾斜", "傾斜", "傾斜", "打斜", "打斜"]
+    },
+    "appear.slantNone": {
+      en: ["Upright", "Upright", "Upright", "Upright", "Upright"],
+      yue: ["正體", "正體", "企定定", "企定定", "企定定"]
+    },
+    "appear.slantOblique": {
+      en: ["Oblique", "Oblique", "Oblique", "Oblique", "Oblique"],
+      yue: ["斜置", "斜置", "斜置", "扽斜", "扽斜"]
+    },
+    "appear.caps": {
+      en: ["Capitalization", "Capitalization", "Capitalization", "Capitalization", "Capitalization"],
+      yue: ["大小寫", "大小寫", "大小寫", "大小寫", "大小寫"]
+    },
+    "appear.capsNone": {
+      en: ["As written", "As written", "As written", "Leave it as written", "Leave it as written"],
+      yue: ["照原文", "照原文", "照原文", "原文點寫就點", "原文點寫就點"]
+    },
+    "appear.capsUpper": {
+      en: ["UPPERCASE", "UPPERCASE", "UPPERCASE", "UPPERCASE", "UPPERCASE"],
+      yue: ["全大階", "全大階", "全大階", "全大階", "全大階"]
+    },
+    "appear.capsLower": {
+      en: ["lowercase", "lowercase", "lowercase", "lowercase", "lowercase"],
+      yue: ["全細階", "全細階", "全細階", "全細階", "全細階"]
+    },
+    "appear.capsTitle": {
+      en: ["Capitalize Each Word", "Capitalize Each Word", "Capitalize Each Word", "Capitalize Each Word", "Capitalize Each Word"],
+      yue: ["每個字大階", "每個字大階", "每個字大階", "每個字大階", "每個字大階"]
+    },
+    "appear.capsSmall": {
+      en: ["Small caps", "Small caps", "Small caps", "Small caps", "Small caps"],
+      yue: ["小型大階", "小型大階", "小型大階", "小型大階", "小型大階"]
+    },
+    "appear.underlineStyle": {
+      en: ["Underline", "Underline", "Underline", "Underline", "Underline"],
+      yue: ["底線", "底線", "底線", "底線", "底線"]
+    },
+    "appear.underlineNone": {
+      en: ["None", "None", "None", "No underline", "No underline"],
+      yue: ["冇", "冇", "唔要", "唔要底線", "唔要底線"]
+    },
+    "appear.underlineSolid": {
+      en: ["Single", "Single", "Single", "Single", "Single"],
+      yue: ["單線", "單線", "單線", "單線", "單線"]
+    },
+    "appear.underlineDouble": {
+      en: ["Double", "Double", "Double", "Double", "Double"],
+      yue: ["雙線", "雙線", "雙線", "雙線", "雙線"]
+    },
+    "appear.underlineDotted": {
+      en: ["Dotted", "Dotted", "Dotted", "Dotted", "Dotted"],
+      yue: ["點線", "點線", "點線", "點線", "點線"]
+    },
+    "appear.underlineDashed": {
+      en: ["Dashed", "Dashed", "Dashed", "Dashed", "Dashed"],
+      yue: ["虛線", "虛線", "虛線", "虛線", "虛線"]
+    },
+    "appear.underlineWavy": {
+      en: ["Wavy", "Wavy", "Wavy", "Wavy", "Wavy"],
+      yue: ["波浪線", "波浪線", "波浪線", "波浪線", "波浪線"]
+    },
+    "appear.strikeStyle": {
+      en: ["Strikethrough", "Strikethrough", "Strikethrough", "Strikethrough", "Strikethrough"],
+      yue: ["刪除線", "刪除線", "刪除線", "刪除線", "刪除線"]
+    },
+    "appear.strikeNone": {
+      en: ["None", "None", "None", "No strike", "No strike"],
+      yue: ["冇", "冇", "唔要", "唔要刪除線", "唔要刪除線"]
+    },
+    "appear.strikeSingle": {
+      en: ["Single", "Single", "Single", "Single", "Single"],
+      yue: ["單線", "單線", "單線", "單線", "單線"]
+    },
+    "appear.strikeDouble": {
+      en: ["Double", "Double", "Double", "Double", "Double"],
+      yue: ["雙線", "雙線", "雙線", "雙線", "雙線"]
+    },
+    "appear.overline": {
+      en: ["Overline", "Overline", "Overline", "Line above", "Line above"],
+      yue: ["頂線", "頂線", "頂線", "上面加條線", "上面加條線"]
+    },
+    "appear.vertAlign": {
+      en: ["Superscript and subscript", "Superscript and subscript", "Superscript and subscript", "Raised or lowered", "Raised or lowered"],
+      yue: ["上標同下標", "上標同下標", "上標同下標", "抬高定放低", "抬高定放低"]
+    },
+    "appear.vertNone": {
+      en: ["On the line", "On the line", "On the line", "On the line", "On the line"],
+      yue: ["平排", "平排", "平排", "平排", "平排"]
+    },
+    "appear.vertSuper": {
+      en: ["Superscript", "Superscript", "Superscript", "Superscript", "Superscript"],
+      yue: ["上標", "上標", "上標", "上標", "上標"]
+    },
+    "appear.vertSub": {
+      en: ["Subscript", "Subscript", "Subscript", "Subscript", "Subscript"],
+      yue: ["下標", "下標", "下標", "下標", "下標"]
+    },
+    "appear.letterSpacing": {
+      en: ["Character spacing {value}", "Character spacing {value}", "Character spacing {value}", "Character spacing {value}", "Character spacing {value}"],
+      yue: ["字元間距 {value}", "字元間距 {value}", "字元間距 {value}", "字距 {value}", "字距 {value}"]
+    },
+    "appear.wordSpacing": {
+      en: ["Word spacing {value}", "Word spacing {value}", "Word spacing {value}", "Word spacing {value}", "Word spacing {value}"],
+      yue: ["字詞間距 {value}", "字詞間距 {value}", "字詞間距 {value}", "詞距 {value}", "詞距 {value}"]
+    },
+    "appear.lineHeight": {
+      en: ["Line height {value}", "Line height {value}", "Line height {value}", "Line height {value}", "Line height {value}"],
+      yue: ["行高 {value}", "行高 {value}", "行高 {value}", "行高 {value}", "行高 {value}"]
+    },
+    "appear.baseline": {
+      en: ["Baseline offset {value}", "Baseline offset {value}", "Baseline offset {value}", "Baseline offset {value}", "Baseline offset {value}"],
+      yue: ["基線偏移 {value}", "基線偏移 {value}", "基線偏移 {value}", "基線偏移 {value}", "基線偏移 {value}"]
+    },
+    "appear.direction": {
+      en: ["Text direction", "Text direction", "Text direction", "Text direction", "Text direction"],
+      yue: ["文字方向", "文字方向", "文字方向", "文字方向", "文字方向"]
+    },
+    "appear.dirAuto": {
+      en: ["Inherit", "Inherit", "Inherit", "Whatever the page uses", "Whatever the page uses"],
+      yue: ["跟隨", "跟隨", "跟隨上層", "跟返個頁面", "跟返個頁面"]
+    },
+    "appear.dirLtr": {
+      en: ["Left to right", "Left to right", "Left to right", "Left to right", "Left to right"],
+      yue: ["由左至右", "由左至右", "由左至右", "由左至右", "由左至右"]
+    },
+    "appear.dirRtl": {
+      en: ["Right to left", "Right to left", "Right to left", "Right to left", "Right to left"],
+      yue: ["由右至左", "由右至左", "由右至左", "由右至左", "由右至左"]
+    },
+    "appear.align": {
+      en: ["Alignment", "Alignment", "Alignment", "Alignment", "Alignment"],
+      yue: ["對齊", "對齊", "對齊", "對齊", "對齊"]
+    },
+    "appear.alignInherit": {
+      en: ["Inherit", "Inherit", "Inherit", "Whatever the page uses", "Whatever the page uses"],
+      yue: ["跟隨", "跟隨", "跟隨上層", "跟返個頁面", "跟返個頁面"]
+    },
+    "appear.alignLeft": {
+      en: ["Left", "Left", "Left", "Left", "Left"],
+      yue: ["靠左", "靠左", "靠左", "埋左邊", "埋左邊"]
+    },
+    "appear.alignCenter": {
+      en: ["Centre", "Centre", "Centre", "Centre", "Centre"],
+      yue: ["置中", "置中", "置中", "擺中間", "擺中間"]
+    },
+    "appear.alignRight": {
+      en: ["Right", "Right", "Right", "Right", "Right"],
+      yue: ["靠右", "靠右", "靠右", "埋右邊", "埋右邊"]
+    },
+    "appear.alignJustify": {
+      en: ["Justify", "Justify", "Justify", "Justify", "Justify"],
+      yue: ["左右對齊", "左右對齊", "左右對齊", "兩邊都貼齊", "兩邊都貼齊"]
+    },
+    "appear.targetText": {
+      en: ["Text", "Text", "Text", "Text", "Text"],
+      yue: ["文字", "文字", "文字", "文字", "文字"]
+    },
+    "appear.targetUnderline": {
+      en: ["Underline", "Underline", "Underline", "Underline", "Underline"],
+      yue: ["底線", "底線", "底線", "底線", "底線"]
+    },
+    "appear.targetHighlight": {
+      en: ["Highlight", "Highlight", "Highlight", "Highlight", "Highlight"],
+      yue: ["螢光標示", "螢光標示", "螢光標示", "螢光筆", "螢光筆"]
+    },
+    "appear.targetOutline": {
+      en: ["Outline", "Outline", "Outline", "Outline", "Outline"],
+      yue: ["描邊", "描邊", "描邊", "描邊", "描邊"]
+    },
+    "appear.targetShadow": {
+      en: ["Shadow", "Shadow", "Shadow", "Shadow", "Shadow"],
+      yue: ["陰影", "陰影", "陰影", "陰影", "陰影"]
+    },
+    "appear.targetGlow": {
+      en: ["Glow", "Glow", "Glow", "Glow", "Glow"],
+      yue: ["光暈", "光暈", "光暈", "光暈", "光暈"]
+    },
+    "appear.editing": {
+      en: ["Editing the {target} colour", "Editing the {target} colour", "The picker below sets the {target} colour", "The picker below sets the {target} colour", "The picker below sets the {target} colour"],
+      yue: ["而家改緊「{target}」嘅顏色", "而家改緊「{target}」嘅顏色", "下面個色板改嘅係「{target}」嘅顏色", "下面個色板改嘅係「{target}」嘅顏色", "下面個色板改嘅係「{target}」嘅顏色"]
+    },
+    "appear.clearColour": {
+      en: ["Clear", "Clear", "Clear", "Clear it", "Clear it"],
+      yue: ["清除", "清除", "清走", "清走佢", "清走佢"]
+    },
+    "appear.notSupported": {
+      en: ["What this build cannot do", "What this build cannot do", "What this build cannot do", "What this build cannot do", "What this build cannot do"],
+      yue: ["呢個版本做唔到嘅嘢", "呢個版本做唔到嘅嘢", "呢個版本做唔到嘅嘢", "呢個版本做唔到嘅嘢", "呢個版本做唔到嘅嘢"]
+    },
+    "appear.resetElement": {
+      en: ["Reset element", "Reset element", "Reset element", "Reset this element", "Reset this element"],
+      yue: ["重設元素", "重設元素", "重設呢個元素", "呢個元素打返原形", "呢個元素打返原形"]
+    },
   };
 
   function resolve(key, mode, funny) {

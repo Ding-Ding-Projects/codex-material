@@ -32,6 +32,13 @@
 <script src="cx-changelog.js"></script>
 <script src="cx-notify.js"></script>
 <script src="cx-tabs.js"></script>
+<!-- Never listed here until now, so window.CX_APPEARANCE did not exist in the running
+     app at all: export, import and every named preset hit their `if (!A)` guard and
+     toasted "cx-appearance.js is missing from this build", which was completely true
+     and read like a packaging accident. The module's own tests load the file directly,
+     so they passed the whole time. A test that loads what the app does not is testing
+     a file, not a feature. -->
+<script src="cx-appearance.js"></script>
 <script src="codex-core.js"></script>
 </head>
 <body>
@@ -819,21 +826,57 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary) !
         <button onClick="{{ closeAppear }}" style="flex:0 0 auto;width:26px;height:26px;border-radius:13px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:11px">✕</button>
       </div>
       <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--m3-primary);font-weight:500;margin-top:4px">{{ appearGroupType }}</div>
         <button onClick="{{ openFontMenu }}" style="width:100%;height:36px;border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:0 12px;font-size:12.5px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ appearFontLabel }}</span><span style="flex:0 0 auto;opacity:.7">▾</span></button>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <div style="flex:1 1 130px;min-width:0">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--m3-on-surface-variant);margin-bottom:4px">Size {{ appearSizeLabel }}</div>
-            <input value="{{ appearSize }}" onInput="{{ setAppearSize }}" type="range" min="70" max="180" step="5" style="width:100%;accent-color:var(--m3-primary)" />
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--m3-on-surface-variant);margin-bottom:4px">{{ appearSizeLabel }}</div>
+            <input value="{{ appearSize }}" onInput="{{ setAppearSize }}" type="range" min="70" max="180" step="5" aria-label="{{ appearSizeLabel }}" style="width:100%;accent-color:var(--m3-primary)" />
           </div>
           <div style="flex:1 1 130px;min-width:0">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--m3-on-surface-variant);margin-bottom:4px">Weight {{ appearWeight }}</div>
-            <input value="{{ appearWeight }}" onInput="{{ setAppearWeight }}" type="range" min="300" max="700" step="100" style="width:100%;accent-color:var(--m3-primary)" />
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--m3-on-surface-variant);margin-bottom:4px">{{ appearWeightLabel }}</div>
+            <input value="{{ appearWeight }}" onInput="{{ setAppearWeight }}" type="range" min="100" max="900" step="100" aria-label="{{ appearWeightLabel }}" style="width:100%;accent-color:var(--m3-primary)" />
+          </div>
+          <!-- A slider finds a value you cannot name; a number field reproduces one you
+               can. Word processors offer both for exactly that reason, and the slider's
+               70-180 range cannot reach the 10-400 the document supports. -->
+          <div style="flex:1 1 100%;min-width:0">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--m3-on-surface-variant);margin-bottom:4px">{{ appearSizeExactLabel }}</div>
+            <input value="{{ appearSizeExact }}" onInput="{{ setAppearSizeExact }}" type="{{ appearSizeExactType }}" min="10" max="400" step="1" aria-label="{{ appearSizeExactLabel }}" style="width:100%;min-height:32px;border-radius:9px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:0 10px;font-size:12px;color:var(--m3-on-surface);outline:none" />
           </div>
         </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <sc-for list="{{ appearToggles }}" as="t" hint-placeholder-count="4">
-            <button onClick="{{ t.toggle }}" style="height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--m3-outline-variant);background:{{ t.bg }};color:{{ t.fg }};cursor:pointer;font-size:11.5px;white-space:nowrap">{{ t.label }}</button>
+        <sc-for list="{{ appearSegments }}" as="g" hint-placeholder-count="7">
+          <div role="group" aria-label="{{ g.label }}" style="min-width:0">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--m3-on-surface-variant);margin-bottom:4px">{{ g.label }}</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
+              <sc-for list="{{ g.options }}" as="o" hint-placeholder-count="3">
+                <button onClick="{{ o.pick }}" aria-pressed="{{ o.pressed }}" style="height:26px;padding:0 10px;border-radius:13px;border:1px solid var(--m3-outline-variant);cursor:pointer;font-size:11px;white-space:nowrap;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          <button onClick="{{ toggleOverline }}" aria-pressed="{{ appearOverlinePressed }}" style="height:26px;padding:0 10px;border-radius:13px;border:1px solid var(--m3-outline-variant);cursor:pointer;font-size:11px;white-space:nowrap;background:{{ appearOverlineBg }};color:{{ appearOverlineFg }}">{{ appearOverlineLabel }}</button>
+        </div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--m3-primary);font-weight:500;margin-top:4px">{{ appearGroupSpacing }}</div>
+        <sc-for list="{{ appearSpacings }}" as="sp" hint-placeholder-count="4">
+          <div style="min-width:0">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--m3-on-surface-variant);margin-bottom:4px">{{ sp.label }}</div>
+            <input value="{{ sp.value }}" onInput="{{ sp.set }}" type="range" min="{{ sp.min }}" max="{{ sp.max }}" step="{{ sp.step }}" aria-label="{{ sp.label }}" style="width:100%;accent-color:var(--m3-primary)" />
+          </div>
+        </sc-for>
+        <!-- One picker, six colours. Which one it writes is chosen here, and the swatch
+             on each chip shows that property's current value so an unset colour is
+             visibly unset rather than reading as black. -->
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--m3-primary);font-weight:500;margin-top:4px">{{ appearGroupColour }}</div>
+        <div role="group" aria-label="{{ appearEditingLabel }}" style="display:flex;gap:5px;flex-wrap:wrap">
+          <sc-for list="{{ appearColorTargets }}" as="c" hint-placeholder-count="6">
+            <button onClick="{{ c.pick }}" aria-pressed="{{ c.pressed }}" style="height:26px;padding:0 10px;border-radius:13px;border:1px solid var(--m3-outline-variant);cursor:pointer;font-size:11px;white-space:nowrap;display:flex;align-items:center;gap:6px;background:{{ c.bg }};color:{{ c.fg }}"><span aria-hidden="true" style="width:10px;height:10px;border-radius:5px;border:1px solid var(--m3-outline-variant);background:{{ c.swatch }}"></span>{{ c.label }}</button>
           </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;min-width:0;font-size:11px;color:var(--m3-on-surface-variant);line-height:1.4">{{ appearEditingLabel }}</div>
+          <button onClick="{{ clearAppearColour }}" style="flex:0 0 auto;height:26px;padding:0 10px;border-radius:13px;border:1px solid var(--m3-outline-variant);cursor:pointer;font-size:11px;white-space:nowrap;background:transparent;color:var(--m3-on-surface-variant)">{{ appearClearColourLabel }}</button>
         </div>
         <!-- A continuous two-dimensional saturation/value field with a hue strip under
              it. The rules ask for a spectrum or 2-D field rather than a swatch-and-slider
@@ -869,9 +912,18 @@ input:focus-visible,textarea:focus-visible{outline:2px solid var(--m3-primary) !
           </sc-for>
         </div>
         <div style="font-size:11px;color:var(--m3-on-surface-variant);line-height:1.5">{{ contrastLabel }}</div>
+        <!-- Shown, not omitted. A control that simply is not there reads as one nobody
+             thought of; the rules ask for the property to stay visible with the reason
+             it cannot be offered. -->
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--m3-primary);font-weight:500;margin-top:4px">{{ appearNotSupportedLabel }}</div>
+        <div style="border-radius:10px;border:1px solid var(--m3-outline-variant);background:var(--m3-surface-container);padding:8px 10px;display:flex;flex-direction:column;gap:6px">
+          <sc-for list="{{ appearCapabilities }}" as="c" hint-placeholder-count="3">
+            <div style="font-size:10.5px;color:var(--m3-on-surface-variant);line-height:1.5">{{ c.text }}</div>
+          </sc-for>
+        </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button onClick="{{ resetAppear }}" style="flex:1 1 130px;height:34px;border-radius:17px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px">Reset element</button>
-          <button onClick="{{ resetAllAppear }}" style="flex:1 1 130px;height:34px;border-radius:17px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-error);cursor:pointer;font-size:12px">Reset all</button>
+          <button onClick="{{ resetAppear }}" style="flex:1 1 130px;height:34px;border-radius:17px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-on-surface);cursor:pointer;font-size:12px">{{ appearResetElementLabel }}</button>
+          <button onClick="{{ resetAllAppear }}" style="flex:1 1 130px;height:34px;border-radius:17px;border:1px solid var(--m3-outline-variant);background:transparent;color:var(--m3-error);cursor:pointer;font-size:12px">{{ appearResetAllLabel }}</button>
         </div>
       </div>
     </div>
@@ -1219,15 +1271,14 @@ class Component extends DCLogic {
 
   applyAppearance() {
     const map = this.state.appearance;
+    /* CX_APPEARANCE.styleFor is the single mapping from a stored style to CSS, shared
+       with the exporter. This used to spell the CSS out here, which is how `wide` came
+       to exist in the editor and in localStorage but in no exported document: two
+       lists of properties drift the moment one of them grows. */
+    const styleFor = window.CX_APPEARANCE.styleFor;
     document.querySelectorAll("[data-appear]").forEach((el) => {
-      const a = map[el.getAttribute("data-appear")];
-      el.style.fontFamily = a && a.font ? a.font : "";
-      el.style.fontSize = a && a.size ? a.size + "%" : "";
-      el.style.fontWeight = a && a.weight ? a.weight : "";
-      el.style.fontStyle = a && a.italic ? "italic" : "";
-      el.style.textDecoration = a ? [a.underline ? "underline" : "", a.strike ? "line-through" : ""].filter(Boolean).join(" ") : "";
-      el.style.letterSpacing = a && a.wide ? ".06em" : "";
-      el.style.color = a && a.color ? a.color : "";
+      const style = styleFor(map[el.getAttribute("data-appear")]);
+      Object.keys(style).forEach((prop) => { el.style[prop] = style[prop]; });
     });
   }
   /** Kept as the app-wide shorthand: every call site now raises a real
@@ -1495,7 +1546,11 @@ class Component extends DCLogic {
     const box = e.currentTarget.getBoundingClientRect();
     const s = Math.max(0, Math.min(100, ((e.clientX - box.left) / box.width) * 100));
     const v = Math.max(0, Math.min(100, (1 - (e.clientY - box.top) / box.height) * 100));
-    this.patchAppear({ color: CX.color.rgbToHex(CX.color.hsvToRgb({ h: hsv.h, s: s, v: v })) });
+    // Whichever of the six colours the picker is currently aimed at, not always the
+    // text colour — dragging the field used to repaint the text while the user was
+    // plainly looking at the highlight swatch.
+    const prop = this.state.appearColorProp || "color";
+    this.patchAppear({ [prop]: CX.color.rgbToHex(CX.color.hsvToRgb({ h: hsv.h, s: s, v: v })) });
   }
 
   /** The human-readable name for an appearance target key. */
@@ -2064,8 +2119,15 @@ class Component extends DCLogic {
     const slashItems = DATA.SLASH.filter((s) => slashMatch(s.name + " " + s.desc));
     const pick = DATA.SLASH.find((s) => s.name === st.slashPick) || slashItems[0] || DATA.SLASH[0];
     const rx = st.regexOpen ? CX.evaluate(st.regexPattern, st.regexFlags.join(""), st.regexSample) : null;
-    const appear = st.appearTarget ? (st.appearance[st.appearTarget] || {}) : {};
-    const appearColor = appear.color || "#D0BCFF";
+    /* normalise() reads the boolean spellings the first build wrote, so an element
+       styled back then still shows its underline and letter-spacing in the controls
+       rather than appearing unstyled and losing them on the next edit. */
+    const appear = window.CX_APPEARANCE.normalise(st.appearTarget ? (st.appearance[st.appearTarget] || {}) : {});
+    /* There are six colour properties now. The picker edits whichever one is selected,
+       so one 2-D field, one hue strip and one translator serve all of them — six
+       separate pickers in a 330px dialog would be a scrolling contest, not a feature. */
+    const colorProp = st.appearColorProp || "color";
+    const appearColor = appear[colorProp] || "#D0BCFF";
     const hsv = CX.color.rgbToHsv(CX.color.hexToRgb(appearColor) || { r: 208, g: 188, b: 255 });
     const activeSession = p.sessions.find((s) => s.id === st.activeSession) || p.sessions[0] || { name: "New session", cwd: p.cwd, turns: 0 };
     const total = this.costFor(p.model);
@@ -2867,16 +2929,113 @@ class Component extends DCLogic {
       appearFont: appear.font || "",
       setAppearFont: (e) => this.patchAppear({ font: e.target.value }),
       appearSize: String(appear.size || 100),
-      appearSizeLabel: (appear.size || 100) + "%",
+      appearSizeLabel: CX.i18n.t("appear.size", { value: (appear.size || 100) + "%" }),
       setAppearSize: (e) => this.patchAppear({ size: Number(e.target.value) }),
       appearWeight: String(appear.weight || 400),
+      appearWeightLabel: CX.i18n.t("appear.weight", { value: String(appear.weight || 400) }),
       setAppearWeight: (e) => this.patchAppear({ weight: Number(e.target.value) }),
-      appearToggles: [
-        { key: "i", label: CX.i18n.t("opt.italic"), on: !!appear.italic, prop: "italic" },
-        { key: "u", label: CX.i18n.t("opt.underline"), on: !!appear.underline, prop: "underline" },
-        { key: "s", label: CX.i18n.t("opt.strike"), on: !!appear.strike, prop: "strike" },
-        { key: "w", label: CX.i18n.t("opt.wide"), on: !!appear.wide, prop: "wide" }
-      ].map((t) => ({ key: t.key, label: t.label, bg: t.on ? "var(--m3-primary)" : "transparent", fg: t.on ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)", toggle: () => this.patchAppear({ [t.prop]: !t.on }) })),
+      /* Every segmented control is built the same way: the stored value, the options,
+         and the property it writes. A segment that is already selected clears the
+         property rather than re-setting it, so a control can always be undone from the
+         keyboard without hunting for a separate "none". */
+      appearSegments: [
+        { key: "slant", prop: "slant", label: CX.i18n.t("appear.slant"), value: appear.slant || "",
+          options: [["", "appear.slantNone"], ["italic", "opt.italic"], ["oblique", "appear.slantOblique"]] },
+        { key: "caps", prop: "caps", label: CX.i18n.t("appear.caps"), value: appear.caps || "",
+          options: [["", "appear.capsNone"], ["uppercase", "appear.capsUpper"], ["lowercase", "appear.capsLower"], ["capitalize", "appear.capsTitle"], ["small-caps", "appear.capsSmall"]] },
+        { key: "under", prop: "underline", label: CX.i18n.t("appear.underlineStyle"), value: appear.underline || "",
+          options: [["", "appear.underlineNone"], ["solid", "appear.underlineSolid"], ["double", "appear.underlineDouble"], ["dotted", "appear.underlineDotted"], ["dashed", "appear.underlineDashed"], ["wavy", "appear.underlineWavy"]] },
+        { key: "strike", prop: "strike", label: CX.i18n.t("appear.strikeStyle"), value: appear.strike || "",
+          options: [["", "appear.strikeNone"], ["single", "appear.strikeSingle"], ["double", "appear.strikeDouble"]] },
+        { key: "vert", prop: "vertAlign", label: CX.i18n.t("appear.vertAlign"), value: appear.vertAlign || "",
+          options: [["", "appear.vertNone"], ["super", "appear.vertSuper"], ["sub", "appear.vertSub"]] },
+        { key: "dir", prop: "direction", label: CX.i18n.t("appear.direction"), value: appear.direction || "",
+          options: [["", "appear.dirAuto"], ["ltr", "appear.dirLtr"], ["rtl", "appear.dirRtl"]] },
+        { key: "align", prop: "align", label: CX.i18n.t("appear.align"), value: appear.align || "",
+          options: [["", "appear.alignInherit"], ["left", "appear.alignLeft"], ["center", "appear.alignCenter"], ["right", "appear.alignRight"], ["justify", "appear.alignJustify"]] }
+      ].map((g) => ({
+        key: g.key,
+        label: g.label,
+        options: g.options.map(([value, key]) => ({
+          key: g.key + ":" + (value || "none"),
+          label: CX.i18n.t(key),
+          bg: (g.value || "") === value ? "var(--m3-primary)" : "transparent",
+          fg: (g.value || "") === value ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+          pressed: (g.value || "") === value ? "true" : "false",
+          pick: () => this.patchAppear({ [g.prop]: (g.value || "") === value ? "" : value })
+        }))
+      })),
+      appearOverlineLabel: CX.i18n.t("appear.overline"),
+      appearOverlineOn: appear.overline === true,
+      appearOverlineBg: appear.overline === true ? "var(--m3-primary)" : "transparent",
+      appearOverlineFg: appear.overline === true ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)",
+      appearOverlinePressed: appear.overline === true ? "true" : "false",
+      toggleOverline: () => this.patchAppear({ overline: appear.overline !== true }),
+
+      /* The sliders and the exact-entry field write the same property. Word processors
+         offer both because a slider finds a value you cannot name and a number field
+         reproduces one you can. */
+      appearSizeExact: String(appear.size || 100),
+      appearSizeExactLabel: CX.i18n.t("appear.sizeExact"),
+      /* Bound, never written literally: the template block is parsed as live DOM
+         before the runtime compiles it, so a literal type="number" makes the browser
+         validate the uncompiled "{{ appearSizeExact }}" text and log a parse error on
+         every launch. */
+      appearSizeExactType: "number",
+      setAppearSizeExact: (e) => {
+        const n = Number(e.target.value);
+        if (Number.isFinite(n) && n >= 10 && n <= 400) this.patchAppear({ size: Math.round(n) });
+      },
+      appearSpacings: [
+        { key: "ls", prop: "letterSpacing", min: -20, max: 100, step: 1, value: appear.letterSpacing || 0,
+          label: CX.i18n.t("appear.letterSpacing", { value: ((appear.letterSpacing || 0) / 100).toFixed(2) + "em" }) },
+        { key: "ws", prop: "wordSpacing", min: -50, max: 400, step: 5, value: appear.wordSpacing || 0,
+          label: CX.i18n.t("appear.wordSpacing", { value: ((appear.wordSpacing || 0) / 100).toFixed(2) + "em" }) },
+        { key: "lh", prop: "lineHeight", min: 80, max: 300, step: 5, value: appear.lineHeight || 100,
+          label: CX.i18n.t("appear.lineHeight", { value: ((appear.lineHeight || 100) / 100).toFixed(2) }) },
+        { key: "bo", prop: "baseline", min: -20, max: 20, step: 1, value: appear.baseline || 0,
+          label: CX.i18n.t("appear.baseline", { value: (appear.baseline || 0) + "px" }) }
+      ].map((sp) => ({
+        key: sp.key, label: sp.label, min: String(sp.min), max: String(sp.max), step: String(sp.step),
+        value: String(sp.value),
+        set: (e) => this.patchAppear({ [sp.prop]: Number(e.target.value) })
+      })),
+
+      /* Which of the six colours the picker below is aimed at. A swatch shows the
+         current value so an unset one is visibly unset rather than looking black. */
+      appearColorTargets: [
+        ["color", "appear.targetText"], ["underlineColor", "appear.targetUnderline"], ["highlight", "appear.targetHighlight"],
+        ["outline", "appear.targetOutline"], ["shadow", "appear.targetShadow"], ["glow", "appear.targetGlow"]
+      ].map(([prop, key]) => ({
+        key: "ct:" + prop,
+        label: CX.i18n.t(key),
+        swatch: appear[prop] || "transparent",
+        bg: colorProp === prop ? "var(--m3-secondary-container)" : "transparent",
+        fg: colorProp === prop ? "var(--m3-on-secondary-container)" : "var(--m3-on-surface-variant)",
+        pressed: colorProp === prop ? "true" : "false",
+        pick: () => this.setState({ appearColorProp: prop, appearColorDraft: null })
+      })),
+      appearEditingLabel: CX.i18n.t("appear.editing", {
+        target: CX.i18n.t({ color: "appear.targetText", underlineColor: "appear.targetUnderline", highlight: "appear.targetHighlight", outline: "appear.targetOutline", shadow: "appear.targetShadow", glow: "appear.targetGlow" }[colorProp])
+      }),
+      appearClearColourLabel: CX.i18n.t("appear.clearColour"),
+      clearAppearColour: () => this.patchAppear({ [colorProp]: "" }),
+
+      /* Kept on screen rather than left absent: a control that is not there reads as
+         one nobody thought of, and the rules ask for the reason instead. */
+      appearNotSupportedLabel: CX.i18n.t("appear.notSupported"),
+      appearCapabilities: window.CX_APPEARANCE.CAPABILITIES.map((c) => ({
+        key: c.id,
+        text: CX.i18n.mode === "yue" ? c.yue : CX.i18n.mode === "bi" ? c.en + "  ·  " + c.yue : c.en
+      })),
+      appearGroupType: CX.i18n.t("appear.groupType"),
+      appearGroupStyle: CX.i18n.t("appear.groupStyle"),
+      appearGroupDecoration: CX.i18n.t("appear.groupDecoration"),
+      appearGroupSpacing: CX.i18n.t("appear.groupSpacing"),
+      appearGroupLayout: CX.i18n.t("appear.groupLayout"),
+      appearGroupColour: CX.i18n.t("appear.groupColour"),
+      appearResetElementLabel: CX.i18n.t("appear.resetElement"),
+      appearResetAllLabel: CX.i18n.t("act.resetAll"),
       appearColor: appearColor,
       /* Show what the user typed while it is still being typed; fall back to the
          resolved colour once they stop. */
@@ -2891,14 +3050,14 @@ class Component extends DCLogic {
         const raw = e.target.value;
         const hex = CX.color.parse(raw);
         this.setState({ appearColorDraft: raw });
-        if (hex) this.patchAppear({ color: hex });
+        if (hex) this.patchAppear({ [colorProp]: hex });
       },
       appearHue: String(Math.round(hsv.h)),
       appearSat: String(Math.round(hsv.s)),
       appearVal: String(Math.round(hsv.v)),
-      setAppearHue: (e) => this.patchAppear({ color: CX.color.rgbToHex(CX.color.hsvToRgb({ h: Number(e.target.value), s: hsv.s, v: hsv.v })) }),
-      setAppearSat: (e) => this.patchAppear({ color: CX.color.rgbToHex(CX.color.hsvToRgb({ h: hsv.h, s: Number(e.target.value), v: hsv.v })) }),
-      setAppearVal: (e) => this.patchAppear({ color: CX.color.rgbToHex(CX.color.hsvToRgb({ h: hsv.h, s: hsv.s, v: Number(e.target.value) })) }),
+      setAppearHue: (e) => this.patchAppear({ [colorProp]: CX.color.rgbToHex(CX.color.hsvToRgb({ h: Number(e.target.value), s: hsv.s, v: hsv.v })) }),
+      setAppearSat: (e) => this.patchAppear({ [colorProp]: CX.color.rgbToHex(CX.color.hsvToRgb({ h: hsv.h, s: Number(e.target.value), v: hsv.v })) }),
+      setAppearVal: (e) => this.patchAppear({ [colorProp]: CX.color.rgbToHex(CX.color.hsvToRgb({ h: hsv.h, s: hsv.s, v: Number(e.target.value) })) }),
 
       /* The 2-D field: x is saturation, y is value, and the background is the pure hue
          so the gradient the user sees is the colour they are picking from. */
@@ -4161,7 +4320,18 @@ class Component extends DCLogic {
 
   patchAppear(patch) {
     const appearance = Object.assign({}, this.state.appearance);
-    appearance[this.state.appearTarget] = Object.assign({}, appearance[this.state.appearTarget] || {}, patch);
+    const next = Object.assign({}, appearance[this.state.appearTarget] || {}, patch);
+    /* A cleared control removes its property rather than storing "". Otherwise every
+       segmented control the user ever touched leaves a tombstone in the document, and
+       an element restyled back to plain still exports a page of empty values. When
+       nothing is left, the element leaves the map entirely — so clearing every control
+       by hand and pressing Reset element produce the same state, which is what a user
+       who did the first one is entitled to assume. */
+    Object.keys(next).forEach((k) => {
+      if (next[k] === "" || next[k] === null || next[k] === undefined || next[k] === false) delete next[k];
+    });
+    if (Object.keys(next).length) appearance[this.state.appearTarget] = next;
+    else delete appearance[this.state.appearTarget];
     CX.store.set("appearance", appearance);
     this.setState({ appearance });
     /* Appearance changes were the one write path that never reached the history, so

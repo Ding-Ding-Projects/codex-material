@@ -1102,3 +1102,56 @@ test("app/index.html — no user-visible string bypasses CX.i18n", () => {
     assert.deepEqual(missing, [], `asked for but never defined: ${missing.join(", ")}`);
   });
 });
+
+/* The module list in <head> is the only thing that makes a file part of the running
+   app. cx-appearance.js sat in the repository, fully implemented and covered by its
+   own tests, and was never loaded — so export, import and every named preset hit their
+   `if (!A)` guard in the real app while every test passed. A test that loads a file the
+   app does not load is testing a file, not a feature. */
+
+test("app/index.html — every frontend module is actually loaded", () => {
+  const b = bucket("app/index.html");
+  const src = fs.readFileSync(path.join(ROOT, "app", "index.html"), "utf8");
+
+  const run = (name, fn) => {
+    try {
+      fn();
+      b.pass += 1;
+    } catch (error) {
+      b.fail += 1;
+      process.exitCode = 1;
+      throw error;
+    }
+  };
+
+  const loaded = new Set(
+    [...src.matchAll(/<script src="(?:\.\/)?([\w.-]+\.js)"><\/script>/g)].map((m) => m[1]),
+  );
+
+  run("no app/*.js module is left out of the page", () => {
+    const onDisk = fs
+      .readdirSync(path.join(ROOT, "app"))
+      .filter((f) => f.endsWith(".js"));
+    const missing = onDisk.filter((f) => !loaded.has(f));
+    assert.deepEqual(
+      missing,
+      [],
+      `these modules exist but no <script src> loads them, so nothing in them runs: ${missing.join(", ")}`,
+    );
+  });
+
+  run("every global the app reads is provided by a loaded module", () => {
+    /* The other half of the same bug: a global read from index.html whose module is
+       not in the page fails only at the moment a user reaches that feature. */
+    const globals = new Set(
+      [...src.matchAll(/window\.(CX_[A-Z_]+)/g)].map((m) => m[1]),
+    );
+    for (const name of globals) {
+      const provider = [...loaded].find((file) => {
+        const text = fs.readFileSync(path.join(ROOT, "app", file), "utf8");
+        return text.includes("g." + name + " =") || text.includes("window." + name + " =");
+      });
+      assert.ok(provider, `${name} is read by the page but no loaded module assigns it`);
+    }
+  });
+});

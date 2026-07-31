@@ -39,19 +39,128 @@
     weight: { min: 100, max: 900 }
   };
 
-  /* Exactly the properties applyAppearance() reads back out of the map. An
-     unknown key is reported rather than kept: carrying it forward would put a
-     value in every future export that nothing on any build can apply. */
+  /* Exactly the properties styleFor() reads back out of the map. An unknown key is
+     reported rather than kept: carrying it forward would put a value in every future
+     export that nothing on any build can apply.
+
+     `italic`, `underline`, `strike` and `wide` were booleans in the first build and
+     are still accepted as booleans, because a document exported then must still
+     import now. They normalise into the richer forms below — see LEGACY. */
   var PROPERTIES = {
     font: "font",
     size: "size",
     weight: "weight",
+
+    slant: { kind: "enum", values: ["", "italic", "oblique"] },
+    caps: { kind: "enum", values: ["", "uppercase", "lowercase", "capitalize", "small-caps"] },
+    underline: { kind: "enum", values: ["", "solid", "double", "dotted", "dashed", "wavy"], legacyTrue: "solid" },
+    strike: { kind: "enum", values: ["", "single", "double"], legacyTrue: "single" },
+    vertAlign: { kind: "enum", values: ["", "super", "sub"] },
+    direction: { kind: "enum", values: ["", "ltr", "rtl"] },
+    align: { kind: "enum", values: ["", "left", "center", "right", "justify"] },
+
     color: "color",
+    underlineColor: "color",
+    highlight: "color",
+    outline: "color",
+    shadow: "color",
+    glow: "color",
+
+    /* Spacings are stored in hundredths of an em so the document holds an integer and
+       the unit never travels with the number — a file saying `letterSpacing: 6` means
+       the same thing whatever the element's font size turns out to be. */
+    letterSpacing: { kind: "number", min: -20, max: 100, unit: "hundredths of an em" },
+    wordSpacing: { kind: "number", min: -50, max: 400, unit: "hundredths of an em" },
+    lineHeight: { kind: "number", min: 80, max: 300, unit: "percent" },
+    baseline: { kind: "number", min: -20, max: 20, unit: "pixels" },
+
+    overline: "flag",
     italic: "flag",
-    underline: "flag",
-    strike: "flag",
     wide: "flag"
   };
+
+  /* What the platform cannot do, kept visible rather than absent. The rules require an
+     unsupported property to be shown with an explanation instead of quietly missing,
+     because a control that is not there reads as a feature nobody thought of. */
+  var CAPABILITIES = [
+    {
+      id: "variableAxes",
+      en: "Variable-font axes beyond weight (width, optical size, slant) are not offered: a browser cannot enumerate the axes a locally installed font exposes, so the app has no list to show you. Weight is available because CSS accepts it on any family.",
+      yue: "除咗字重之外嘅可變字型軸（闊度、光學尺寸、傾斜）暫時冇得揀：瀏覽器讀唔到本機字型有邊啲軸，所以根本冇個 list 可以畀你。字重有得揀，係因為 CSS 對任何字型族都收。"
+    },
+    {
+      id: "sharedDecorationStyle",
+      en: "Underline style and double strikethrough share one CSS property, so an element cannot have a wavy underline and a double strike at once. The underline's style wins when both are set.",
+      yue: "底線款式同雙刪除線喺 CSS 度共用同一個屬性，所以一個元素唔可以同時有波浪底線同雙刪除線。兩樣都設咗嘅話，底線嗰個款式話事。"
+    },
+    {
+      id: "baselineOverSuper",
+      en: "Baseline offset and superscript/subscript are the same CSS property. Setting a baseline offset replaces the superscript or subscript rather than adding to it.",
+      yue: "基線偏移同上標／下標係同一個 CSS 屬性。設咗基線偏移就會取代上標或者下標，唔會兩樣一齊。"
+    }
+  ];
+
+  /** Reads the boolean spellings the first build wrote, so an old document still
+   *  applies. Returns a NEW object; the stored map is never rewritten behind the
+   *  user's back. */
+  function normalise(a) {
+    if (!isObject(a)) return {};
+    var out = {};
+    var keys = Object.keys(a);
+    for (var i = 0; i < keys.length; i++) out[keys[i]] = a[keys[i]];
+    if (out.italic === true && !out.slant) out.slant = "italic";
+    if (out.underline === true) out.underline = "solid";
+    if (out.strike === true) out.strike = "single";
+    if (out.wide === true && out.letterSpacing == null) out.letterSpacing = 6;
+    return out;
+  }
+
+  /** The ONE place a style map becomes CSS. applyAppearance() in the app and any
+   *  preview both go through here, so a property can never apply in one and not the
+   *  other — which is how `wide` ended up in the editor and not in the export. */
+  function styleFor(raw) {
+    var a = normalise(raw);
+    var lines = [];
+    if (a.underline) lines.push("underline");
+    if (a.strike) lines.push("line-through");
+    if (a.overline === true) lines.push("overline");
+
+    /* One CSS property for every decoration line, so the two cannot disagree. The
+       underline's style wins when both ask, and CAPABILITIES says so out loud. */
+    var decorStyle = "";
+    if (a.underline && a.underline !== "solid") decorStyle = a.underline;
+    else if (a.strike === "double") decorStyle = "double";
+    else if (a.underline) decorStyle = "solid";
+
+    var shadows = [];
+    if (a.shadow) shadows.push("0 1px 2px " + a.shadow);
+    if (a.glow) shadows.push("0 0 6px " + a.glow);
+
+    var caps = a.caps || "";
+    return {
+      fontFamily: a.font || "",
+      fontSize: a.size ? a.size + "%" : "",
+      fontWeight: a.weight ? String(a.weight) : "",
+      fontStyle: a.slant || "",
+      fontVariantCaps: caps === "small-caps" ? "small-caps" : "",
+      textTransform: caps && caps !== "small-caps" ? caps : "",
+      textDecorationLine: lines.join(" "),
+      textDecorationStyle: decorStyle,
+      textDecorationColor: a.underlineColor || "",
+      /* Baseline offset and super/sub are the same property; the explicit number wins
+         because a user who typed one meant it. */
+      verticalAlign: a.baseline != null && a.baseline !== 0 ? a.baseline + "px" : (a.vertAlign || ""),
+      color: a.color || "",
+      backgroundColor: a.highlight || "",
+      webkitTextStroke: a.outline ? "0.6px " + a.outline : "",
+      textShadow: shadows.join(", "),
+      letterSpacing: a.letterSpacing ? (a.letterSpacing / 100) + "em" : "",
+      wordSpacing: a.wordSpacing ? (a.wordSpacing / 100) + "em" : "",
+      lineHeight: a.lineHeight ? String(a.lineHeight / 100) : "",
+      direction: a.direction || "",
+      textAlign: a.align || ""
+    };
+  }
 
   /* Fields this build writes or knowingly ignores. Anything else in an imported
      document is reported, which is how a value from a newer build becomes visible
@@ -168,8 +277,28 @@
         continue;
       }
 
-      var kind = PROPERTIES[key];
-      if (kind === "font") {
+      var spec = PROPERTIES[key];
+      var kind = typeof spec === "string" ? spec : spec.kind;
+      if (kind === "enum") {
+        /* A boolean is accepted only where the first build wrote one, and only for
+           `true` — `false` and the empty string both mean "not set", so they take the
+           same path as any other unset value. */
+        if (raw === false) raw = "";
+        if (raw === true && spec.legacyTrue) raw = spec.legacyTrue;
+        if (typeof raw !== "string") {
+          reason = "expected one of " + spec.values.filter(Boolean).join(", ") + ", found " + typeOf(raw);
+        } else if (spec.values.indexOf(raw.trim()) === -1) {
+          reason = "\"" + raw + "\" is not one of " + spec.values.filter(Boolean).join(", ");
+        }
+        if (!reason) out[key] = raw.trim();
+      } else if (kind === "number") {
+        var n = numberOf(raw);
+        if (n === null) reason = "expected a number of " + spec.unit + ", found " + typeOf(raw);
+        else if (n < spec.min || n > spec.max) {
+          reason = n + " is outside the supported " + spec.min + " to " + spec.max + " " + spec.unit;
+        }
+        if (!reason) out[key] = Math.round(n);
+      } else if (kind === "font") {
         if (typeof raw !== "string") reason = "a font family must be text, found " + typeOf(raw);
         else if (!raw.trim()) reason = "the font family is blank";
         else if (raw.length > LIMITS.font) reason = "the font family is " + raw.length + " characters, over the " + LIMITS.font + "-character cap";
@@ -196,8 +325,11 @@
           reason = unsafe(hex) || (acceptedColor(hex) ? null : "\"" + hex + "\" is not a hex colour — write #rgb, #rrggbb or #rrggbbaa");
           /* The picker writes a leading `#`; a hand-edited file often does not,
              and a bare `3366ff` is not a colour to CSS. Adding it back loses
-             nothing, so it is a normalisation and not a drop. */
-          if (!reason) out.color = hex.charAt(0) === "#" ? hex : "#" + hex;
+             nothing, so it is a normalisation and not a drop.
+
+             `out[key]`, not `out.color`: there are six colour properties now, and
+             writing them all into `color` would import a highlight as a text colour. */
+          if (!reason) out[key] = hex.charAt(0) === "#" ? hex : "#" + hex;
         }
       } else {
         /* Booleans are not coerced. "true" and 1 are guessable, "on" and "yes"
@@ -345,6 +477,14 @@
     KEY: KEY,
     LIMITS: LIMITS,
     PROPERTIES: PROPERTIES,
+    /** What this build cannot represent, with the reason, in both languages. Shown in
+     *  the editor rather than left as an absent control. */
+    CAPABILITIES: CAPABILITIES,
+    /** The one style-map-to-CSS mapping. See styleFor above. */
+    styleFor: styleFor,
+    /** Reads the boolean spellings the first build wrote. Exported so the editor
+     *  shows an old document's `wide: true` as the letter-spacing it actually is. */
+    normalise: normalise,
 
     /** Wrap the live per-element map into a portable document with provenance.
      *  @param meta {{ app, version, platform, presets, at }}
