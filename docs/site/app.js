@@ -998,6 +998,35 @@
      regex builder that opens beside the field that asked for it rather than sending
      the reader to a different page to compose a pattern and carry it back by hand. */
 
+  /** Ask for one value without blocking the page.
+   *
+   *  `window.prompt` halts rendering, cannot be styled, ignores the theme, and puts
+   *  the browser's own chrome in front of a page whose whole point is that it is
+   *  customisable — and this site's README already promised it calls no such thing.
+   *  Four of them had crept in. This is a sheet like every other, so it inherits the
+   *  theme, the font, the density, and Escape. */
+  function askFor(title, note, value, onOk) {
+    var host = el("div", { "class": "sheet", role: "dialog", "aria-modal": "false", "aria-label": title });
+    host.appendChild(el("h3", { "class": "sheet__title" }, esc(title)));
+    if (note) { host.appendChild(el("p", { "class": "section-note" }, esc(note))); }
+    var input = el("input", { type: "text", "class": "plain", value: value || "", "aria-label": title,
+      style: "width:100%;margin-top:8px" });
+    host.appendChild(input);
+    var bar = el("div", { "class": "sheet__bar" });
+    var ok = el("button", { type: "button", "class": "linkchip linkchip--next" }, "OK");
+    var cancel = el("button", { type: "button", "class": "linkchip" }, "Cancel");
+    function accept() { var v = input.value; closeSheet(); onOk(v); }
+    ok.addEventListener("click", accept);
+    cancel.addEventListener("click", closeSheet);
+    input.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); accept(); } });
+    bar.appendChild(ok);
+    bar.appendChild(cancel);
+    host.appendChild(bar);
+    showSheet(host, input);
+    /* Select the suggestion so typing replaces it, the way a prompt would. */
+    if (input.select) { input.select(); }
+  }
+
   var openSheetNode = null;
   var sheetReturn = null;
 
@@ -1263,11 +1292,11 @@
       { label: "Move left", hint: "Ctrl+Shift+←", run: function () { moveTab(tab.id, -1); } },
       { label: "Move right", hint: "Ctrl+Shift+→", run: function () { moveTab(tab.id, 1); } },
       { label: "Move to a new group…", run: function () {
-        var name = window.prompt("Name the group", "Group " + (groups().length + 1));
-        if (name === null) { return; }
-        var made = createGroup(name.trim() || null);
-        assignToGroup(tab.id, made.id);
-        toast("success", "Grouped", "“" + t(tab.key) + "” is now in “" + made.name + "”.");
+        askFor("Name the group", "", "Group " + (groups().length + 1), function (name) {
+          var made = createGroup(String(name).trim() || null);
+          assignToGroup(tab.id, made.id);
+          toast("success", "Grouped", "“" + t(tab.key) + "” is now in “" + made.name + "”.");
+        });
       } }
     ];
     groups().forEach(function (other) {
@@ -1281,18 +1310,18 @@
         saveGroups();
       } });
       items.push({ label: "Rename “" + g.name + "”…", run: function () {
-        var name = window.prompt("Rename the group", g.name);
-        if (name === null) { return; }
-        g.name = name.trim() || g.name;
-        saveGroups();
+        askFor("Rename the group", "", g.name, function (name) {
+          g.name = String(name).trim() || g.name;
+          saveGroups();
+        });
       } });
       items.push({ label: "Colour for “" + g.name + "”…", run: function () {
-        var c = window.prompt("A colour for this group — any notation the translator reads", g.colour);
-        if (c === null) { return; }
-        var hex = colour.parse(c);
-        if (!hex) { toast("error", "That is not a colour this reads", "Try #6750A4, rgb(103 80 164), oklch(…), or a name like plum."); return; }
-        g.colour = hex;
-        saveGroups();
+        askFor("Colour for this group", "Any notation the translator reads.", g.colour, function (c) {
+          var hex = colour.parse(c);
+          if (!hex) { toast("error", "That is not a colour this reads", "Try #6750A4, rgb(103 80 164), oklch(…), or a name like plum."); return; }
+          g.colour = hex;
+          saveGroups();
+        });
       } });
       items.push({ label: "Ungroup (keeps every tab)", run: function () { removeGroup(g.id); } });
       items.push({ label: "Search “" + g.name + "”…", run: function () { openInGroupSearch(g.id); } });
@@ -2858,9 +2887,10 @@
     var actions = el("div", { "class": "sheet__bar" });
     var save = el("button", { type: "button", "class": "linkchip linkchip--next" }, "Save the current look…");
     save.addEventListener("click", function () {
-      var name = window.prompt("Name this preset", "Preset " + (Object.keys(presets()).length + 1));
-      if (name === null) { return; }
-      if (savePreset(name)) { renderActive(); }
+      askFor("Name this preset", "It holds the theme, accent, font, font scale and density.",
+        "Preset " + (Object.keys(presets()).length + 1), function (name) {
+          if (savePreset(name)) { renderActive(); }
+        });
     });
     var out = el("button", { type: "button", "class": "linkchip" }, "Export to a file");
     out.addEventListener("click", exportPresets);

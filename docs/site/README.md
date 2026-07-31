@@ -259,6 +259,19 @@ toast. Info and success auto-dismiss; warnings and errors stay until dismissed, 
 that vanishes after four seconds is a failure nobody read. Nothing on this site calls `alert()`,
 `confirm()` or `prompt()`.
 
+Dismissed notifications stay reviewable. The bell in the top bar opens the history: everything the
+page has said since it loaded, newest first, with its kind and time. A toast auto-dismisses after
+four seconds and used to leave no trace, so a reader who happened to be looking elsewhere lost the
+message entirely — and for an error, that reader is the one it existed for.
+
+The badge counts errors and warnings only. A badge reading 17 after seventeen "Copied" toasts is
+noise wearing the shape of a signal.
+
+The log lives for the page load rather than being persisted: these describe what just happened
+here, and a stale one restored after a reload would read as current. Clearing it leaves any toast
+still on screen alone — a message the reader is in the middle of reading should not vanish because
+they tidied.
+
 ### Dim sum
 
 A 1% draw per page load from the 72 bundled photographs, named in English and Cantonese, shown in a

@@ -195,6 +195,23 @@ app.on("ready", async () => {
     return out;
   })()`);
 
+  /* The site's README promises it calls no alert, confirm or prompt — and four
+     window.prompt calls crept in with the tab groups and the presets. A browser modal
+     halts rendering, cannot be styled, ignores the theme, and puts the browser's own
+     chrome in front of a page whose entire premise is that it is customisable. Read
+     from the source rather than the runtime: a prompt that only fires on a code path
+     this check never walks would pass a runtime probe every time. */
+  const blocking = (() => {
+    const src = fs.readFileSync(path.join(ROOT, "docs", "site", "app.js"), "utf8");
+    /* Comments stripped first: the explanation of why these are gone names all three,
+       and a check that trips over its own documentation is the same bug as one that
+       reads the comment quoting the buggy line it is hunting for. */
+    const code = src
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^[ \t]*\/\/.*$/gm, "");
+    return [...code.matchAll(/(?:window\.)?\b(alert|confirm|prompt)\s*\(/g)].map((m) => m[1]);
+  })();
+
   /* The notification history. A toast auto-dismisses after four seconds, so the
      reader who looked away is exactly the one the record exists for. */
   const notify = await win.webContents.executeJavaScript(`(() => {
@@ -217,6 +234,13 @@ app.on("ready", async () => {
 
   let failedEarly = false;
   const lines = [];
+  lines.push(`blocking dialogs   ${blocking.length ? blocking.join(", ") : "none"}`);
+  if (blocking.length) {
+    lines.push(`
+this page calls ${blocking.length} browser modal(s); its README promises none, and a modal ` +
+      "cannot be themed, styled or made non-blocking");
+    failedEarly = true;
+  }
   lines.push(`notify history     ${notify.bell ? "reachable" : "MISSING"}, ${notify.kept} kept`);
   if (notify.error || !notify.bell || notify.kept < 1) {
     lines.push(`\ndismissed notifications are not reviewable${notify.error ? " — " + notify.error : ""}`);
