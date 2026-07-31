@@ -1644,7 +1644,7 @@ class Component extends DCLogic {
     const name = host ? host.getAttribute("data-appear") : null;
     if (!name) return false;
     this._appearReturn = document.activeElement;
-    this.setState({ menu: null, appearOpen: true, appearTarget: name, appearAt: this.appearAnchor(host) });
+    this.setState({ menu: null, appearOpen: true, appearTarget: name, appearAt: this.appearAnchor(host), appearColorDraft: null });
     return true;
   }
 
@@ -2918,9 +2918,9 @@ class Component extends DCLogic {
         e.preventDefault();
         const name = host.getAttribute("data-appear");
         const at = { x: Math.min(e.clientX, window.innerWidth - 350), y: Math.max(8, Math.min(e.clientY, window.innerHeight - 470)) };
-        if (e.shiftKey) { this.setState({ appearOpen: true, appearTarget: name, appearAt: at }); return; }
+        if (e.shiftKey) { this.setState({ appearOpen: true, appearTarget: name, appearAt: at, appearColorDraft: null }); return; }
         this.menuAt(e, name, [
-          { key: "appear", icon: "🎨", label: CX.i18n.t("menu.editAppearanceFor", { name: name }), click: () => this.setState({ menu: null, appearOpen: true, appearTarget: name, appearAt: at }) },
+          { key: "appear", icon: "🎨", label: CX.i18n.t("menu.editAppearanceFor", { name: name }), click: () => this.setState({ menu: null, appearOpen: true, appearTarget: name, appearAt: at, appearColorDraft: null }) },
           { key: "reset", icon: "↺", label: CX.i18n.t("menu.resetElementAppearance"), click: () => { const appearance = Object.assign({}, st.appearance); delete appearance[name]; CX.store.set("appearance", appearance); this.setState({ menu: null, appearance }); } }
         ]);
       },
