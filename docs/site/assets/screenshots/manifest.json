@@ -104,6 +104,12 @@
       "note": "Per-element appearance editor — the two-dimensional colour field and the twelve-space translator"
     },
     {
+      "id": "appearance-colour",
+      "file": "12b-appearance-colour.png",
+      "applied": true,
+      "note": "The same editor scrolled to its end — the continuous colour field and hue strip, the twelve-space translator, the live contrast readout, and the three properties this build cannot represent, each with its reason"
+    },
+    {
       "id": "notifications",
       "file": "13-notifications.png",
       "applied": true,
