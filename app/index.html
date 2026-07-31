@@ -1616,11 +1616,15 @@ class Component extends DCLogic {
   }
 
   appearAnchor(host) {
-    /* The popover is max-height:70vh and scrolls internally, so clamp against that
-       rather than a fixed 470 — a constant taller than the viewport pushed the panel
-       off the bottom of short windows, which the screenshot audit caught. */
+    /* The popover is max-height:70vh and scrolls internally, so clamp against exactly
+       that. This said Math.min(470, 70vh), which is 470 on any window taller than
+       672px — so on a full-screen window the anchor reserved 470px while the panel
+       rendered up to 1050, and the bottom two thirds of it fell off the screen. The
+       editor is much taller than it was; 470 was a fair guess when it had eight
+       controls and is simply a wrong number now. Clamp against what the CSS allows,
+       not against a remembered size. */
     const W = 330, GAP = 12;
-    const H = Math.min(470, Math.round(window.innerHeight * 0.7));
+    const H = Math.round(window.innerHeight * 0.7);
     if (!host || !host.getBoundingClientRect) return { x: 24, y: 24 };
     const r = host.getBoundingClientRect();
     let x = r.right + GAP;

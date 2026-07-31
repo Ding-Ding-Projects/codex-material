@@ -162,11 +162,49 @@ const SHOTS = [
     id: "appearance",
     file: "12-appearance.png",
     nav: "chat",
-    note: "Per-element appearance editor — the two-dimensional colour field and the twelve-space translator",
+    note: "Per-element appearance editor — the typography half: slant, capitalization, five underline styles, single and double strike, super/subscript, direction and alignment",
     after: `
       (() => {
         const host = document.querySelector('[data-appear="Composer"]') || document.querySelector('[data-appear]');
         window.__cxRoot.openAppearFor(host);
+      })()
+    `,
+  },
+  {
+    /* The editor is 23 properties tall and scrolls internally, so one frame cannot
+       show it. This is the same panel scrolled to the colour half: the six colour
+       targets, the 2-D field, the hue strip and the translator. Two honest
+       screenshots beat one that crops the feature and a caption that describes what
+       is off-frame. */
+    id: "appearance-colour",
+    file: "12b-appearance-colour.png",
+    nav: "chat",
+    /* The scroll clamps at the bottom, because what follows the colour heading is
+       itself taller than the panel. So this frames the end of the editor rather than
+       the colour chips, and the note says that instead of promising the chips. */
+    note: "The same editor scrolled to its end — the continuous colour field and hue strip, the twelve-space translator, the live contrast readout, and the three properties this build cannot represent, each with its reason",
+    after: `
+      (() => {
+        const host = document.querySelector('[data-appear="Composer"]') || document.querySelector('[data-appear]');
+        window.__cxRoot.openAppearFor(host);
+        return new Promise((done) => {
+          requestAnimationFrame(() => {
+            const panel = document.querySelector('[data-appear="Appearance editor"]');
+            // Scroll to the colour target chips rather than to a pixel offset: the
+            // panel's height changes with the language mode, and a hard-coded scroll
+            // would frame something different in 廣東話.
+            const anchor = panel && [...panel.querySelectorAll("div")].find(
+              (d) => d.textContent.trim() === "COLOUR" || d.textContent.trim() === "顏色"
+            );
+            // offsetTop is already relative to the panel — it is position:fixed, so it
+            // is the offsetParent for everything inside it. Subtracting the panel's own
+            // offsetTop as well over-scrolled past the colour chips this shot exists to
+            // show.
+            if (anchor && panel) panel.scrollTop = Math.max(0, anchor.offsetTop - 12);
+            else if (panel) panel.scrollTop = panel.scrollHeight;
+            requestAnimationFrame(() => done(true));
+          });
+        });
       })()
     `,
   },

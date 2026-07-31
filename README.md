@@ -64,9 +64,15 @@ The app is pointed at an **authored `CODEX_HOME`** ([`tools/make-capture-home.mj
 
 **Per-element appearance editor** — anchored beside the element, never on top of it.
 
-![The per-element appearance editor open beside the composer: a font picker, size and weight sliders, style toggles, a draggable two-dimensional saturation and brightness field with a hue strip beneath it, a colour value field, and a scrolling list of colour-space translations](assets/screenshots/12-appearance.png)
+![The per-element appearance editor open beside the composer: a font picker, size and weight sliders, an exact-percent field, and segmented controls for slant, capitalization, underline style, strikethrough, superscript and subscript, text direction and alignment](assets/screenshots/12-appearance.png)
 
-*The colour section is a continuous two-dimensional field with the thumb on the current colour, not a swatch grid. The value field reads back every one of the twelve representations the translator writes — hex, rgb, hsl, hwb, lab, lch, oklab, oklch, cmyk and the named colours.*
+*Twenty-three typography properties, which is the word-processor set rather than a bold button and a colour. Every one of them becomes CSS through a single function shared with the exporter — the two used to keep separate lists, which is how one property came to apply in the running app and appear in no exported document.*
+
+**One picker, six colours, and an honest list of what is missing.**
+
+![The same appearance editor scrolled to its end: a two-dimensional saturation and brightness field with a hue strip, named hue, saturation and brightness sliders, a colour value field reading #D0BCFF, a scrolling list of colour-space translations, a contrast readout, and a section headed WHAT THIS BUILD CANNOT DO listing three properties with the reason each is unavailable](assets/screenshots/12b-appearance-colour.png)
+
+*The colour section is a continuous two-dimensional field, not a swatch grid, and it writes whichever of the six colour properties is selected above it. The value field reads back every one of the twelve representations the translator writes. The section at the bottom is the part worth reading: three properties this build genuinely cannot represent, each shown with its reason rather than left absent, because a control that simply is not there reads as one nobody thought of.*
 
 **Bilingual mode** — English and playful Hong Kong Cantonese together, at funny level 5.
 
