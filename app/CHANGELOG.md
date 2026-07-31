@@ -378,6 +378,57 @@ system is reimplemented.
 These correct defects in the design prototype and the first shell, both committed
 earlier within this same unreleased version — not in any shipped release.
 
+- **`app/cx-appearance.js` was never loaded by the page.** No `<script src>` tag listed
+  it, so `window.CX_APPEARANCE` did not exist at runtime: appearance export, import and
+  every named preset hit their `if (!A)` guard and reported that the module was missing
+  from the build — accurate, and indistinguishable from a packaging accident. Its own
+  tests passed throughout, because the test runner reads module files directly rather
+  than through the page. Two tests now check that every `app/*.js` is in the page and
+  that every `CX_*` global the page reads is assigned by something loaded.
+- **Three Extend toggles could never have worked.** Enabling or disabling a skill, a
+  hook or a plugin sent `{ name }` to three handlers that read three different things:
+  `skillToggle` renames a directory and reads `dir`, `hookToggle` looks a hook up by
+  `event` and `index`, and `codex_plugin_toggle` was never registered, so the preload
+  refused it by name. Every one rejected, and the promise had no `.catch()` — so nothing
+  was said, nothing was logged, and the switch simply never moved. Each row now carries
+  what its own backend reads. There is no plugin toggle at all, because the CLI has
+  none: `codex plugin` does add, list, marketplace and remove. That row is locked and
+  says so.
+- **The spoken narrator had no caller.** `say()` was written with a serialised queue, a
+  debounce, a per-category cooldown and a supersede rule, and no code in the app ever
+  invoked it, so turning the narrator on did nothing at all. It reads every notification
+  now; errors and warnings skip the cooldown, because the rate limit exists to stop
+  chatter rather than to swallow the message that matters. It also read a settings key
+  nothing has ever written, so it came back off on every launch regardless of the
+  switch.
+- **Four messages showed a literal `{placeholder}` to the user** — both appearance-import
+  errors, the export confirmation and the bulk-close failure. The call site and the
+  table entry named their variables differently, and an unknown placeholder is left
+  visible by design, so the bug rendered while every test stayed green. Two tests now
+  compare what each entry declares against what its call site passes.
+- **The regex builder rendered English in all three language modes** — its heading, the
+  anchor note, the sample label, the engine note and Apply. Sixteen translated entries
+  were unused in the table. The anchor note also named the wrong field for half its
+  targets: it branched on five and fell through to "sidebar search" for the other five,
+  so opening it from the changelog or the history claimed Apply would write back into a
+  field the user was not looking at.
+- **A failure fetching the Codex CLI took the whole release with it.** The staging step
+  is written to warn and continue, but GitHub's PowerShell shell appends an exit check
+  on `$LASTEXITCODE`, so a non-zero exit ended the step — and the release job — before
+  the code deciding to ship without a bundled CLI could run.
+- **A style written by the first build could not be switched off.** Legacy documents
+  store `italic: true`, which the reader maps to the modern `slant`; clearing the Slant
+  control deleted `slant`, and the reader immediately re-derived it from the `italic`
+  still beside it. Writing a modern property now retires the legacy one it supersedes.
+- **The colour translator was reachable only with a mouse.** Twelve rows, each a plain
+  element with a click handler and a tooltip reading "Copy", so a screen reader
+  announced twelve identical controls and a keyboard user could copy none of them. They
+  are buttons now, each named for its own colour space and value.
+- **The account name reached the repository by three further routes**: a hard-coded
+  home directory in the WSL path builder, which also assumed drive C; the committed
+  screenshot manifest, whose console output was recorded verbatim; and the Skills list,
+  which rendered absolute paths from the machine's real home. A test now checks every
+  committed text file rather than relying on a grep somebody remembers to run.
 - Releases stopped carrying a dim sum code name. The build index moved to the run
   number — which is already past 590, having been inflated by an earlier CI trigger
   loop — while the dish list it indexed was the 72-dish photo slice bundled in the
