@@ -208,6 +208,26 @@ Import never silently drops a value it cannot represent: every rejection is name
 because a theme that quietly loses half its settings is worse than one that refuses outright.
 Deleting a preset offers an undo rather than a confirmation dialog.
 
+### Per-element appearance
+
+Right-click any named surface for **Edit appearance…**, or <kbd>Shift</kbd>+right-click to skip the
+menu. Typeface, slant, capitalization, underline, size, weight, letter spacing, text colour and
+highlight — applied live, kept per element, and persisted. Colours accept any notation the
+twelve-space translator reads.
+
+The sheet the editor lives in is itself a named target, so the appearance system can restyle its
+own chrome. A theming feature that cannot theme its own dialog is incomplete.
+
+A tab keeps its own context menu: tab management matters more there, and pressing
+<kbd>Shift</kbd>+right-click on one opens the editor directly instead.
+
+Two rules carried over from the app, both learned the hard way:
+
+- **Only properties this system set on the previous pass are cleared.** Writing `""` for every
+  property it knows about erases the stylesheet's own values — the app did exactly that once, and
+  its UI audit went from 23 findings to 251 while every other test stayed green.
+- **A cleared control removes its property rather than storing `""`,** so an element restyled back
+  to plain does not carry a page of empty values into an exported preset.
 ### Notifications
 
 Copying, clearing a filter, saving a preference, pinning a tab and every input error raise a corner
