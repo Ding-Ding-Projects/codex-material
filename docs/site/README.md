@@ -17,7 +17,7 @@ works, offline, exactly as it does when published.
 | `index.html` | ~135 | The document skeleton: top bar, tab strip, search field, the anchored regex builder, six empty tab panels, the toast region and the dim sum host. Every panel's content is rendered by `app.js`. |
 | `app.css` | ~505 | All styling. Material 3 tokens, light and dark, layout, components, responsive rules, `prefers-reduced-motion`, and a print stylesheet. |
 | `app.js` | ~1790 | All behaviour: preference store, i18n, colour maths, theming, the bounded regex engine, the tab model, one render function per panel, toasts and the dim sum draw. |
-| `articles.js` | ~1590 | All content: the facts table, the voiced string table, 20 feature articles, the screenshot list, the dim sum catalog, the changelog transcription and the documentation index. |
+| `articles.js` | ~1640 | All content: the facts table, the voiced string table, 21 feature articles, the screenshot list, the dim sum catalog, the changelog transcription and the documentation index. |
 | `.nojekyll` | 0 | Tells GitHub Pages to serve this directory verbatim rather than running it through Jekyll. |
 | `assets/` | — | Fonts, the app icon, the 25 screenshots and the 72 dim sum photographs, staged inside the site directory so it is self-contained. |
 
@@ -130,11 +130,27 @@ Six tabs — Overview, Features, Documentation, Screenshots, Changelog, Settings
 - **Pinning.** <kbd>P</kbd> on a focused tab, or its context menu (right-click, or the
   <kbd>Menu</kbd> key). Pinned tabs sit in a stable region ahead of the others and are never hidden
   by the overflow.
+- **Reordering.** <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>←</kbd>/<kbd>→</kbd> on a focused tab, or
+  *Move left* / *Move right* in its menu. A tab moves within its own region only — a pinned tab
+  cannot be shuffled in among the loose ones and back out again, which is the point of pinning.
+- **Groups.** Create one from a tab's menu, then name it, colour it with any notation the
+  translator reads, collapse it, or dissolve it. Dissolving keeps every tab in it: the tabs are
+  this site's sections and there is nothing to close. A collapsed group hides its members from the
+  strip but never from the searches — that is what makes collapsing safe — and the active tab is
+  never hidden.
+- **Four tab-discovery searches**, reached from **Find tabs**: this strip, inside one group, groups
+  by name, and every tab everywhere. Each keeps its own query, pattern, flags and mode, and each
+  has its own regex builder that writes back into the field that opened it. One shared search would
+  silently apply the last query you typed to whichever surface you opened next. Every result says
+  where it lives — which group, whether pinned, whether that group is collapsed — because a result
+  you cannot locate is a result you cannot act on.
 - **Overflow.** When the tabs do not fit, the ones that do not fit move into a **More (n)** menu.
   Pinned tabs and the active tab are never overflowed — an overflow that can swallow the tab you
   are reading is worse than no overflow at all.
-- **Persistence.** The active tab and the pin list are stored in `localStorage`, and the active tab
-  is also mirrored into the URL hash so a tab can be linked to.
+- **Persistence.** The active tab, the pin list, the manual order, and every group with its name,
+  colour, collapsed state and membership are stored in `localStorage`. The active tab is also
+  mirrored into the URL hash so a tab can be linked to. A group that forgets it was collapsed the
+  moment you reload is a decoration rather than a feature.
 
 ### Search and the regex builder
 
@@ -172,12 +188,25 @@ and never facts — see the rule above, and the live demonstration on the Settin
 
 Theme (system / light / dark, with the explicit choice overriding the system setting in both
 directions), accent colour, interface font, font size, density, language mode, both funny sliders,
-the dim sum switch, the regex default, and a reset.
+the dim sum switch, the regex default, named presets, and a reset.
 
-The accent picker is **continuous**: a 2-D saturation/value field plus a hue slider, with hex, RGB
-and HSL text entry, all four synchronised. It is keyboard-operable — arrow keys move the field,
-<kbd>Shift</kbd> takes bigger steps. Beside it, a translator shows the current colour as HEX, RGB,
-HSL, HSV and OKLCH with a WCAG contrast ratio against the page surface and an AA/AAA verdict.
+The accent picker is **continuous**: a 2-D saturation/value field plus a hue slider, with one text
+field that reads every notation the translator writes — in both the legacy comma form and the
+modern space-with-slash-alpha form. It is keyboard-operable: arrow keys move the field,
+<kbd>Shift</kbd> takes bigger steps.
+
+Beside it, a **twelve-space translator**: HEX, HEX8, RGB, RGBA, HSL, HSV, HWB, LAB, LCH, OKLab,
+OKLCH and CMYK, plus the named colours when one matches, with a WCAG contrast ratio against the
+page surface and an AA/AAA verdict. Alpha travels rather than being dropped — a lost alpha is
+indistinguishable from a colour that never had one. Every row is a button, so all twelve can be
+copied from the keyboard, and each is named for its own space rather than announcing twelve
+identical "Copy" controls.
+
+**Named presets** save the current look under a name and export to a real file. A preset holds
+theme, accent, font, font scale and density — the look, not which page you happen to be reading.
+Import never silently drops a value it cannot represent: every rejection is named with its reason,
+because a theme that quietly loses half its settings is worse than one that refuses outright.
+Deleting a preset offers an undo rather than a confirmation dialog.
 
 ### Notifications
 
