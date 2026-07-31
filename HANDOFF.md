@@ -6,27 +6,28 @@ Nothing here is predicted, and nothing is claimed green that was not observed gr
 
 | | |
 | --- | --- |
-| **Snapshot commit** | `e335f5c` — *Stop the Cantonese voice reading an English body* |
+| **Snapshot commit** | `f387bb9` — *Replace four blocking prompts with a non-blocking sheet, and guard against more* |
 | **Branch** | `main` |
 | **Captured** | 2026-07-31 |
 | **Platform** | Windows-only Electron app (`electron/main.js`), no macOS or Linux target |
 | **Public repo** | `Ding-Ding-Projects/codex-material` |
-| **Newest release** | `v0.1.0+build.626` — non-draft, carrying a real NSIS `.exe` and `.msi`, code-named *Watercress Honey Drink · 西洋菜蜜* |
+| **Newest release** | `v0.1.0+build.642` — non-draft, carrying a real NSIS `.exe` and `.msi`, code-named *Dried Shredded Squid · 魷魚絲* |
 
 ## Verification block
 
 Run these five. Every figure in this document came from them.
 
 ```bash
-node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/capture.mjs && node tools/audit-ui.mjs && node tools/smoke.mjs
+node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/capture.mjs && node tools/audit-ui.mjs && node tools/smoke.mjs && node tools/check-site.mjs
 ```
 
-| Command | Observed at `e335f5c` |
+| Command | Observed at `f387bb9` |
 | --- | --- |
 | `node tools/test-frontend.mjs` | **36 passed, 0 failed** |
 | `node tools/test-backend.mjs` | **33 passed, 0 failed** |
 | `node tools/capture.mjs` | **exit 0** — 25 shots written, 1 console message (the expected CSP notice) |
 | `node tools/audit-ui.mjs` | **25 findings across 240 cells, 0 severity high** — all 25 are the harness noting a deliberately ellipsised label |
+| `node tools/check-site.mjs` | **PASSED** — the landing page in a real browser: 6 tabs, 4 tab searches, 12 colour notations, 4/4 preset controls, the settings search filtering and restoring, the appearance editor applying and clearing an override, the notification history reachable, 0 blocking dialogs, 0 console errors |
 | `node tools/smoke.mjs` | **PASSED** — CLI answered; 40 IPC ok / 7 refused as designed / 8 skipped / 0 failed; 10 panels, 7 overlays and 3 language modes ok; 0 console errors |
 
 > [!NOTE]
@@ -46,6 +47,107 @@ node tools/test-frontend.mjs && node tools/test-backend.mjs && node tools/captur
 > harness still wrote nineteen screenshots of a black rectangle.
 
 ## Where things stand, and what to pick up
+
+### The documentation site now carries the features, not just their descriptions
+
+Thirteen commits. The site documented the app's features while having almost none of them; the
+shared instructions hold it to the same standard as the app it documents.
+
+| Feature | Was | Now |
+| --- | --- | --- |
+| Colour translator | 5 notations, 3 single-purpose fields | **12** + named colours, one field reads all of them |
+| Tab groups | none | create, name, colour, collapse, dissolve |
+| Tab reordering | none | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>←</kbd>/<kbd>→</kbd> and the menu, within a tab's own region |
+| Tab-discovery searches | one | **four**, each with its own query, flags, mode and regex builder |
+| Named presets | none | save, apply, delete-with-undo, export and import as a file |
+| Per-element appearance | **zero** `data-appear` targets | right-click any surface; the editor's own sheet is a target too |
+| Settings search | none | matches label, description **and current value**, own regex builder |
+| Version history | none | append-only, date + action + text filter, restore writes a new revision |
+| Notification history | toasts vanished | the bell keeps everything said this page load |
+
+Round trips verified: every notation emitted for seven colours parsed back — 105 trips, worst
+channel drift 2, plus all 30 named colours by name.
+
+#### The gap underneath all of them
+
+**The site had no test at all.** `node --check` proves a file parses and says nothing about whether
+the page boots — so the site was the one surface where parsing was the whole of the evidence.
+
+`node tools/check-site.mjs` loads the exact bytes GitHub Pages serves, in a real browser, and
+*drives* things rather than finding them:
+
+```
+blocking dialogs   none
+notify history     reachable, 3 kept
+history            +1 revision on a change, 1 action filter(s), append-only: yes
+settings search    present, filters, restores
+appearance targets 6
+override applied   yes
+override cleared   yes
+tabs rendered      6
+find-tabs entries  4 — Search this tab strip… | Search inside a group… | …
+colour notations   12 — HEX HEX8 RGB RGBA HSL HSV HWB LAB LCH OKLAB OKLCH CMYK
+preset controls    4/4
+console errors     0
+```
+
+`--shot` writes PNGs of the surfaces it checks. It runs in CI beside the smoke test.
+
+#### What it caught, that nothing else would have
+
+- **The Find-tabs menu opened and closed on the same click.** I passed `null` as `popupMenu`'s
+  trigger, and the document-level dismiss handler closes any menu whose click landed outside its
+  trigger. It looked exactly like a menu that never opened.
+- **The history panel never refreshed**, so changing a setting and looking straight at it showed
+  nothing — indistinguishable from not recording. The disagreement that exposed it: the check said
+  `+0 revisions` while `localStorage` said `1`.
+- **The repaint hook attached to the wrong function.** `paint(); return card;` appears in both
+  `renderHistory` and `renderPicker`; my anchor matched the picker's. Both compile, both run.
+- **A screenshot caught what no assertion could**: the picker's own paragraph promised *"five
+  notations"* above a list printing twelve. The DOM check counted rows; the sentence describing
+  them is prose.
+- **The check was inheriting state between runs.** Electron persists `localStorage` in its default
+  userData directory, so a run picked up whatever the last one left. It reported "matches that
+  pattern" for a plain-text search because an earlier session had switched regex on. Fresh profile
+  per run now.
+
+#### Two mistakes of mine worth knowing about
+
+**I added four `window.prompt` calls** with the tab groups and presets — while the site's README
+promised it calls none. Replaced with `askFor()`, a sheet that inherits the theme, font, density
+and Escape. A source-level guard now fails the check if any come back; proven both ways.
+
+**Four times today a shell heredoc ate my backslashes.** It produced a regex guard that could never
+fail (`\b` became a backspace character), a privacy pattern whose Windows half read as "a colon
+followed by one or more plus signs", and — most recently — a blocking-dialog guard so broken that
+`check-site-main.cjs` would not load at all. **Write scripts through a file, not a heredoc.**
+
+### State at handoff
+
+| | |
+| --- | --- |
+| **HEAD** | `f387bb9`, pushed, tree clean |
+| **CI** | all runs settled green |
+| **Frontend / backend tests** | 36 / 33, 0 failed |
+| **Smoke** | passed, 0 console errors |
+| **Site check** | passed, 0 console errors |
+| **Site articles** | 21, including one about the site itself |
+
+### Open at handoff
+
+1. **The installers are unsigned.** Needs a code-signing certificate — a purchase, so not an
+   agent's to make. Blocked, not pending.
+2. **`gh` has no `read:project` scope**, so the GitHub Projects half of the handoff is unsatisfied.
+   Refreshing it is an interactive device-code flow against the account's own credentials.
+3. **Nine CI runs were cancelled at `03:42:41Z` by `@cafepromenade`** — a person, not a limit.
+   Everything since is green so nothing was lost, but if that was deliberate throttling, pushes
+   should be batched rather than one per change. **Worth asking before the next long session.**
+4. **109 string-table keys are unreachable** and deliberately left, with the reasoning recorded
+   under *Skipped by decision* in `HANDOFF.md` — a first attempt at deleting them nearly removed
+   four live error messages.
+
+---
+
 
 **Done and verified at this commit**
 
