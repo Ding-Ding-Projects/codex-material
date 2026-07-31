@@ -1474,11 +1474,11 @@ class Component extends DCLogic {
     const setRe = (pattern) => { const patch = { menu: null }; patch[target + "Regex"] = { pattern, flags: ["g", "i"] }; patch[target + "Query"] = pattern; this.setState(patch); };
     const esc = String(text || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     return [
-      { key: "f1", icon: "⌕", label: "Filter to “" + text + "”", click: () => setQ(text) },
-      { key: "f2", icon: "∌", label: "Exclude “" + text + "”", click: () => setRe("^(?!.*" + esc + ").*$") },
-      { key: "f3", icon: "^", label: "Filter: starts with this", click: () => setRe("^" + esc) },
-      { key: "f4", icon: "=", label: "Filter: exact match", click: () => setRe("^" + esc + "$") },
-      { key: "f5", icon: ".*", label: "Open regex builder with this", click: () => { this.setState({ menu: null }); this.openRegexFor(target, text); } },
+      { key: "f1", icon: "⌕", label: CX.i18n.t("menu.filterTo", { text: text }), click: () => setQ(text) },
+      { key: "f2", icon: "∌", label: CX.i18n.t("menu.exclude", { text: text }), click: () => setRe("^(?!.*" + esc + ").*$") },
+      { key: "f3", icon: "^", label: CX.i18n.t("menu.startsWith"), click: () => setRe("^" + esc) },
+      { key: "f4", icon: "=", label: CX.i18n.t("menu.exactMatch"), click: () => setRe("^" + esc + "$") },
+      { key: "f5", icon: ".*", label: CX.i18n.t("menu.openRegexWith"), click: () => { this.setState({ menu: null }); this.openRegexFor(target, text); } },
       { key: "f6", icon: "✕", label: CX.i18n.t("destructive.clearFilter"), click: () => setQ("") }
     ];
   }
@@ -1829,7 +1829,7 @@ class Component extends DCLogic {
       return [
       mk("Authentication", rows, [
         { key: "login", label: "codex login", fg: "var(--m3-on-surface)", click: () => CX.bridge.invoke("codex_login", { method: "chatgpt" }).then(() => { this.toast("Logged in with ChatGPT"); this.setState({ tick: this.state.tick + 1 }); }) },
-        { key: "api", label: "Login with API key", fg: "var(--m3-on-surface)", click: () => CX.bridge.invoke("codex_login", { method: "api" }).then(() => { this.toast("API key stored"); this.setState({ tick: this.state.tick + 1 }); }) },
+        { key: "api", label: CX.i18n.t("menu.loginApiKey"), fg: "var(--m3-on-surface)", click: () => CX.bridge.invoke("codex_login", { method: "api" }).then(() => { this.toast("API key stored"); this.setState({ tick: this.state.tick + 1 }); }) },
         { key: "out", label: "codex logout", fg: "var(--m3-error)", click: () => CX.bridge.invoke("codex_logout").then(() => { this.toast("Credentials removed"); this.setState({ tick: this.state.tick + 1 }); }) }
       ])
       ];
@@ -1843,7 +1843,7 @@ class Component extends DCLogic {
       }
       if (!u.available) {
         return [mk("Token usage", [{ key: "n", name: "Nothing recorded yet", detail: u.reason, dot: "var(--m3-on-surface-variant)" }],
-          [{ key: "re", label: "Look again", fg: "var(--m3-primary)", click: () => { this._usage = null; this.setState({ tick: this.state.tick + 1 }); } }])];
+          [{ key: "re", label: CX.i18n.t("menu.lookAgain"), fg: "var(--m3-primary)", click: () => { this._usage = null; this.setState({ tick: this.state.tick + 1 }); } }])];
       }
       const n = (v) => (typeof v === "number" ? v.toLocaleString() : "—");
       const pct = u.last && u.last.all && u.contextWindow ? Math.round((u.last.all / u.contextWindow) * 100) : null;
@@ -1857,8 +1857,8 @@ class Component extends DCLogic {
         { key: "w", name: "Last turn vs context window", detail: n(u.last.all) + " / " + n(u.contextWindow) + (pct == null ? "" : " (" + pct + "%)"), dot: pct != null && pct > 80 ? "var(--m3-warn)" : "var(--m3-ok)" },
         { key: "p", name: "Plan", detail: (u.plan || "—") + (u.rateLimitReached ? " · rate limit reached: " + u.rateLimitReached : ""), dot: u.rateLimitReached ? "var(--m3-error)" : "var(--m3-ok)" }
       ], [
-        { key: "cost", label: "Price this in Cost", fg: "var(--m3-primary)", click: () => { this.setCost({ inTok: u.total.input || 0, outTok: u.total.output || 0 }); this.setState({ nav: "cost" }); } },
-        { key: "re", label: "Re-read", fg: "var(--m3-on-surface)", click: () => { this._usage = null; this.setState({ tick: this.state.tick + 1 }); } }
+        { key: "cost", label: CX.i18n.t("menu.priceInCost"), fg: "var(--m3-primary)", click: () => { this.setCost({ inTok: u.total.input || 0, outTok: u.total.output || 0 }); this.setState({ nav: "cost" }); } },
+        { key: "re", label: CX.i18n.t("menu.reread"), fg: "var(--m3-on-surface)", click: () => { this._usage = null; this.setState({ tick: this.state.tick + 1 }); } }
       ])];
     }
     if (view === "cloud") {
@@ -1868,7 +1868,7 @@ class Component extends DCLogic {
           .catch((e) => { this._cloud = { available: false, reason: e && e.message ? e.message : String(e) }; this.setState({ tick: this.state.tick + 1 }); });
         return [mk("Cloud tasks", [{ key: "l", name: "Running `codex cloud list`…", detail: "", dot: "var(--m3-warn)" }])];
       }
-      const reload = { key: "re", label: "Try again", fg: "var(--m3-primary)", click: () => { this._cloud = null; this.setState({ tick: this.state.tick + 1 }); } };
+      const reload = { key: "re", label: CX.i18n.t("act.retry"), fg: "var(--m3-primary)", click: () => { this._cloud = null; this.setState({ tick: this.state.tick + 1 }); } };
       if (!c.available) {
         /* `codex cloud` is EXPERIMENTAL and refuses outright without cloud access.
            Saying what it said beats an empty list that looks like "you have none". */
@@ -1896,7 +1896,7 @@ class Component extends DCLogic {
     const dot = (c) => (c.status === "ok" ? "var(--m3-ok)" : c.status === "warning" ? "var(--m3-warn)" : "var(--m3-error)");
     const mark = (c) => (c.status === "ok" ? "●" : c.status === "warning" ? "▲" : "✕");
     return d.groups.map((g) => mk(g.name, g.checks.map((c, i) => ({ key: g.name + i, name: c.name, detail: c.detail, dot: dot(c), mark: mark(c), status: c.status || "unknown" })),
-      g.name === "Runtime" ? [{ key: "re", label: "Re-run doctor", fg: "var(--m3-primary)", click: () => { this._doctor = null; this.setState({ tick: this.state.tick + 1 }); } }] : []));
+      g.name === "Runtime" ? [{ key: "re", label: CX.i18n.t("menu.rerunDoctor"), fg: "var(--m3-primary)", click: () => { this._doctor = null; this.setState({ tick: this.state.tick + 1 }); } }] : []));
   }
 
   listConfig() {
@@ -1909,10 +1909,10 @@ class Component extends DCLogic {
         go: () => this.setState({ activeSession: s.id, messages: this.seedMessages() }),
         context: (e) => this.menuAt(e, s.name, [
           { key: "resume", icon: "▶", label: CX.i18n.t("opt.resumeSession"), click: () => { this.setState({ menu: null, activeSession: s.id }); this.toast("codex resume " + s.id); } },
-          { key: "fork", icon: "⑂", label: "Fork session", click: () => { const ns = Object.assign({}, s, { id: "s" + Date.now(), name: s.name + " (fork)" }); this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => (x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.concat([ns]) }) : x)), "Fork session " + s.name); } },
+          { key: "fork", icon: "⑂", label: CX.i18n.t("menu.forkSession"), click: () => { const ns = Object.assign({}, s, { id: "s" + Date.now(), name: s.name + " (fork)" }); this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => (x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.concat([ns]) }) : x)), "Fork session " + s.name); } },
           { key: "arch", icon: "🗄", label: s.archived ? "Unarchive" : "Archive", click: () => { this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => (x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.map((y) => (y.id === s.id ? Object.assign({}, y, { archived: !y.archived }) : y)) }) : x)), (s.archived ? "Unarchive" : "Archive") + " " + s.name); } },
-          { key: "move", icon: "→", label: "Move to another profile", click: () => { const other = st.profiles.filter((x) => x.id !== p.id)[0]; if (!other) return; this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.filter((y) => y.id !== s.id) }) : x.id === other.id ? Object.assign({}, x, { sessions: x.sessions.concat([s]) }) : x), "Move " + s.name + " to " + other.name); } },
-          { key: "del", icon: "🗑", label: "Delete session", danger: true, click: () => { this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => (x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.filter((y) => y.id !== s.id) }) : x)), "Delete session " + s.name); this.toast("Deleted — undo it from History"); } },
+          { key: "move", icon: "→", label: CX.i18n.t("menu.moveToProfile"), click: () => { const other = st.profiles.filter((x) => x.id !== p.id)[0]; if (!other) return; this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.filter((y) => y.id !== s.id) }) : x.id === other.id ? Object.assign({}, x, { sessions: x.sessions.concat([s]) }) : x), "Move " + s.name + " to " + other.name); } },
+          { key: "del", icon: "🗑", label: CX.i18n.t("menu.deleteSession"), danger: true, click: () => { this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => (x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.filter((y) => y.id !== s.id) }) : x)), "Delete session " + s.name); this.toast("Deleted — undo it from History"); } },
           this.copyItem(s.id)
         ].concat(this.filterItems("list", s.name)).concat([this.appearItem(e)]))
       })));
@@ -1923,9 +1923,9 @@ class Component extends DCLogic {
         initial: (s.name === "(interactive)" ? "C" : s.name[0]).toUpperCase(), active: s.name === st.consoleSub,
         go: () => this.setState({ consoleSub: s.name, flagValues: {} }),
         context: (e) => this.menuAt(e, "codex " + s.name, [
-          { key: "open", icon: "▶", label: "Open flags", click: () => this.setState({ menu: null, consoleSub: s.name, flagValues: {} }) },
+          { key: "open", icon: "▶", label: CX.i18n.t("menu.openFlags"), click: () => this.setState({ menu: null, consoleSub: s.name, flagValues: {} }) },
           this.copyItem("codex " + s.name),
-          { key: "grp", icon: "⌕", label: "Filter to group “" + s.group + "”", click: () => this.setState({ menu: null, listQuery: s.group, listRegex: null }) }
+          { key: "grp", icon: "⌕", label: CX.i18n.t("menu.filterToGroup", { group: s.group }), click: () => this.setState({ menu: null, listQuery: s.group, listRegex: null }) }
         ].concat(this.filterItems("list", s.name)).concat([this.appearItem(e)]))
       })));
     }
@@ -1941,8 +1941,8 @@ class Component extends DCLogic {
         key: s.id, title: s.title, subtitle: s.desc, meta: String(s.fields.length), initial: s.icon, active: s.id === st.setSection,
         go: () => this.setState({ setSection: s.id }),
         context: (e) => this.menuAt(e, s.title, [
-          { key: "o", icon: "→", label: "Open section", click: () => this.setState({ menu: null, setSection: s.id }) },
-          { key: "r", icon: "↺", label: "Reset every key in section", danger: true, click: () => { const cfg = Object.assign({}, this.profile().config); s.fields.forEach((f) => delete cfg[f.key]); this.setState({ menu: null }); this.patchProfile({ config: cfg }, "Reset section " + s.title); } }
+          { key: "o", icon: "→", label: CX.i18n.t("menu.openSection"), click: () => this.setState({ menu: null, setSection: s.id }) },
+          { key: "r", icon: "↺", label: CX.i18n.t("menu.resetSection"), danger: true, click: () => { const cfg = Object.assign({}, this.profile().config); s.fields.forEach((f) => delete cfg[f.key]); this.setState({ menu: null }); this.patchProfile({ config: cfg }, "Reset section " + s.title); } }
         ].concat(this.filterItems("list", s.title)).concat([this.appearItem(e)]))
       })));
     }
@@ -1956,7 +1956,7 @@ class Component extends DCLogic {
           go: () => this.setState({ activeSession: s.id }),
           context: (e) => this.menuAt(e, s.name, [
             { key: "sp", icon: "▶", label: inst ? "Restart WSL instance" : "Spawn WSL instance", click: () => { this.setState({ menu: null }); this.wslSpawn(s); } },
-            { key: "st", icon: "■", label: "Stop instance", click: () => { this.setState({ menu: null }); CX.bridge.invoke("codex_wsl_stop", { session: s.id }).then(() => this.setState({ tick: st.tick + 1 })); } },
+            { key: "st", icon: "■", label: CX.i18n.t("menu.stopInstance"), click: () => { this.setState({ menu: null }); CX.bridge.invoke("codex_wsl_stop", { session: s.id }).then(() => this.setState({ tick: st.tick + 1 })); } },
             this.copyItem(this.wslCommand(s, inst))
           ].concat(this.filterItems("list", s.name)).concat([this.appearItem(e)]))
         };
@@ -2009,7 +2009,7 @@ class Component extends DCLogic {
           active: m.id === p.model,
           go: () => this.patchProfile({ model: m.id }, "Set model " + m.id),
           context: (e) => this.menuAt(e, m.id, [
-            { key: "use", icon: "•", label: "Use on " + p.name, click: () => { this.setState({ menu: null }); this.patchProfile({ model: m.id }, "Set model " + m.id); } },
+            { key: "use", icon: "•", label: CX.i18n.t("menu.useOnProfile", { profile: p.name }), click: () => { this.setState({ menu: null }); this.patchProfile({ model: m.id }, "Set model " + m.id); } },
             this.copyItem(m.id)
           ].concat(this.filterItems("list", m.id)).concat([this.appearItem(e)]))
         };
@@ -2041,7 +2041,7 @@ class Component extends DCLogic {
         this.setState({ histActions: next });
       },
       context: (e) => this.menuAt(e, k.title, [
-        { key: "only", icon: "⌕", label: "Show only " + k.title, click: () => this.setState({ menu: null, histActions: k.id === "__all" ? [] : [k.id] }) }
+        { key: "only", icon: "⌕", label: CX.i18n.t("menu.showOnly", { what: k.title }), click: () => this.setState({ menu: null, histActions: k.id === "__all" ? [] : [k.id] }) }
       ].concat(this.filterItems("list", k.title)).concat([this.appearItem(e)]))
     })));
   }
@@ -2113,9 +2113,9 @@ class Component extends DCLogic {
       lifetimeDeltaFg: !known || st.cost.plan === 0 ? "var(--m3-on-surface-variant)" : (this.lifetimeCost() >= this.lifetimePaid() ? "var(--m3-ok)" : "var(--m3-warn)"),
       lifetimeDays: String(st.lifetime.days),
       lifetimeOptions: [
-        { key: "7", value: "7", label: "7 d" }, { key: "30", value: "30", label: "30 d" },
-        { key: "90", value: "90", label: "90 d" }, { key: "180", value: "180", label: "6 mo" },
-        { key: "365", value: "365", label: "1 y" }, { key: "730", value: "730", label: "2 y" },
+        { key: "7", value: "7", label: CX.i18n.t("opt.days7") }, { key: "30", value: "30", label: CX.i18n.t("opt.days30") },
+        { key: "90", value: "90", label: CX.i18n.t("opt.days90") }, { key: "180", value: "180", label: CX.i18n.t("opt.months6") },
+        { key: "365", value: "365", label: CX.i18n.t("opt.year1") }, { key: "730", value: "730", label: CX.i18n.t("opt.years2") },
         { key: "custom", value: "custom", label: st.lifetime.days > 730 ? st.lifetime.days + " d" : "Custom…" }
       ],
       setLifetimeDays: (e) => {
@@ -2134,10 +2134,10 @@ class Component extends DCLogic {
         " if billed per token, against " + this.exact(this.lifetimePaid()) + " actually paid at " + this.exact(st.cost.plan) +
         "/month. Right-click to change the daily volume; the dropdown changes the window.",
       lifetimeMenu: (e) => this.menuAt(e, "Lifetime cost", [
-        { key: "in", icon: "↧", label: "Set input tokens per day", click: () => { this.setState({ menu: null }); const a = prompt("Average input tokens per day", String(st.lifetime.perDayIn)); if (a) { const lifetime = Object.assign({}, st.lifetime, { perDayIn: Number(a) || st.lifetime.perDayIn }); CX.store.set("lifetime", lifetime); this.setState({ lifetime }); } } },
-        { key: "out", icon: "↥", label: "Set output tokens per day", click: () => { this.setState({ menu: null }); const a = prompt("Average output tokens per day", String(st.lifetime.perDayOut)); if (a) { const lifetime = Object.assign({}, st.lifetime, { perDayOut: Number(a) || st.lifetime.perDayOut }); CX.store.set("lifetime", lifetime); this.setState({ lifetime }); } } },
-        { key: "sess", icon: "⤓", label: "Use the current session as one day", click: () => { const lifetime = Object.assign({}, st.lifetime, { perDayIn: st.cost.inTok, perDayOut: st.cost.outTok }); CX.store.set("lifetime", lifetime); this.setState({ menu: null, lifetime }); this.toast("Daily volume set from the Cost tab's figures"); } },
-        { key: "open", icon: "$", label: "Open the cost calculator", click: () => this.setState({ menu: null, nav: "cost" }) },
+        { key: "in", icon: "↧", label: CX.i18n.t("menu.setInputPerDay"), click: () => { this.setState({ menu: null }); const a = prompt(CX.i18n.t("prompt.avgInputPerDay"), String(st.lifetime.perDayIn)); if (a) { const lifetime = Object.assign({}, st.lifetime, { perDayIn: Number(a) || st.lifetime.perDayIn }); CX.store.set("lifetime", lifetime); this.setState({ lifetime }); } } },
+        { key: "out", icon: "↥", label: CX.i18n.t("menu.setOutputPerDay"), click: () => { this.setState({ menu: null }); const a = prompt(CX.i18n.t("prompt.avgOutputPerDay"), String(st.lifetime.perDayOut)); if (a) { const lifetime = Object.assign({}, st.lifetime, { perDayOut: Number(a) || st.lifetime.perDayOut }); CX.store.set("lifetime", lifetime); this.setState({ lifetime }); } } },
+        { key: "sess", icon: "⤓", label: CX.i18n.t("menu.sessionAsDay"), click: () => { const lifetime = Object.assign({}, st.lifetime, { perDayIn: st.cost.inTok, perDayOut: st.cost.outTok }); CX.store.set("lifetime", lifetime); this.setState({ menu: null, lifetime }); this.toast("Daily volume set from the Cost tab's figures"); } },
+        { key: "open", icon: "$", label: CX.i18n.t("menu.openCostCalc"), click: () => this.setState({ menu: null, nav: "cost" }) },
         this.copyItem(this.money(this.lifetimeCost()) + " over " + st.lifetime.days + " days"),
         this.appearItem(e)
       ]),
@@ -2179,10 +2179,10 @@ class Component extends DCLogic {
         fg: pr.id === p.id ? "var(--m3-on-surface)" : "var(--m3-on-surface-variant)",
         go: () => { CX.store.set("activeProfile", pr.id); this.setState({ activeProfile: pr.id, activeSession: (pr.sessions[0] || {}).id, messages: this.seedMessages() }); },
         context: (e) => this.menuAt(e, pr.name, [
-          { key: "rename", icon: "✎", label: "Rename profile", click: () => { const name = prompt("Profile name", pr.name); this.setState({ menu: null }); if (name) this.writeProfiles(st.profiles.map((x) => (x.id === pr.id ? Object.assign({}, x, { name }) : x)), "Rename profile " + pr.name + " → " + name); } },
-          { key: "dupe", icon: "⧉", label: "Duplicate profile", click: () => { const copy = JSON.parse(JSON.stringify(pr)); copy.id = "p" + Date.now(); copy.name = pr.name + " copy"; this.setState({ menu: null }); this.writeProfiles(st.profiles.concat([copy]), "Duplicate profile " + pr.name); } },
-          { key: "clear", icon: "↺", label: "Reset profile config", click: () => { this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => (x.id === pr.id ? Object.assign({}, x, { config: {} }) : x)), "Reset config of " + pr.name); } },
-          { key: "del", icon: "🗑", label: "Delete profile", danger: true, click: () => { if (st.profiles.length < 2) { this.setState({ menu: null }); this.toast("Keep at least one profile"); return; } const rest = st.profiles.filter((x) => x.id !== pr.id); this.setState({ menu: null, activeProfile: rest[0].id }); CX.store.set("activeProfile", rest[0].id); this.writeProfiles(rest, "Delete profile " + pr.name); } },
+          { key: "rename", icon: "✎", label: CX.i18n.t("menu.renameProfile"), click: () => { const name = prompt("Profile name", pr.name); this.setState({ menu: null }); if (name) this.writeProfiles(st.profiles.map((x) => (x.id === pr.id ? Object.assign({}, x, { name }) : x)), "Rename profile " + pr.name + " → " + name); } },
+          { key: "dupe", icon: "⧉", label: CX.i18n.t("menu.duplicateProfile"), click: () => { const copy = JSON.parse(JSON.stringify(pr)); copy.id = "p" + Date.now(); copy.name = pr.name + " copy"; this.setState({ menu: null }); this.writeProfiles(st.profiles.concat([copy]), "Duplicate profile " + pr.name); } },
+          { key: "clear", icon: "↺", label: CX.i18n.t("menu.resetProfileConfig"), click: () => { this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => (x.id === pr.id ? Object.assign({}, x, { config: {} }) : x)), "Reset config of " + pr.name); } },
+          { key: "del", icon: "🗑", label: CX.i18n.t("menu.deleteProfile"), danger: true, click: () => { if (st.profiles.length < 2) { this.setState({ menu: null }); this.toast("Keep at least one profile"); return; } const rest = st.profiles.filter((x) => x.id !== pr.id); this.setState({ menu: null, activeProfile: rest[0].id }); CX.store.set("activeProfile", rest[0].id); this.writeProfiles(rest, "Delete profile " + pr.name); } },
           this.appearItem(e)
         ])
       })),
@@ -2273,7 +2273,7 @@ class Component extends DCLogic {
           open: () => this.setState({ nav: "chat", activeSession: s.id }),
           context: (e) => this.menuAt(e, s.name, [
             { key: "sp", icon: "▶", label: running ? "Stop instance" : "Spawn instance", click: () => { this.setState({ menu: null }); running ? CX.bridge.invoke("codex_wsl_stop", { session: s.id }).then(() => this.setState({ tick: st.tick + 1 })) : this.wslSpawn(s); } },
-            { key: "kill", icon: "🗑", label: "Remove instance", danger: true, click: () => { this.setState({ menu: null }); CX.bridge.invoke("codex_wsl_kill", { session: s.id }).then(() => this.setState({ tick: st.tick + 1 })); } },
+            { key: "kill", icon: "🗑", label: CX.i18n.t("menu.removeInstance"), danger: true, click: () => { this.setState({ menu: null }); CX.bridge.invoke("codex_wsl_kill", { session: s.id }).then(() => this.setState({ tick: st.tick + 1 })); } },
             this.copyItem(this.wslCommand(s, inst)),
             this.appearItem(e)
           ])
@@ -2317,8 +2317,8 @@ class Component extends DCLogic {
           fg: (() => { const i = this.wslFor(st.activeSession); return i && i.status === "running" ? "var(--m3-on-primary-container)" : "var(--m3-on-surface-variant)"; })(),
           click: () => { const i = this.wslFor(st.activeSession); if (i && i.status === "running") CX.bridge.invoke("codex_wsl_stop", { session: st.activeSession }).then(() => this.setState({ tick: st.tick + 1 })); else this.wslSpawn(activeSession).then(() => this.toast("WSL instance up for this tab — commands now run through it")); },
           context: (e) => this.menuAt(e, "WSL runtime", [
-            { key: "m", icon: "🐧", label: "Open the per-tab manager", click: () => this.setState({ menu: null, nav: "runtime" }) },
-            { key: "s", icon: "▶", label: "Spawn for this tab", click: () => { this.setState({ menu: null }); this.wslSpawn(activeSession); } },
+            { key: "m", icon: "🐧", label: CX.i18n.t("menu.openTabManager"), click: () => this.setState({ menu: null, nav: "runtime" }) },
+            { key: "s", icon: "▶", label: CX.i18n.t("menu.spawnForTab"), click: () => { this.setState({ menu: null }); this.wslSpawn(activeSession); } },
             this.appearItem(e)
           ]) },
         { key: "yolo", label: st.yolo ? "YOLO on" : "YOLO", hint: "One-click bypass, remembered", bg: st.yolo ? "var(--m3-error-container)" : "transparent", fg: st.yolo ? "var(--m3-on-error-container)" : "var(--m3-on-surface-variant)", click: () => this.setYolo(!st.yolo), context: (e) => this.menuAt(e, "YOLO", [this.appearItem(e)]) }
@@ -2342,8 +2342,8 @@ class Component extends DCLogic {
           hasOut: !!m.out, out: m.out || "",
           context: (e) => this.menuAt(e, m.role, [
             this.copyItem(m.text),
-            { key: "retry", icon: "↻", label: "Put back in composer", click: () => this.setState({ menu: null, chatInput: m.text }) },
-            { key: "filter", icon: "⌕", label: "Filter sessions by this text", click: () => this.setState({ menu: null, nav: "chat", listQuery: m.text.split(" ").slice(0, 2).join(" "), listRegex: null }) },
+            { key: "retry", icon: "↻", label: CX.i18n.t("menu.backToComposer"), click: () => this.setState({ menu: null, chatInput: m.text }) },
+            { key: "filter", icon: "⌕", label: CX.i18n.t("menu.filterSessionsByText"), click: () => this.setState({ menu: null, nav: "chat", listQuery: m.text.split(" ").slice(0, 2).join(" "), listRegex: null }) },
             this.appearItem(e)
           ])
         };
@@ -2386,8 +2386,8 @@ class Component extends DCLogic {
         fg: s.name === pick.name ? "var(--m3-on-secondary-container)" : "var(--m3-primary)",
         select: () => this.setState({ slashPick: s.name, slashView: "wizard" }),
         context: (e) => this.menuAt(e, "/" + s.name, [
-          { key: "w", icon: "→", label: "Open wizard", click: () => this.setState({ menu: null, slashPick: s.name, slashView: "wizard" }) },
-          { key: "i", icon: "↵", label: "Insert into composer", click: () => this.setState({ menu: null, chatInput: "/" + s.name + " ", slashOpen: false }) },
+          { key: "w", icon: "→", label: CX.i18n.t("menu.openWizard"), click: () => this.setState({ menu: null, slashPick: s.name, slashView: "wizard" }) },
+          { key: "i", icon: "↵", label: CX.i18n.t("menu.insertIntoComposer"), click: () => this.setState({ menu: null, chatInput: "/" + s.name + " ", slashOpen: false }) },
           this.copyItem("/" + s.name)
         ].concat(this.filterItems("slash", s.name)).concat([this.appearItem(e)]))
       })),
@@ -2518,13 +2518,13 @@ class Component extends DCLogic {
             allowUnset: true, unsetLabel: "Unset flag",
             onPick: (o) => this.setState({ dd: null, flagValues: Object.assign({}, this.state.flagValues, { [f.flag]: o.value }) })
           }),
-          optionRows: [{ key: "_", value: "", label: "— unset —" }].concat(opts.map((o) => ({ key: o, value: o, label: o }))),
+          optionRows: [{ key: "_", value: "", label: CX.i18n.t("opt.unset") }].concat(opts.map((o) => ({ key: o, value: o, label: o }))),
           toggle: () => this.setState({ flagValues: Object.assign({}, st.flagValues, { [f.flag]: !on }) }),
           set: (e) => this.setState({ flagValues: Object.assign({}, st.flagValues, { [f.flag]: e.target.value }) }),
           context: (e) => this.menuAt(e, f.flag, [
             this.copyItem(f.flag),
-            { key: "clear", icon: "↺", label: "Unset this flag", click: () => { const fv = Object.assign({}, st.flagValues); delete fv[f.flag]; this.setState({ menu: null, flagValues: fv }); } },
-            { key: "only", icon: "⌕", label: "Find commands with this flag", click: () => this.setState({ menu: null, listQuery: f.flag.replace(/^-+/, ""), listRegex: null }) },
+            { key: "clear", icon: "↺", label: CX.i18n.t("menu.unsetFlag"), click: () => { const fv = Object.assign({}, st.flagValues); delete fv[f.flag]; this.setState({ menu: null, flagValues: fv }); } },
+            { key: "only", icon: "⌕", label: CX.i18n.t("menu.findCommandsWithFlag"), click: () => this.setState({ menu: null, listQuery: f.flag.replace(/^-+/, ""), listRegex: null }) },
             this.appearItem(e)
           ])
         }, this.toggleRow(on));
@@ -2616,7 +2616,7 @@ class Component extends DCLogic {
           isBool, isEnum, isArea, isInput: !isBool && !isEnum && !isArea,
           placeholder: f.type === "list" ? "comma separated" : f.type === "int" ? "number" : "unset",
           font: f.type === "path" || f.type === "list" ? "'Roboto Mono',monospace" : "inherit",
-          optionRows: [{ key: "_", value: "", label: "— default —" }].concat((f.options || []).map((o) => ({ key: o, value: o, label: o }))),
+          optionRows: [{ key: "_", value: "", label: CX.i18n.t("opt.default") }].concat((f.options || []).map((o) => ({ key: o, value: o, label: o }))),
           toggle: () => this.setConfig(f.key, !on),
           set: (e) => {
             const raw = e.target.value;
@@ -2625,7 +2625,7 @@ class Component extends DCLogic {
           context: (e) => this.menuAt(e, f.key, [
             this.copyItem(f.key),
             { key: "cli", icon: "▶", label: CX.i18n.t("copy.cOverride"), click: () => { navigator.clipboard.writeText("-c " + f.key + "=" + JSON.stringify(val)); this.setState({ menu: null }); this.toast("Copied -c override"); } },
-            { key: "reset", icon: "↺", label: "Reset to default", click: () => { this.setState({ menu: null }); this.setConfig(f.key, ""); } }
+            { key: "reset", icon: "↺", label: CX.i18n.t("menu.resetToDefault"), click: () => { this.setState({ menu: null }); this.setConfig(f.key, ""); } }
           ].concat(this.filterItems("set", f.key)).concat([this.appearItem(e)]))
         }, this.toggleRow(on));
       }),
@@ -2649,10 +2649,10 @@ class Component extends DCLogic {
          literal type="number" makes the browser validate the uncompiled
          "{{ c.value }}" text and log a parse error on every launch.  */
       costInputs: [
-        { key: "in", inputType: "number", label: "Input tokens", desc: "Prompt, files and tool output sent to the model.", value: String(st.cost.inTok), set: (e) => this.setCost({ inTok: Number(e.target.value) || 0 }) },
-        { key: "out", inputType: "number", label: "Output tokens", desc: "Reasoning plus visible answer and patches.", value: String(st.cost.outTok), set: (e) => this.setCost({ outTok: Number(e.target.value) || 0 }) },
-        { key: "turns", inputType: "number", label: "Turns", desc: "Used for the per-turn average.", value: String(st.cost.turns), set: (e) => this.setCost({ turns: Number(e.target.value) || 1 }) },
-        { key: "plan", inputType: "number", label: "Your plan ($/month)", desc: "Plus is 20, Pro is 200. Set 0 if you use an API key.", value: String(st.cost.plan), set: (e) => this.setCost({ plan: Number(e.target.value) || 0 }) }
+        { key: "in", inputType: "number", label: CX.i18n.t("opt.inputTokens"), desc: CX.i18n.t("desc.inputTokens"), value: String(st.cost.inTok), set: (e) => this.setCost({ inTok: Number(e.target.value) || 0 }) },
+        { key: "out", inputType: "number", label: CX.i18n.t("opt.outputTokens"), desc: CX.i18n.t("desc.outputTokens"), value: String(st.cost.outTok), set: (e) => this.setCost({ outTok: Number(e.target.value) || 0 }) },
+        { key: "turns", inputType: "number", label: CX.i18n.t("opt.turns"), desc: CX.i18n.t("desc.turns"), value: String(st.cost.turns), set: (e) => this.setCost({ turns: Number(e.target.value) || 1 }) },
+        { key: "plan", inputType: "number", label: CX.i18n.t("opt.planPerMonth"), desc: CX.i18n.t("desc.planPerMonth"), value: String(st.cost.plan), set: (e) => this.setCost({ plan: Number(e.target.value) || 0 }) }
       ],
       cacheRate: String(st.cacheRate),
       cacheRateLabel: st.cacheRate + "%",
@@ -2694,7 +2694,7 @@ class Component extends DCLogic {
           setIn: setPrice("in"), setCached: setPrice("cached"), setOut: setPrice("out"),
           cost: this.money(this.costFor(m.id)),
           context: (e) => this.menuAt(e, m.id, [
-            { key: "use", icon: "•", label: "Use this model on " + p.name, click: () => { this.setState({ menu: null }); this.patchProfile({ model: m.id }, "Set model " + m.id); } },
+            { key: "use", icon: "•", label: CX.i18n.t("menu.useModelOn", { profile: p.name }), click: () => { this.setState({ menu: null }); this.patchProfile({ model: m.id }, "Set model " + m.id); } },
             this.copyItem(m.id + " " + this.money(this.costFor(m.id))),
             this.appearItem(e)
           ])
@@ -2723,10 +2723,10 @@ class Component extends DCLogic {
         restore: () => { const nc = CX.vcs.checkout(c.id, c.at, c.message); if (nc) { this.reloadFromStore(); this.toast(nc.message); setTimeout(() => this.refreshGitLog(), 400); } else { CX.notify.warn(CX.i18n.t("history.noSnapshot"), c.message); } },
         context: (e) => this.menuAt(e, c.id, [
           { key: "u", icon: "↺", label: c.kind === "revert" ? "Undo this undo" : "Undo this change", click: () => { this.setState({ menu: null }); const nc = CX.vcs.revert(c.id, c.at, c.message); if (nc) { this.reloadFromStore(); this.toast(nc.message); setTimeout(() => this.refreshGitLog(), 400); } else { CX.notify.warn(CX.i18n.t("history.noSnapshot"), c.message); } } },
-          { key: "r", icon: "⤺", label: "Restore this snapshot", click: () => { this.setState({ menu: null }); if (CX.vcs.checkout(c.id, c.at, c.message)) { this.reloadFromStore(); setTimeout(() => this.refreshGitLog(), 400); } else { CX.notify.warn(CX.i18n.t("history.noSnapshot"), c.message); } } },
+          { key: "r", icon: "⤺", label: CX.i18n.t("menu.restoreSnapshot"), click: () => { this.setState({ menu: null }); if (CX.vcs.checkout(c.id, c.at, c.message)) { this.reloadFromStore(); setTimeout(() => this.refreshGitLog(), 400); } else { CX.notify.warn(CX.i18n.t("history.noSnapshot"), c.message); } } },
           this.copyItem(c.id + " " + c.message),
-          { key: "k", icon: "⌕", label: "Show only " + c.kind + " revisions", click: () => this.setState({ menu: null, histActions: [c.kind] }) },
-          { key: "d", icon: "📅", label: "Show only that day", click: () => { const day = this.isoLocal(new Date(c.at)); this.setState({ menu: null, histFrom: day, histTo: day }); } },
+          { key: "k", icon: "⌕", label: CX.i18n.t("menu.showOnlyKind", { kind: c.kind }), click: () => this.setState({ menu: null, histActions: [c.kind] }) },
+          { key: "d", icon: "📅", label: CX.i18n.t("menu.showOnlyThatDay"), click: () => { const day = this.isoLocal(new Date(c.at)); this.setState({ menu: null, histFrom: day, histTo: day }); } },
           this.appearItem(e)
         ])
       })),
@@ -2797,8 +2797,8 @@ class Component extends DCLogic {
         const at = { x: Math.min(e.clientX, window.innerWidth - 350), y: Math.max(8, Math.min(e.clientY, window.innerHeight - 470)) };
         if (e.shiftKey) { this.setState({ appearOpen: true, appearTarget: name, appearAt: at }); return; }
         this.menuAt(e, name, [
-          { key: "appear", icon: "🎨", label: "Edit appearance — " + name, click: () => this.setState({ menu: null, appearOpen: true, appearTarget: name, appearAt: at }) },
-          { key: "reset", icon: "↺", label: "Reset this element's appearance", click: () => { const appearance = Object.assign({}, st.appearance); delete appearance[name]; CX.store.set("appearance", appearance); this.setState({ menu: null, appearance }); } }
+          { key: "appear", icon: "🎨", label: CX.i18n.t("menu.editAppearanceFor", { name: name }), click: () => this.setState({ menu: null, appearOpen: true, appearTarget: name, appearAt: at }) },
+          { key: "reset", icon: "↺", label: CX.i18n.t("menu.resetElementAppearance"), click: () => { const appearance = Object.assign({}, st.appearance); delete appearance[name]; CX.store.set("appearance", appearance); this.setState({ menu: null, appearance }); } }
         ]);
       },
 
@@ -2872,10 +2872,10 @@ class Component extends DCLogic {
       appearWeight: String(appear.weight || 400),
       setAppearWeight: (e) => this.patchAppear({ weight: Number(e.target.value) }),
       appearToggles: [
-        { key: "i", label: "Italic", on: !!appear.italic, prop: "italic" },
-        { key: "u", label: "Underline", on: !!appear.underline, prop: "underline" },
-        { key: "s", label: "Strike", on: !!appear.strike, prop: "strike" },
-        { key: "w", label: "Wide", on: !!appear.wide, prop: "wide" }
+        { key: "i", label: CX.i18n.t("opt.italic"), on: !!appear.italic, prop: "italic" },
+        { key: "u", label: CX.i18n.t("opt.underline"), on: !!appear.underline, prop: "underline" },
+        { key: "s", label: CX.i18n.t("opt.strike"), on: !!appear.strike, prop: "strike" },
+        { key: "w", label: CX.i18n.t("opt.wide"), on: !!appear.wide, prop: "wide" }
       ].map((t) => ({ key: t.key, label: t.label, bg: t.on ? "var(--m3-primary)" : "transparent", fg: t.on ? "var(--m3-on-primary)" : "var(--m3-on-surface-variant)", toggle: () => this.patchAppear({ [t.prop]: !t.on }) })),
       appearColor: appearColor,
       /* Show what the user typed while it is still being typed; fall back to the
@@ -3545,20 +3545,20 @@ class Component extends DCLogic {
       { key: "rename", icon: "✎", label: CX.i18n.t("tabs.rename"), click: () => { this.setState({ menu: null }); this.renameTabPrompt(t); } },
       /* The pointer equivalent of Ctrl+Shift+Arrow. Both call the same mover, so the
          two routes cannot drift apart. */
-      { key: "mvl", icon: "◂", label: "Move left  ·  Ctrl+Shift+←", click: () => this.moveTabBy(t, -1) },
-      { key: "mvr", icon: "▸", label: "Move right  ·  Ctrl+Shift+→", click: () => this.moveTabBy(t, 1) },
+      { key: "mvl", icon: "◂", label: CX.i18n.t("opt.moveLeft") + "  ·  Ctrl+Shift+←", click: () => this.moveTabBy(t, -1) },
+      { key: "mvr", icon: "▸", label: CX.i18n.t("opt.moveRight") + "  ·  Ctrl+Shift+→", click: () => this.moveTabBy(t, 1) },
       { key: "close", icon: "✕", label: CX.i18n.t("tabs.close"), click: () => { this.setState({ menu: null }); this.closeTab(t); } },
       { key: "others", icon: "⨯", label: CX.i18n.t("tabs.closeOthers"), click: () => { this.setState({ menu: null }); this.reportClose(CX.tabs.closeOthers(t.id, false)); } },
       { key: "right", icon: "→", label: CX.i18n.t("tabs.closeRight"), click: () => { this.setState({ menu: null }); this.reportClose(CX.tabs.closeToRight(t.id, false)); } },
       { key: "bulkin", icon: "⌕", label: CX.i18n.t("tabs.bulkContaining"), click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, false); } },
       { key: "bulkout", icon: "∌", label: CX.i18n.t("tabs.bulkNotContaining"), click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, true); } },
-      { key: "newgroup", icon: "▣", label: "Move to a new group…", click: () => { this.setState({ menu: null }); const g = CX.tabs.createGroup("Group " + (groups.length + 1), "#D0BCFF"); CX.tabs.assign(t.id, g.id); } }
+      { key: "newgroup", icon: "▣", label: CX.i18n.t("tab.moveToNewGroup"), click: () => { this.setState({ menu: null }); const g = CX.tabs.createGroup("Group " + (groups.length + 1), "#D0BCFF"); CX.tabs.assign(t.id, g.id); } }
     ];
     groups.forEach((g) => {
       if (inGroup && g.id === t.groupId) return;
-      items.push({ key: "g" + g.id, icon: "▤", label: "Move to “" + g.name + "”", click: () => { CX.tabs.assign(t.id, g.id); this.setState({ menu: null }); } });
+      items.push({ key: "g" + g.id, icon: "▤", label: CX.i18n.t("tab.groupMoveIn", { group: g.name }), click: () => { CX.tabs.assign(t.id, g.id); this.setState({ menu: null }); } });
     });
-    if (t.groupId) items.push({ key: "ungroup", icon: "▢", label: "Remove from group", click: () => { CX.tabs.assign(t.id, null); this.setState({ menu: null }); } });
+    if (t.groupId) items.push({ key: "ungroup", icon: "▢", label: CX.i18n.t("tab.removeFromGroup"), click: () => { CX.tabs.assign(t.id, null); this.setState({ menu: null }); } });
     items.push(this.copyItem(t.title));
     items.push(this.appearItem(e));
     this.menuAt(e, t.title, items);
@@ -3577,12 +3577,12 @@ class Component extends DCLogic {
 
   groupMenu(e, g) {
     const items = [
-      { key: "collapse", icon: g.collapsed ? "▸" : "▾", label: g.collapsed ? "Expand group" : "Collapse group", click: () => { CX.tabs.toggleCollapsed(g.id); this.setState({ menu: null }); } },
-      { key: "rename", icon: "✎", label: "Rename group…", click: () => { this.setState({ menu: null }); this.renameGroupPrompt(g); } },
-      { key: "colour", icon: "🎨", label: "Group colour…", click: () => { this.setState({ menu: null }); this.groupColourPrompt(g); } },
-      { key: "search", icon: "⌕", label: "Search this group…", click: () => { this.setState({ menu: null }); this.openGroupSearch(e, g); } },
+      { key: "collapse", icon: g.collapsed ? "▸" : "▾", label: CX.i18n.t(g.collapsed ? "tab.groupExpand" : "tab.groupCollapse"), click: () => { CX.tabs.toggleCollapsed(g.id); this.setState({ menu: null }); } },
+      { key: "rename", icon: "✎", label: CX.i18n.t("tab.groupRename") + "…", click: () => { this.setState({ menu: null }); this.renameGroupPrompt(g); } },
+      { key: "colour", icon: "🎨", label: CX.i18n.t("tab.groupColour") + "…", click: () => { this.setState({ menu: null }); this.groupColourPrompt(g); } },
+      { key: "search", icon: "⌕", label: CX.i18n.t("tab.searchGroup", { group: g.name }) + "…", click: () => { this.setState({ menu: null }); this.openGroupSearch(e, g); } },
       { key: "bulk", icon: "∌", label: CX.i18n.t("tabs.bulkGroupContaining"), click: () => { this.setState({ menu: null }); this.openBulk({ kind: "group", id: g.id }, false); } },
-      { key: "ungroup", icon: "▢", label: "Ungroup (keeps every tab)", click: () => { CX.tabs.removeGroup(g.id); this.setState({ menu: null }); } },
+      { key: "ungroup", icon: "▢", label: CX.i18n.t("tab.groupRemove", { count: CX.tabs.inGroup(g.id).length }), click: () => { CX.tabs.removeGroup(g.id); this.setState({ menu: null }); } },
       this.appearItem(e)
     ];
     this.menuAt(e, g.name, items);
@@ -3625,10 +3625,10 @@ class Component extends DCLogic {
 
   tabSearchMenu(e) {
     this.menuAt(e, "Find tabs", [
-      { key: "s1", icon: "⌕", label: "Search this tab strip…", click: () => { this.setState({ menu: null }); this.openStripSearch(e); } },
-      { key: "s2", icon: "▤", label: "Search inside a group…", click: () => { this.setState({ menu: null }); this.openGroupPicker(e); } },
-      { key: "s3", icon: "▣", label: "Search tab groups by name…", click: () => { this.setState({ menu: null }); this.openGroupsSearch(e); } },
-      { key: "s4", icon: "✦", label: "Search every tab, everywhere…", click: () => { this.setState({ menu: null }); this.openMasterSearch(e); } },
+      { key: "s1", icon: "⌕", label: CX.i18n.t("tab.searchStrip") + "…", click: () => { this.setState({ menu: null }); this.openStripSearch(e); } },
+      { key: "s2", icon: "▤", label: CX.i18n.t("tab.searchGroup", { group: "…" }), click: () => { this.setState({ menu: null }); this.openGroupPicker(e); } },
+      { key: "s3", icon: "▣", label: CX.i18n.t("tab.searchGroups") + "…", click: () => { this.setState({ menu: null }); this.openGroupsSearch(e); } },
+      { key: "s4", icon: "✦", label: CX.i18n.t("tab.searchAll") + "…", click: () => { this.setState({ menu: null }); this.openMasterSearch(e); } },
       { key: "b1", icon: "⨯", label: CX.i18n.t("tabs.bulkContaining"), click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, false); } },
       { key: "b2", icon: "∌", label: CX.i18n.t("tabs.bulkNotContaining"), click: () => { this.setState({ menu: null }); this.openBulk({ kind: "strip" }, true); } }
     ]);
@@ -3680,7 +3680,7 @@ class Component extends DCLogic {
    *  and says which one each hit came from so a result is never ambiguous. */
   openMasterSearch(e) {
     const rows = [];
-    CX.tabs.all().forEach((t) => rows.push({ value: "tab:" + t.id, label: "▸ this workspace · " + (t.pinned ? "📌 " : "") + t.title }));
+    CX.tabs.all().forEach((t) => rows.push({ value: "tab:" + t.id, label: "▸ " + CX.i18n.t("opt.thisWorkspace") + " · " + (t.pinned ? "📌 " : "") + t.title }));
     this.state.profiles.forEach((pr) => {
       if (pr.id === this.state.activeProfile) return;
       (pr.sessions || []).forEach((sn) => rows.push({ value: "session:" + pr.id + ":" + sn.id, label: "▸ " + pr.name + " · " + sn.name }));
@@ -4015,10 +4015,10 @@ class Component extends DCLogic {
   fontOptions() {
     const base = [
       { value: "", label: CX.i18n.t("opt.fontDefault") },
-      { value: "'Roboto Mono', monospace", label: "Roboto Mono (bundled)" },
+      { value: "'Roboto Mono', monospace", label: CX.i18n.t("opt.fontMonoBundled") },
       { value: "Georgia, serif", label: "Georgia" },
       { value: "'Helvetica Neue', Helvetica, sans-serif", label: "Helvetica Neue" },
-      { value: "system-ui, sans-serif", label: "System UI" }
+      { value: "system-ui, sans-serif", label: CX.i18n.t("opt.fontSystemUi") }
     ];
     const installed = this._fonts || [];
     const seen = {};
@@ -4114,8 +4114,8 @@ class Component extends DCLogic {
     if (!A) return;
     const names = A.listPresets(CX.store) || [];
     const options = names.map((n) => ({ value: "apply:" + n, label: n }))
-      .concat([{ value: "__save", label: "Save the current appearance as a preset\u2026" }])
-      .concat(names.map((n) => ({ value: "delete:" + n, label: "Delete \u201c" + n + "\u201d" })));
+      .concat([{ value: "__save", label: CX.i18n.t("appear.savePreset") }])
+      .concat(names.map((n) => ({ value: "delete:" + n, label: CX.i18n.t("appear.deletePreset", { name: n }) })));
     this.openDropdown(e, {
       title: "Named presets", value: "", width: 320, options: options,
       onPick: (o) => {

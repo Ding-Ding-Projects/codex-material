@@ -1654,6 +1654,313 @@
       en: ["selection / open files", "selection / open files", "selection / open files", "the selection, or the open files", "the selection, or the open files"],
       yue: ["選取範圍 / 開咗嘅檔案", "選取範圍 / 開咗嘅檔案", "選取範圍 / 開住嘅檔案", "你 highlight 嗰橛，或者開住嘅檔案", "你 highlight 嗰橛，或者開住嘅檔案"]
     },
+/* Batch 2 — context-menu actions. Each names the object it acts on and says plainly
+   when it destroys something; the level changes the verb, never the noun or the
+   warning. Placeholders carry user data (a search term, a profile name, a group), so
+   they stay outside the translated text and appear identically at every level. */
+
+    "menu.filterTo": {
+      en: ["Filter to “{text}”", "Filter to “{text}”", "Filter to “{text}”", "Show only “{text}”", "Show me only “{text}”"],
+      yue: ["篩選出「{text}」", "篩選出「{text}」", "淨係顯示「{text}」", "淨係睇「{text}」", "淨係畀我睇「{text}」"]
+    },
+    "menu.exclude": {
+      en: ["Exclude “{text}”", "Exclude “{text}”", "Exclude “{text}”", "Hide “{text}”", "Anything but “{text}”"],
+      yue: ["排除「{text}」", "排除「{text}」", "唔要「{text}」", "收埋「{text}」", "除咗「{text}」乜都得"]
+    },
+    "menu.startsWith": {
+      en: ["Filter: starts with this", "Filter: starts with this", "Filter: starts with this", "Only things starting with this", "Only things that start with this"],
+      yue: ["篩選：以此開頭", "篩選：以此開頭", "淨係要以呢個開頭嘅", "淨係要以呢個開頭嘅", "淨係要以呢個字開頭嗰啲"]
+    },
+    "menu.exactMatch": {
+      en: ["Filter: exact match", "Filter: exact match", "Filter: exact match", "Only an exact match", "Only an exact match, nothing near it"],
+      yue: ["篩選：完全相符", "篩選：完全相符", "淨係要一模一樣嘅", "淨係要一模一樣嘅", "要一模一樣，差少少都唔計"]
+    },
+    "menu.openRegexWith": {
+      en: ["Open regex builder with this", "Open regex builder with this", "Open the regex builder with this", "Open the regex builder on this", "Take this into the regex builder"],
+      yue: ["用呢個開 regex 產生器", "用呢個開 regex 產生器", "攞呢個開 regex builder", "攞呢個入去 regex builder", "拎呢個入 regex builder 度砌"]
+    },
+    "menu.loginApiKey": {
+      en: ["Login with API key", "Login with API key", "Log in with an API key", "Log in with an API key", "Log in with an API key instead"],
+      yue: ["用 API key 登入", "用 API key 登入", "用 API key 登入", "改用 API key 登入", "唔用 ChatGPT，改用 API key 登入"]
+    },
+    "menu.lookAgain": {
+      en: ["Look again", "Look again", "Look again", "Have another look", "Go and look again"],
+      yue: ["再睇一次", "再睇一次", "再睇多次", "再睇多次", "再去睇多次啦"]
+    },
+    "menu.priceInCost": {
+      en: ["Price this in Cost", "Price this in Cost", "Price this in Cost", "Work out what this cost", "Go work out what this cost"],
+      yue: ["喺成本頁計價", "喺成本頁計價", "去 Cost 度計價", "計吓呢筆使咗幾多", "去計吓呢筆到底使咗幾多"]
+    },
+    "menu.reread": {
+      en: ["Re-read", "Re-read", "Re-read", "Read it again", "Read it again"],
+      yue: ["重新讀取", "重新讀取", "重新讀過", "再讀多次", "再讀多次啦"]
+    },
+    "menu.rerunDoctor": {
+      en: ["Re-run doctor", "Re-run doctor", "Re-run doctor", "Run doctor again", "Send the doctor back in"],
+      yue: ["再行一次 doctor", "再行一次 doctor", "再行多次 doctor", "再叫 doctor 行多次", "再叫 doctor 入去睇多次"]
+    },
+    "menu.forkSession": {
+      en: ["Fork session", "Fork session", "Fork this session", "Fork this session", "Split this session in two"],
+      yue: ["分支工作階段", "分支工作階段", "分支呢個 session", "劈條分支出嚟", "將呢個 session 劈開兩份"]
+    },
+    "menu.moveToProfile": {
+      en: ["Move to another profile", "Move to another profile", "Move to another profile", "Move it to another profile", "Move it over to another profile"],
+      yue: ["移去另一個設定檔", "移去另一個設定檔", "搬去第二個 profile", "搬佢去第二個 profile", "搬佢過去第二個 profile"]
+    },
+    "menu.deleteSession": {
+      en: ["Delete session", "Delete session", "Delete this session", "Delete this session", "Delete this session"],
+      yue: ["刪除工作階段", "刪除工作階段", "刪咗呢個 session", "刪咗呢個 session", "刪咗呢個 session"]
+    },
+    "menu.openFlags": {
+      en: ["Open flags", "Open flags", "Open its flags", "Open its flags", "Open its flags"],
+      yue: ["開啟旗標", "開啟旗標", "開佢啲 flag", "開佢啲 flag", "開佢啲 flag 睇吓"]
+    },
+    "menu.filterToGroup": {
+      en: ["Filter to group “{group}”", "Filter to group “{group}”", "Filter to the “{group}” group", "Only the “{group}” group", "Only the “{group}” group, thanks"],
+      yue: ["篩選出「{group}」群組", "篩選出「{group}」群組", "淨係顯示「{group}」呢組", "淨係睇「{group}」呢組", "淨係畀我睇「{group}」嗰組"]
+    },
+    "menu.openSection": {
+      en: ["Open section", "Open section", "Open this section", "Open this section", "Open this section"],
+      yue: ["開啟區段", "開啟區段", "開呢個區段", "開呢個區段", "開呢個區段睇吓"]
+    },
+    "menu.resetSection": {
+      en: ["Reset every key in section", "Reset every key in section", "Reset every key in this section", "Reset every key in this section", "Reset every key in this section"],
+      yue: ["重設呢個區段所有設定", "重設呢個區段所有設定", "重設呢個區段入面每個 key", "呢個區段入面每個 key 打返原形", "呢個區段入面每個 key 打返原形"]
+    },
+    "menu.stopInstance": {
+      en: ["Stop instance", "Stop instance", "Stop this instance", "Stop this instance", "Stop this instance"],
+      yue: ["停止執行個體", "停止執行個體", "停咗呢個 instance", "叫停呢個 instance", "即刻停咗呢個 instance"]
+    },
+    "menu.useOnProfile": {
+      en: ["Use on {profile}", "Use on {profile}", "Use it on {profile}", "Use it on {profile}", "Put this on {profile}"],
+      yue: ["用喺 {profile}", "用喺 {profile}", "喺 {profile} 度用佢", "喺 {profile} 度用佢", "擺呢個落 {profile} 度"]
+    },
+    "menu.useModelOn": {
+      en: ["Use this model on {profile}", "Use this model on {profile}", "Use this model on {profile}", "Put this model on {profile}", "Put this model on {profile}"],
+      yue: ["喺 {profile} 用呢個模型", "喺 {profile} 用呢個模型", "喺 {profile} 度用呢個模型", "擺呢個模型落 {profile}", "擺呢個模型落 {profile} 度"]
+    },
+    "menu.showOnly": {
+      en: ["Show only {what}", "Show only {what}", "Show only {what}", "Only {what}", "Only {what}, hide the rest"],
+      yue: ["淨係顯示 {what}", "淨係顯示 {what}", "淨係睇 {what}", "淨係要 {what}", "淨係要 {what}，其他收埋"]
+    },
+    "menu.showOnlyThatDay": {
+      en: ["Show only that day", "Show only that day", "Show only that day", "Only that day", "Only that one day"],
+      yue: ["淨係顯示嗰日", "淨係顯示嗰日", "淨係睇嗰日", "淨係要嗰日", "淨係要嗰一日"]
+    },
+    "menu.setInputPerDay": {
+      en: ["Set input tokens per day", "Set input tokens per day", "Set input tokens per day", "Set the input tokens per day", "Set how many input tokens a day"],
+      yue: ["設定每日輸入 token", "設定每日輸入 token", "設定每日 input token", "設定每日用幾多 input token", "設定每日用幾多 input token"]
+    },
+    "menu.setOutputPerDay": {
+      en: ["Set output tokens per day", "Set output tokens per day", "Set output tokens per day", "Set the output tokens per day", "Set how many output tokens a day"],
+      yue: ["設定每日輸出 token", "設定每日輸出 token", "設定每日 output token", "設定每日用幾多 output token", "設定每日用幾多 output token"]
+    },
+    "menu.sessionAsDay": {
+      en: ["Use the current session as one day", "Use the current session as one day", "Use the current session as one day", "Treat this session as a typical day", "Treat this session as one typical day"],
+      yue: ["用而家嘅工作階段當一日", "用而家嘅工作階段當一日", "用而家個 session 當一日", "當呢個 session 就係平時一日", "當呢個 session 就係平時一日咁"]
+    },
+    "menu.openCostCalc": {
+      en: ["Open the cost calculator", "Open the cost calculator", "Open the cost calculator", "Open the cost calculator", "Open the cost calculator"],
+      yue: ["開啟成本計算機", "開啟成本計算機", "開個成本計數機", "開個成本計數機", "開個成本計數機出嚟"]
+    },
+    "menu.renameProfile": {
+      en: ["Rename profile", "Rename profile", "Rename this profile", "Rename this profile", "Give this profile a new name"],
+      yue: ["重新命名設定檔", "重新命名設定檔", "改呢個 profile 個名", "改呢個 profile 個名", "同呢個 profile 改個新名"]
+    },
+    "menu.duplicateProfile": {
+      en: ["Duplicate profile", "Duplicate profile", "Duplicate this profile", "Duplicate this profile", "Make a copy of this profile"],
+      yue: ["複製設定檔", "複製設定檔", "複製呢個 profile", "複製呢個 profile", "抄多份呢個 profile"]
+    },
+    "menu.resetProfileConfig": {
+      en: ["Reset profile config", "Reset profile config", "Reset this profile's config", "Reset this profile's config", "Reset this profile's config"],
+      yue: ["重設設定檔的設定", "重設設定檔的設定", "重設呢個 profile 嘅設定", "呢個 profile 嘅設定打返原形", "呢個 profile 嘅設定打返原形"]
+    },
+    "menu.deleteProfile": {
+      en: ["Delete profile", "Delete profile", "Delete this profile", "Delete this profile", "Delete this profile"],
+      yue: ["刪除設定檔", "刪除設定檔", "刪咗呢個 profile", "刪咗呢個 profile", "刪咗呢個 profile"]
+    },
+    "menu.removeInstance": {
+      en: ["Remove instance", "Remove instance", "Remove this instance", "Remove this instance", "Remove this instance"],
+      yue: ["移除執行個體", "移除執行個體", "移除呢個 instance", "剷咗呢個 instance", "剷咗呢個 instance"]
+    },
+    "menu.openTabManager": {
+      en: ["Open the per-tab manager", "Open the per-tab manager", "Open the per-tab manager", "Open the per-tab manager", "Open the per-tab manager"],
+      yue: ["開啟分頁管理員", "開啟分頁管理員", "開個 per-tab 管理員", "開個 per-tab 管理員", "開個 per-tab 管理員出嚟"]
+    },
+    "menu.spawnForTab": {
+      en: ["Spawn for this tab", "Spawn for this tab", "Spawn one for this tab", "Spawn one for this tab", "Spawn one just for this tab"],
+      yue: ["為呢個分頁開啟", "為呢個分頁開啟", "為呢個 tab 開一個", "為呢個 tab 開一個", "淨係為呢個 tab 開一個"]
+    },
+    "menu.backToComposer": {
+      en: ["Put back in composer", "Put back in composer", "Put it back in the composer", "Put it back in the composer", "Drop it back in the composer"],
+      yue: ["放返入輸入框", "放返入輸入框", "放返入 composer 度", "擺返落 composer 度", "掉返落 composer 度"]
+    },
+    "menu.filterSessionsByText": {
+      en: ["Filter sessions by this text", "Filter sessions by this text", "Filter sessions by this text", "Find sessions with this text", "Find the sessions with this text in them"],
+      yue: ["用呢段文字篩選工作階段", "用呢段文字篩選工作階段", "用呢段字篩 session", "搵有呢段字嘅 session", "搵晒啲入面有呢段字嘅 session"]
+    },
+    "menu.openWizard": {
+      en: ["Open wizard", "Open wizard", "Open the wizard", "Open the wizard", "Open the wizard"],
+      yue: ["開啟精靈", "開啟精靈", "開個 wizard", "開個 wizard", "開個 wizard 出嚟"]
+    },
+    "menu.insertIntoComposer": {
+      en: ["Insert into composer", "Insert into composer", "Insert it into the composer", "Drop it into the composer", "Drop it into the composer"],
+      yue: ["插入輸入框", "插入輸入框", "插入 composer 度", "掉落 composer 度", "掉落 composer 度"]
+    },
+    "menu.unsetFlag": {
+      en: ["Unset this flag", "Unset this flag", "Unset this flag", "Unset this flag", "Unset this flag"],
+      yue: ["取消設定呢個旗標", "取消設定呢個旗標", "取消呢個 flag", "唔要呢個 flag", "唔要呢個 flag"]
+    },
+    "menu.findCommandsWithFlag": {
+      en: ["Find commands with this flag", "Find commands with this flag", "Find commands with this flag", "Find every command with this flag", "Find every command that takes this flag"],
+      yue: ["搵有呢個旗標嘅指令", "搵有呢個旗標嘅指令", "搵有呢個 flag 嘅指令", "搵晒有呢個 flag 嘅指令", "搵晒邊啲指令收呢個 flag"]
+    },
+    "menu.resetToDefault": {
+      en: ["Reset to default", "Reset to default", "Reset to the default", "Put it back to the default", "Put it back to the default"],
+      yue: ["重設為預設值", "重設為預設值", "還原做預設值", "打返做預設值", "打返做預設值"]
+    },
+    "menu.restoreSnapshot": {
+      en: ["Restore this snapshot", "Restore this snapshot", "Restore this snapshot", "Go back to this snapshot", "Go back to this snapshot"],
+      yue: ["還原呢個快照", "還原呢個快照", "還原去呢個快照", "返去呢個快照", "返去呢個快照嗰陣"]
+    },
+    "menu.editAppearanceFor": {
+      en: ["Edit appearance — {name}", "Edit appearance — {name}", "Edit appearance — {name}", "Restyle {name}", "Restyle {name}"],
+      yue: ["編輯外觀 — {name}", "編輯外觀 — {name}", "改吓 {name} 個樣", "改吓 {name} 個樣", "同 {name} 換個樣"]
+    },
+    "menu.resetElementAppearance": {
+      en: ["Reset this element's appearance", "Reset this element's appearance", "Reset this element's appearance", "Put this element back to normal", "Put this element back the way it was"],
+      yue: ["重設呢個元素嘅外觀", "重設呢個元素嘅外觀", "呢個元素個樣打返原形", "呢個元素打返原形", "呢個元素打返原形，當冇改過"]
+    },
+    "prompt.avgInputPerDay": {
+      en: ["Average input tokens per day", "Average input tokens per day", "Average input tokens per day", "How many input tokens on an average day", "How many input tokens on an average day"],
+      yue: ["每日平均輸入 token", "每日平均輸入 token", "每日平均用幾多 input token", "平時一日用幾多 input token", "平時一日用幾多 input token"]
+    },
+    "prompt.avgOutputPerDay": {
+      en: ["Average output tokens per day", "Average output tokens per day", "Average output tokens per day", "How many output tokens on an average day", "How many output tokens on an average day"],
+      yue: ["每日平均輸出 token", "每日平均輸出 token", "每日平均用幾多 output token", "平時一日用幾多 output token", "平時一日用幾多 output token"]
+    },
+/* Batch 3 — option rows, cost fields, style toggles and preset actions. The date
+   presets and the two placeholder rows carry no facts to protect beyond their own
+   meaning, so they move least between levels; the cost descriptions name real numbers
+   (Plus is 20, Pro is 200) and those numbers are identical at level 1 and level 5. */
+
+    "opt.days7": {
+      en: ["7 d", "7 d", "7 days", "7 days", "last 7 days"],
+      yue: ["7 日", "7 日", "7 日", "近 7 日", "近 7 日"]
+    },
+    "opt.days30": {
+      en: ["30 d", "30 d", "30 days", "30 days", "last 30 days"],
+      yue: ["30 日", "30 日", "30 日", "近 30 日", "近 30 日"]
+    },
+    "opt.days90": {
+      en: ["90 d", "90 d", "90 days", "90 days", "last 90 days"],
+      yue: ["90 日", "90 日", "90 日", "近 90 日", "近 90 日"]
+    },
+    "opt.months6": {
+      en: ["6 mo", "6 mo", "6 months", "6 months", "last 6 months"],
+      yue: ["6 個月", "6 個月", "6 個月", "近半年", "近半年"]
+    },
+    "opt.year1": {
+      en: ["1 y", "1 y", "1 year", "1 year", "last year"],
+      yue: ["1 年", "1 年", "1 年", "近一年", "近一年"]
+    },
+    "opt.years2": {
+      en: ["2 y", "2 y", "2 years", "2 years", "last two years"],
+      yue: ["2 年", "2 年", "2 年", "近兩年", "近兩年"]
+    },
+    "opt.unset": {
+      en: ["— unset —", "— unset —", "— unset —", "— leave it unset —", "— leave it unset —"],
+      yue: ["—— 未設定 ——", "—— 未設定 ——", "—— 未設定 ——", "—— 唔設定佢 ——", "—— 唔設定佢 ——"]
+    },
+    "opt.default": {
+      en: ["— default —", "— default —", "— default —", "— whatever the default is —", "— whatever the default is —"],
+      yue: ["—— 預設 ——", "—— 預設 ——", "—— 預設 ——", "—— 預設嗰個 ——", "—— 預設嗰個 ——"]
+    },
+    "opt.inputTokens": {
+      en: ["Input tokens", "Input tokens", "Input tokens", "Input tokens", "Input tokens"],
+      yue: ["輸入 token", "輸入 token", "input token", "input token", "input token"]
+    },
+    "desc.inputTokens": {
+      en: ["Prompt, files and tool output sent to the model.", "Prompt, files and tool output sent to the model.", "Prompt, files and tool output sent to the model.", "Everything you send it: prompt, files, tool output.", "Everything you send it — prompt, files, tool output, the lot."],
+      yue: ["送去畀模型嘅提示、檔案同工具輸出。", "送去畀模型嘅提示、檔案同工具輸出。", "你送畀佢嘅 prompt、檔案同工具輸出。", "你送畀佢嘅全部嘢：prompt、檔案、工具輸出。", "你送畀佢嘅全部嘢 — prompt、檔案、工具輸出，一樣都唔少。"]
+    },
+    "opt.outputTokens": {
+      en: ["Output tokens", "Output tokens", "Output tokens", "Output tokens", "Output tokens"],
+      yue: ["輸出 token", "輸出 token", "output token", "output token", "output token"]
+    },
+    "desc.outputTokens": {
+      en: ["Reasoning plus visible answer and patches.", "Reasoning plus visible answer and patches.", "Reasoning plus the visible answer and any patches.", "The thinking you never see, plus the answer and patches you do.", "The thinking you never see, plus the answer and the patches you do."],
+      yue: ["推理，加埋你見到嘅答案同 patch。", "推理，加埋你見到嘅答案同 patch。", "推理加埋見到嘅答案同啲 patch。", "你見唔到嗰啲諗嘢，加埋你見到嘅答案同 patch。", "你見唔到嗰啲諗嘢，加埋你見到嘅答案同 patch，全部計。"]
+    },
+    "opt.turns": {
+      en: ["Turns", "Turns", "Turns", "Turns", "How many back-and-forths"],
+      yue: ["回合", "回合", "幾多回合", "傾咗幾多轉", "你哋一嚟一往幾多轉"]
+    },
+    "desc.turns": {
+      en: ["Used for the per-turn average.", "Used for the per-turn average.", "Used for the per-turn average.", "Only used to work out the per-turn average.", "Only used to work out the per-turn average."],
+      yue: ["用嚟計每回合平均。", "用嚟計每回合平均。", "用嚟計每回合平均。", "淨係用嚟計每回合平均。", "淨係用嚟計每回合平均，冇第二樣。"]
+    },
+    "opt.planPerMonth": {
+      en: ["Your plan ($/month)", "Your plan ($/month)", "Your plan ($/month)", "What your plan costs ($/month)", "What your plan costs ($/month)"],
+      yue: ["你嘅方案（美元/月）", "你嘅方案（美元/月）", "你個 plan（美元/月）", "你個 plan 幾錢（美元/月）", "你個 plan 幾錢一個月（美元）"]
+    },
+    "desc.planPerMonth": {
+      en: ["Plus is 20, Pro is 200. Set 0 if you use an API key.", "Plus is 20, Pro is 200. Set 0 if you use an API key.", "Plus is 20, Pro is 200. Put 0 if you pay by API key.", "Plus is 20, Pro is 200 — put 0 if you pay by API key instead.", "Plus is 20, Pro is 200. Put 0 if you pay by API key instead."],
+      yue: ["Plus 係 20，Pro 係 200。用 API key 就填 0。", "Plus 係 20，Pro 係 200。用 API key 就填 0。", "Plus 20，Pro 200。用 API key 嘅填 0。", "Plus 20，Pro 200 — 用 API key 畀錢嘅就填 0。", "Plus 20，Pro 200。用 API key 畀錢嘅就填 0。"]
+    },
+    "menu.showOnlyKind": {
+      en: ["Show only {kind} revisions", "Show only {kind} revisions", "Show only {kind} revisions", "Only the {kind} revisions", "Only the {kind} revisions, hide the rest"],
+      yue: ["淨係顯示 {kind} 修訂", "淨係顯示 {kind} 修訂", "淨係睇 {kind} 嗰啲修訂", "淨係要 {kind} 嗰啲修訂", "淨係要 {kind} 嗰啲修訂，其他收埋"]
+    },
+    "opt.italic": {
+      en: ["Italic", "Italic", "Italic", "Italic", "Italic"],
+      yue: ["斜體", "斜體", "斜體", "打斜", "打斜"]
+    },
+    "opt.underline": {
+      en: ["Underline", "Underline", "Underline", "Underline", "Underline"],
+      yue: ["底線", "底線", "底線", "加底線", "加底線"]
+    },
+    "opt.strike": {
+      en: ["Strike", "Strike", "Strike", "Strike through", "Strike through"],
+      yue: ["刪除線", "刪除線", "刪除線", "劃走佢", "劃走佢"]
+    },
+    "opt.wide": {
+      en: ["Wide", "Wide", "Wide", "Wide spacing", "Wide spacing"],
+      yue: ["寬鬆", "寬鬆", "疏啲", "字距疏啲", "字距疏啲"]
+    },
+    "opt.fontMonoBundled": {
+      en: ["Roboto Mono (bundled)", "Roboto Mono (bundled)", "Roboto Mono — bundled", "Roboto Mono — comes with the app", "Roboto Mono — comes with the app"],
+      yue: ["Roboto Mono（內置）", "Roboto Mono（內置）", "Roboto Mono — 內置", "Roboto Mono — 出廠就有", "Roboto Mono — 出廠就有"]
+    },
+    "opt.fontSystemUi": {
+      en: ["System UI", "System UI", "System UI", "Whatever Windows uses", "Whatever Windows uses"],
+      yue: ["系統介面字型", "系統介面字型", "系統介面字型", "Windows 用嗰隻", "Windows 用嗰隻"]
+    },
+    "opt.thisWorkspace": {
+      en: ["this workspace", "this workspace", "this workspace", "this workspace", "right here"],
+      yue: ["呢個工作區", "呢個工作區", "呢個工作區", "呢度", "就喺呢度"]
+    },
+    "appear.savePreset": {
+      en: ["Save the current appearance as a preset…", "Save the current appearance as a preset…", "Save this appearance as a preset…", "Keep this look as a preset…", "Keep this look as a preset…"],
+      yue: ["將而家嘅外觀存做預設…", "將而家嘅外觀存做預設…", "將呢個外觀存做預設…", "留低呢個樣做預設…", "留低呢個樣做預設…"]
+    },
+    "appear.deletePreset": {
+      en: ["Delete “{name}”", "Delete “{name}”", "Delete “{name}”", "Delete “{name}”", "Delete “{name}”"],
+      yue: ["刪除「{name}」", "刪除「{name}」", "刪咗「{name}」", "刪咗「{name}」", "刪咗「{name}」"]
+    },
+/* Batch 4 — the two tab-menu actions the existing tab.* keys do not already cover.
+   tab.groupNew is "New group" (make one); this is "move THIS tab into a new one", and
+   tab.groupRemove dissolves a whole group while this one only lifts a single tab out.
+   Two menu entries that read alike and do very different things need two keys. */
+
+    "tab.moveToNewGroup": {
+      en: ["Move to a new group…", "Move to a new group…", "Move this tab into a new group…", "Start a new group with this tab…", "Start a new group with this tab…"],
+      yue: ["移去新群組…", "移去新群組…", "將呢個 tab 移入一個新群組…", "用呢個 tab 開個新群組…", "用呢個 tab 開個新群組…"]
+    },
+    "tab.removeFromGroup": {
+      en: ["Remove from group", "Remove from group", "Take this tab out of its group", "Take this tab out of its group", "Lift this tab out of its group"],
+      yue: ["移出群組", "移出群組", "將呢個 tab 抽返出個群組", "將呢個 tab 抽返出嚟", "將呢個 tab 抽返出個組"]
+    },
   };
 
   function resolve(key, mode, funny) {
