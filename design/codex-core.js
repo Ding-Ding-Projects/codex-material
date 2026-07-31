@@ -138,7 +138,7 @@
         state.wsl[a.session] = {
           session: a.session, distro: a.distro || state.wslDistros[0], status: "running",
           pid: 1000 + Math.floor(Math.random() * 9000), startedAt: Date.now(),
-          cwd: a.cwd || "/mnt/c/Users/ding", memMB: 180 + Math.floor(Math.random() * 400), auto: a.auto !== false
+          cwd: a.cwd || "/mnt/c/Users/dev/Projects", memMB: 180 + Math.floor(Math.random() * 400), auto: a.auto !== false
         };
         return state.wsl[a.session];
       }

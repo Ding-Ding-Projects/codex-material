@@ -1822,8 +1822,8 @@ class Component extends DCLogic {
   }
   /** A Windows path as WSL sees it.
    *
-   *  This used to be `"/mnt/c" + cwd.replace(/^~/, "/Users/ding")` — which hard-coded
-   *  one person's account name into every spawn, put every project on drive C whether
+   *  This used to prefix "/mnt/c" and rewrite a leading `~` to a fixed `/Users/<name>`,
+   *  which hard-coded one person's account into every spawn, put every project on C whether
    *  it was there or not, and produced `/mnt/cC:/src` for an ordinary absolute path.
    *  The name was legible in a published screenshot. `~` now resolves from the real
    *  CODEX_HOME, which is the user's home with `/.codex` on the end. */

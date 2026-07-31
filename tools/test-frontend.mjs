@@ -16,6 +16,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -1348,3 +1349,61 @@ suite("app/codex-core.js", (ctx, file) => {
     }
   });
 }, ["app/cx-notify.js", "app/cx-i18n.js", "app/codex-data.js"]);
+
+/* The operator's account name has reached this public repository by five routes: a
+   screenshot of a path, a committed JSON report, a hard-coded WSL default, the
+   browser-mode simulator's account, and the Skills list rendering absolute paths. Each
+   was fixed where it was found, which is how you get five of them. This checks every
+   committed text file instead. */
+
+test("no committed file carries a real account name or absolute home path", () => {
+  const b = bucket("assets/screenshots");
+  const listed = require_(
+    (() => {
+      try {
+        return execSync("git ls-files", { cwd: ROOT, encoding: "utf8", windowsHide: true }).split("\n").filter(Boolean);
+      } catch {
+        return null;
+      }
+    })(),
+    "the committed file list",
+    ["git ls-files"],
+  );
+
+  /* Names that belong to nobody: the authored fixture (Public, dev) and the
+     obviously-fictional placeholders documentation uses in an example path. Anything
+     else under a home directory names a person.
+
+     Built from a string rather than written as a literal, because this test is appended
+     to the file by a shell heredoc when it is edited, and a heredoc eats the doubled
+     backslashes a Windows path needs — which silently turned the Windows half of an
+     earlier version into "a colon followed by one or more plus signs". */
+  const NOBODY = "Public|dev|you|me|user|username|USERNAME";
+  const HOMEISH = new RegExp(
+    "[A-Za-z]:\\\\+Users\\\\+(?!(?:" + NOBODY + ")\\b)[A-Za-z0-9._-]+" +
+      "|/(?:home|Users)/(?!(?:" + NOBODY + ")\\b|<)[a-zA-Z][A-Za-z0-9._-]*",
+  );
+  const TEXT = /\.(js|mjs|cjs|json|md|html|yml|yaml|txt|ps1)$/;
+
+  const offenders = [];
+  for (const rel of listed) {
+    if (!TEXT.test(rel)) continue;
+    let text;
+    try {
+      text = fs.readFileSync(path.join(ROOT, rel), "utf8");
+    } catch {
+      continue;
+    }
+    const hit = text.match(HOMEISH);
+    if (hit) offenders.push(`${rel}: ${hit[0]}`);
+  }
+
+  try {
+    assert.deepEqual(offenders, [], "these committed files name a home directory:\n  " + offenders.join("\n  "));
+    b.pass += 1;
+  } catch (error) {
+    b.fail += 1;
+    process.exitCode = 1;
+    throw error;
+  }
+});

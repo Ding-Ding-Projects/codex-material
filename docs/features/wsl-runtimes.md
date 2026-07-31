@@ -212,7 +212,7 @@ throwing, which the backend test asserts.
 | `stop` on an unknown session | `{ status: "absent" }` | Guarded; asserted by the backend tests |
 | Instances gone after a restart | The Runtime panel shows none | In-memory only, by design |
 | `sleep infinity` still running after a crash | — | `shutdown()` covers a clean quit; a hard kill of the Electron process cannot run it. `wsl --shutdown` clears them. |
-| A tab's spawn targets an odd path | `/mnt/c/Users/ding/…` | **Known defect:** `wslSpawn` in `app/index.html` maps a leading `~` to a hard-coded `/Users/ding` instead of the real user profile. Set the working directory on the row afterwards. |
+| A tab's spawn targets an odd path | `/mnt/cD:/src/…` | **Fixed.** `wslSpawn` used to prefix `/mnt/c` unconditionally and rewrite a leading `~` to a fixed account name — so a project on any other drive produced a nonsense path, and the account name reached a published screenshot. `toWslPath()` reads the drive letter from the path and resolves `~` from the real `CODEX_HOME`. |
 
 ## Security considerations
 

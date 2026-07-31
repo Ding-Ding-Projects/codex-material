@@ -975,7 +975,7 @@ class Component extends DCLogic {
     return "wsl.exe -d " + i.distro + " --cd " + i.cwd + " -- " + (inner || "codex exec \"…\"");
   }
   wslSpawn(session, distro) {
-    return CX.bridge.invoke("codex_wsl_spawn", { session: session.id, distro: distro || CX.sim.wslDistros[0], cwd: "/mnt/c" + String(session.cwd || "").replace(/^~/, "/Users/ding").replace(/\\/g, "/") })
+    return CX.bridge.invoke("codex_wsl_spawn", { session: session.id, distro: distro || CX.sim.wslDistros[0], cwd: "/mnt/c" + String(session.cwd || "").replace(/^~/, "/Users/dev/Projects").replace(/\\/g, "/") })
       .then(() => { CX.vcs.commit("Spawn WSL for " + session.name, "change"); this.setState({ tick: this.state.tick + 1 }); });
   }
   currentSub() { return DATA.SUBCOMMANDS.find((s) => s.name === this.state.consoleSub) || DATA.SUBCOMMANDS[0]; }
@@ -1367,7 +1367,7 @@ class Component extends DCLogic {
           primary: () => running
             ? CX.bridge.invoke("codex_wsl_stop", { session: s.id }).then(() => this.setState({ tick: st.tick + 1 }))
             : this.wslSpawn(s, inst ? inst.distro : undefined),
-          cwd: inst ? inst.cwd : "/mnt/c/Users/ding",
+          cwd: inst ? inst.cwd : "/mnt/c/Users/dev/Projects",
           setCwd: (e) => { const cwd = e.target.value; if (inst) CX.bridge.invoke("codex_wsl_set", { session: s.id, patch: { cwd } }).then(() => this.setState({ tick: st.tick + 1 })); },
           command: this.wslCommand(s, inst, "codex --profile " + p.id + " exec \"…\""),
           exec: () => CX.bridge.invoke("codex_wsl_exec", { session: s.id, command: "uname -sr && codex --version" }).then((r) => this.toast((r.lines || []).map((l) => l.text).join("  ·  "))),
