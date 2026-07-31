@@ -269,6 +269,20 @@ message every capture reports, and it is expected.
 
 ## Skipped by decision
 
+**109 string-table keys are unreachable, and they stay.** Nothing names them literally and no
+dynamic prefix reaches them. They are dead data, and a table that looks better covered than the
+interface is exactly how "92 hard-coded labels" came to be off by more than half — so the count is
+pinned by a test rather than left to drift.
+
+They are not deleted, for a reason worth recording. A first attempt used "same leaf as a live key"
+as the duplication test and would have removed `err.run`, `err.cancel`, `err.history` and
+`err.wsl` — all of which fire on real failures, reached as `i18n.t("err." + what)` from
+`notifyBackendFailure`. The scan had required a `CX.` prefix that `codex-core.js` does not use.
+Tightened to "same leaf **and** identical level-1 English", nothing at all qualifies: even
+`tab.close` and `tabs.close`, which both read *Close tab*, differ at other levels. Deleting 109
+entries on a heuristic that has already been wrong once buys tidiness and risks a message.
+
+
 **GitHub Projects.** The available `gh` token lacks `read:project`, and adding it means
 running `gh auth refresh` against someone's GitHub account. The user was asked and chose
 to skip it, so no Project item exists for this work and none is expected. Nothing else

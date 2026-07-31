@@ -1226,3 +1226,58 @@ test("app/cx-i18n.js — a message with placeholders is never resolved without t
     throw error;
   }
 });
+
+/* Keys nothing can look up. 109 of them, and none is an exact duplicate of a live key,
+   so deleting them is neither clearly safe nor clearly valuable — a first attempt at
+   exactly that nearly removed err.run, err.cancel, err.history and err.wsl, which fire
+   on real failures and are reached as `i18n.t("err." + what)` rather than by name.
+   What matters is that the number does not quietly grow: a table that looks better
+   covered than the interface is how "92 hard-coded labels" came to be off by more than
+   half. */
+
+test("app/cx-i18n.js — the unreachable-key count does not grow", () => {
+  const b = bucket("app/cx-i18n.js");
+  const table = fs.readFileSync(path.join(ROOT, "app", "cx-i18n.js"), "utf8");
+  const defined = [...table.matchAll(/^ {4}"([\w.]+)": \{$/gm)].map((m) => m[1]);
+
+  const sources = [];
+  const walk = (dir) => {
+    for (const e of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
+      if (e.name === "node_modules" || e.name === "assets") continue;
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (/\.(js|mjs|cjs|html|md)$/.test(e.name) && !p.endsWith("cx-i18n.js")) {
+        sources.push(fs.readFileSync(path.join(ROOT, p), "utf8"));
+      }
+    }
+  };
+  for (const dir of ["app", "electron", "tools", "docs"]) walk(dir);
+  const haystack = sources.join("\n");
+
+  /* `i18n.t("err." + what)` counts, not only `CX.i18n.t(…)` — codex-core.js calls the
+     local binding, and requiring the CX prefix marks every key notifyBackendFailure
+     reaches as unreachable. */
+  const prefixes = [...new Set([...haystack.matchAll(/\bi18n\.t\("([\w.]+\.)"\s*\+/g)].map((m) => m[1]))];
+  const unreachable = defined.filter(
+    (k) => !haystack.includes('"' + k + '"') && !prefixes.some((p) => k.startsWith(p)),
+  );
+
+  const BUDGET = 109;
+  try {
+    assert.ok(
+      unreachable.length <= BUDGET,
+      `${unreachable.length} keys are unreachable, up from ${BUDGET}. New ones: ` +
+        unreachable.slice(-(unreachable.length - BUDGET)).join(", "),
+    );
+    assert.ok(
+      prefixes.length >= 3,
+      `only ${prefixes.length} dynamic prefixes detected — the scan is probably broken, ` +
+        "which would make every prefix-reached key look dead",
+    );
+    b.pass += 1;
+  } catch (error) {
+    b.fail += 1;
+    process.exitCode = 1;
+    throw error;
+  }
+});
