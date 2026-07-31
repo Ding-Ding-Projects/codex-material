@@ -17,7 +17,7 @@ The workflow lives at [`.github/workflows/ci.yml`](../../.github/workflows/ci.ym
 
 | Trigger | When it fires |
 | --- | --- |
-| `push` | Every push, to every branch. No branch filter, no path filter. |
+| `push` | Every push to every **branch** — `branches: "**"` with `tags-ignore: "**"`. No path filter. |
 | `workflow_dispatch` | Manual runs from the Actions tab, on any ref. |
 
 There is **no `pull_request` trigger**, deliberately. A `pull_request` run would build code from a

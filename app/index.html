@@ -1765,7 +1765,7 @@ class Component extends DCLogic {
     }));
     if (cat === "plugins") return s.plugins.map((p) => ({ id: p.name, title: p.name, subtitle: "v" + p.version + " · " + p.marketplace, badge: "installed", on: p.enabled, kind: "plugin", locked: true }));
     if (cat === "marketplaces") return s.marketplaces.map((m) => ({ id: m.name, title: m.name, subtitle: m.url, badge: m.plugins + " plugins", on: true, kind: "registry", mono: true }));
-    if (cat === "skills") return s.skills.map((k) => ({ id: k.name, title: k.name, subtitle: k.path, badge: k.source, on: k.enabled, kind: "skill", mono: true, ref: { dir: k.dir } }));
+    if (cat === "skills") return s.skills.map((k) => ({ id: k.name, title: k.name, subtitle: k.display || k.path, badge: k.source, on: k.enabled, kind: "skill", mono: true, ref: { dir: k.dir } }));
     if (cat === "hooks") return s.hooks.map((h) => ({ id: h.name, title: h.name, subtitle: h.event + " · " + h.command, badge: h.trusted ? "trusted" : "untrusted", on: h.enabled, kind: "hook", mono: true, locked: !h.trusted, ref: { event: h.event, index: h.index } }));
     const flags = CX.store.get("features", {});
     return DATA.FEATURES.map((f) => ({ id: f.key, title: f.key, subtitle: "features." + f.key, badge: f.stage, on: f.key in flags ? !!flags[f.key] : f.stage === "stable", kind: "feature", mono: true, locked: f.stage === "removed" }));

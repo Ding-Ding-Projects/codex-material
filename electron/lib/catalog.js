@@ -169,6 +169,13 @@ function scanSkills(root, source, out) {
       name: entry.name.replace(/\.disabled$/, ""),
       dir,
       path: manifest,
+      /* The same path with the home directory written as `~`. The panel renders this
+         one: skills live under the machine's real home whatever CODEX_HOME says, so
+         the absolute form put the operator's account name on screen — and into any
+         screenshot of the Skills list. Shorter to read, too. */
+      display: manifest.startsWith(os.homedir())
+        ? "~" + manifest.slice(os.homedir().length).replace(/\\/g, "/")
+        : manifest,
       enabled,
       source,
       desc,

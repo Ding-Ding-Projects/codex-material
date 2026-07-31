@@ -117,14 +117,14 @@ Recorded because they are real and reproducible, not predicted.
 
 | # | Issue | Evidence |
 | --- | --- | --- |
-| 1 | **The picture is broken.** `app/index.html:2365` builds the `<img src>` as an SVG data URI from `dish.art`, but the generated catalog has no `art` property — it provides `image` (a PNG path). `encodeURIComponent(undefined)` yields the literal `data:image/svg+xml;charset=utf-8,undefined`. | Every dish; both the 1% path and the settings Preview |
-| 2 | **The greeting renders as a raw key.** `app/index.html:2368` asks for `dimsum.greeting`, which is defined in neither `cx-i18n.js` (115 keys, no `dimsum.*`) nor the fallback table in `codex-core.js`. `i18n.t` returns the key unchanged, so the user reads the literal text `dimsum.greeting`. | Every dish, every language mode |
+| 1 | ~~**The picture is broken.**~~ **Fixed.** The binding reads `dish.image` — the PNG path the generated catalog actually provides — rather than a `dish.art` property that never existed. | Was: `data:image/svg+xml;charset=utf-8,undefined` on every dish |
+| 2 | ~~**The greeting renders as a raw key.**~~ **Fixed.** `dimsum.greeting` is defined in `cx-i18n.js`, in both languages at five levels, and interpolates the dish name. | Was: the literal text `dimsum.greeting` in every language mode |
 | 3 | **`draw(NaN)` fires on every launch.** `typeof NaN === "number"`, so the rate guard keeps `NaN`, and `random() >= NaN` is always false. Measured rate: **1.0000**. A caller handing in a corrupted persisted value turns a 1% delight into a card on every single launch, violating "never more frequent than the stated rate". | `CX_DIMSUM.draw(NaN)` over 200 000 iterations |
 | 4 | **Four Cantonese alt strings contain untranslated English.** e.g. `一份擺喺a stainless-steel Hong Kong street-food counter嘅豉油滷水墨魚。` A Cantonese screen-reader user hears an English scene fragment mid-sentence. The generator copies `image.alt.yue` verbatim, so the defect is in the upstream catalog. | `hk-dish-0503`, `0506`, `0509`, `0512` |
 | 5 | **The catalog is not all dim sum.** It currently includes 燒鵝 (roast goose), 乳豬拼盤 (suckling pig platter) and 咖喱魷魚 (curry squid) — 燒味 and street food, not dim sum — for a feature specified as showing *a dim sum dish*. `CATALOG_STATUS` is `"in-progress"`. | 72 bundled records |
 | 6 | **No error-path or update guard exists.** `app/index.html:1021` comments "never during an error path", but `CX.dimsum.draw()` only checks the once-per-launch, off-switch and first-run conditions. Today the card cannot collide with an error because it is raised once at startup and never again — the protection is structural, not enforced. Any future call site would need the guard written. | `codex-core.js:538-548` |
 | 7 | **`reducedMotion` and quiet hours are not consulted.** `reducedMotion` exists as a setting but the dim sum card does not read it; there is no quiet-hours setting at all. | `codex-core.js:521` |
 
-Issues 1 and 2 are user-visible on every appearance and should be fixed together: either
-`index.html` reads `dish.image`, or the generator also emits an `art` field — the two modules
-currently disagree about the contract.
+Issues 1 and 2 were user-visible on every appearance and are both fixed. The remaining five are
+real but quieter: three are upstream-catalog or specification issues, and two are protections that
+hold structurally today rather than being enforced in code.
