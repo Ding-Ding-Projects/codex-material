@@ -1,5 +1,5 @@
 {
-  "startedAt": "2026-07-31T05:20:03.076Z",
+  "startedAt": "2026-07-31T05:23:19.022Z",
   "cli": {
     "resolvedFrom": "installed on this machine",
     "bundled": false,
@@ -12,55 +12,55 @@
     {
       "name": "codex_version",
       "status": "ok",
-      "ms": 96,
+      "ms": 104,
       "shape": "object"
     },
     {
       "name": "codex_state",
       "status": "ok",
-      "ms": 333,
+      "ms": 346,
       "shape": "object"
     },
     {
       "name": "codex_read_config",
       "status": "ok",
-      "ms": 2,
+      "ms": 3,
       "shape": "object"
     },
     {
       "name": "codex_read_config_text",
       "status": "ok",
-      "ms": 1,
+      "ms": 4,
       "shape": "object"
     },
     {
       "name": "codex_write_config",
       "status": "ok",
-      "ms": 9,
+      "ms": 8,
       "shape": "object"
     },
     {
       "name": "codex_set_config",
       "status": "ok",
-      "ms": 5,
+      "ms": 6,
       "shape": "object"
     },
     {
       "name": "codex_config_restore",
       "status": "ok",
-      "ms": 2,
+      "ms": 4,
       "shape": "object"
     },
     {
       "name": "codex_run",
       "status": "ok",
-      "ms": 146,
+      "ms": 162,
       "shape": "object"
     },
     {
       "name": "codex_cancel",
       "status": "ok",
-      "ms": 1,
+      "ms": 2,
       "shape": "object"
     },
     {
@@ -72,79 +72,79 @@
     {
       "name": "codex_capture",
       "status": "ok",
-      "ms": 540,
+      "ms": 544,
       "shape": "object"
     },
     {
       "name": "codex_doctor",
       "status": "ok",
-      "ms": 1195,
+      "ms": 1131,
       "shape": "object"
     },
     {
       "name": "codex_mcp_list",
       "status": "ok",
-      "ms": 105,
+      "ms": 109,
       "shape": "array(3)"
     },
     {
       "name": "codex_mcp_toggle",
       "status": "ok",
-      "ms": 108,
+      "ms": 113,
       "shape": "array(3)"
     },
     {
       "name": "codex_mcp_add",
       "status": "ok",
-      "ms": 229,
+      "ms": 251,
       "shape": "array(4)"
     },
     {
       "name": "codex_mcp_remove",
       "status": "ok",
-      "ms": 219,
+      "ms": 216,
       "shape": "array(3)"
     },
     {
       "name": "codex_plugin_list",
       "status": "ok",
-      "ms": 115,
+      "ms": 114,
       "shape": "array(0)"
     },
     {
       "name": "codex_plugin_catalog",
       "status": "ok",
-      "ms": 111,
+      "ms": 142,
       "shape": "array(0)"
     },
     {
       "name": "codex_plugin_install",
       "status": "refused",
-      "ms": 107,
+      "ms": 116,
       "error": "Error invoking remote method 'codex_plugin_install': Error: Error: plugin requires --marketplace unless passed as <plugin>@<marketplace>"
     },
     {
       "name": "codex_plugin_uninstall",
       "status": "refused",
-      "ms": 132,
+      "ms": 106,
       "error": "Error invoking remote method 'codex_plugin_uninstall': Error: Error: plugin requires --marketplace unless passed as <plugin>@<marketplace>"
     },
     {
       "name": "codex_marketplace_list",
       "status": "ok",
-      "ms": 122,
+      "ms": 105,
       "shape": "array(0)"
     },
     {
       "name": "codex_marketplace_add",
       "status": "refused",
-      "ms": 86,
+      "ms": 93,
       "error": "Error invoking remote method 'codex_marketplace_add': Error: error: unexpected argument 'https://example.invalid/smoke' found\n\nUsage: codex plugin marketplace add [OPTIONS] <SOURCE>\n\nFor more informat"
     },
     {
       "name": "codex_marketplace_remove",
       "status": "refused",
-      "ms": 99,
+      "ms": 112,
       "error": "Error invoking remote method 'codex_marketplace_remove': Error: Error: marketplace `__smoke_probe_absent` is not configured or installed"
     },
     {
@@ -161,7 +161,7 @@
     {
       "name": "codex_hook_list",
       "status": "ok",
-      "ms": 1,
+      "ms": 2,
       "shape": "array(1)"
     },
     {
@@ -173,37 +173,37 @@
     {
       "name": "codex_features",
       "status": "ok",
-      "ms": 264,
+      "ms": 92,
       "shape": "array(96)"
     },
     {
       "name": "codex_set_feature",
       "status": "ok",
-      "ms": 215,
+      "ms": 212,
       "shape": "array(96)"
     },
     {
       "name": "codex_usage",
       "status": "ok",
-      "ms": 6,
+      "ms": 5,
       "shape": "object"
     },
     {
       "name": "codex_cloud_tasks",
       "status": "ok",
-      "ms": 119,
+      "ms": 109,
       "shape": "object"
     },
     {
       "name": "codex_session_list",
       "status": "ok",
-      "ms": 4,
+      "ms": 5,
       "shape": "array(5)"
     },
     {
       "name": "codex_session_action",
       "status": "refused",
-      "ms": 948,
+      "ms": 627,
       "error": "Error invoking remote method 'codex_session_action': Error: `codex archive 0f3c1a92-7b41-4d6e-9c02-51ab8e7d3f10` failed: Error: failed to archive session"
     },
     {
@@ -214,7 +214,7 @@
     {
       "name": "codex_login_status",
       "status": "ok",
-      "ms": 108,
+      "ms": 94,
       "shape": "object"
     },
     {
@@ -225,13 +225,13 @@
     {
       "name": "codex_wsl_list",
       "status": "ok",
-      "ms": 86,
+      "ms": 83,
       "shape": "object"
     },
     {
       "name": "codex_wsl_spawn",
       "status": "refused",
-      "ms": 90,
+      "ms": 98,
       "error": "Error invoking remote method 'codex_wsl_spawn': Error: `Ubuntu` is not an installed WSL distribution"
     },
     {
@@ -243,55 +243,55 @@
     {
       "name": "codex_wsl_kill",
       "status": "ok",
-      "ms": 88,
+      "ms": 89,
       "shape": "object"
     },
     {
       "name": "codex_wsl_set",
       "status": "ok",
-      "ms": 98,
+      "ms": 88,
       "shape": "object"
     },
     {
       "name": "codex_wsl_exec",
       "status": "ok",
-      "ms": 3001,
+      "ms": 2799,
       "shape": "object"
     },
     {
       "name": "codex_history_commit",
       "status": "ok",
-      "ms": 392,
+      "ms": 368,
       "shape": "object"
     },
     {
       "name": "codex_history_log",
       "status": "ok",
-      "ms": 90,
+      "ms": 71,
       "shape": "object"
     },
     {
       "name": "codex_history_show",
       "status": "ok",
-      "ms": 72,
+      "ms": 75,
       "shape": "object"
     },
     {
       "name": "codex_history_diff",
       "status": "ok",
-      "ms": 116,
+      "ms": 71,
       "shape": "object"
     },
     {
       "name": "codex_history_prune",
       "status": "ok",
-      "ms": 73,
+      "ms": 67,
       "shape": "object"
     },
     {
       "name": "codex_editors",
       "status": "ok",
-      "ms": 2607,
+      "ms": 2565,
       "shape": "object"
     },
     {

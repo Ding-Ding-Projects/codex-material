@@ -432,7 +432,7 @@ earlier within this same unreleased version — not in any shipped release.
   number — which is already past 590, having been inflated by an earlier CI trigger
   loop — while the dish list it indexed was the 72-dish photo slice bundled in the
   installer, so every build past #72 published as a bare version number. Code names now
-  come from `app/dimsum/roster.json`, which names all 768 catalog dishes in 374 KB of
+  come from `app/dimsum/roster.json`, which names all 843 catalog dishes in 419 KB of
   text, and a name no longer depends on a photo: `assigned` settles the name, a separate
   `photo` output settles the picture, and a dish outside the bundled slice ships its
   name with the release notes explaining the absent image. Bundling all 703 photos was

@@ -271,7 +271,7 @@ Every script below is exactly what `package.json` defines.
 
 - The **test** job runs the two test files, checks the changelog mirror, and `node --check`s every `.js`/`.mjs`/`.cjs` under `app/`, `electron/` and `tools/` — so a syntax error in a module the unit tests never load still fails the build.
 - The **release** job has `needs: test`, so a failed test publishes nothing. It resolves a unique tag from the monotonic run number, refuses to overwrite an existing tag, stages the CLI, builds both installers, **fails if either installer is missing**, writes release notes that name the exact commit and run, and publishes one non-draft release with both files attached.
-- The release is also given a dim sum code name derived from the build number ([`tools/release-codename.mjs`](tools/release-codename.mjs)), drawn from a roster naming all 768 dishes in the shared catalog. When the named dish is one of the 72 whose photo is bundled, that photo is attached as a release asset; otherwise the name ships alone and the notes say why. Neither a missing photo nor a missing name blocks the release.
+- The release is also given a dim sum code name derived from the build number ([`tools/release-codename.mjs`](tools/release-codename.mjs)), drawn from a roster naming all 843 dishes in the shared catalog. When the named dish is one of the 72 whose photo is bundled, that photo is attached as a release asset; otherwise the name ships alone and the notes say why. Neither a missing photo nor a missing name blocks the release.
 
 ---
 
