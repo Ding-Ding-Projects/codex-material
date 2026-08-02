@@ -6,7 +6,7 @@
  * whole thing work when it is wired together — the real preload, the real command
  * handlers, the real `codex` binary, the real files on disk?
  *
- * Five phases, each reported and each able to fail the run:
+ * Six phases, each reported and each able to fail the run:
  *
  *   CLI       the real binary is located and run. If `codex --version` does not
  *             answer, the app is a shell around nothing and the rest is theatre.
@@ -15,6 +15,11 @@
  *             the named allow-list and the real ipcRenderer channel. Calling the
  *             handler module directly would prove the handlers work while saying
  *             nothing about whether the page can reach them.
+ *   CHAT      the real composer, renderer run routing, preload, IPC, process launch and
+ *             JSONL normalizer against an authored local executable. It proves initial
+ *             and resumed turns, exact hostile prompt argv, partial failure, switching
+ *             sessions mid-stream, and process-tree cancellation without touching the
+ *             operator's Codex account or conversations.
  *   PANELS    all ten navigation panels, checked for unresolved bindings, a thrown
  *             render, and a minimum of real content.
  *   OVERLAYS  the seven dialogs the panel sweep never touches — regex builder,
@@ -126,7 +131,34 @@ const NAVS = ["chat", "console", "ext", "settings", "cost", "runtime", "health",
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const out = (s) => process.stdout.write(s);
-const report = { startedAt: new Date().toISOString(), cli: {}, ipc: [], panels: [], consoleErrors: [] };
+const report = { startedAt: new Date().toISOString(), cli: {}, ipc: [], conversation: {}, panels: [], consoleErrors: [] };
+
+function processAlive(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function until(check, ms = 10000) {
+  const deadline = Date.now() + ms;
+  while (Date.now() < deadline) {
+    if (await check()) return true;
+    await wait(30);
+  }
+  return !!(await check());
+}
+
+function readConversationLog(file) {
+  try {
+    return fs.readFileSync(file, "utf8").trim().split(/\r?\n/).filter(Boolean).map(JSON.parse);
+  } catch {
+    return [];
+  }
+}
 
 async function main() {
   const home = process.env.CODEX_HOME || path.join(ROOT, ".capture-home");
@@ -259,6 +291,162 @@ async function main() {
       report.ipc.push({ name, status: expected ? "refused" : "FAIL", ms, error: msg.slice(0, 200) });
       out("  " + (expected ? "ref " : "FAIL") + " " + name.padEnd(26) + String(ms).padStart(6) + "ms  " + msg.slice(0, 86) + "\n");
     }
+  }
+
+  /* -------------------------------------------------------------------- CHAT
+   * Drive the real Component.sendChat() function through the mounted render values. The
+   * backend swaps only conversation-mode Codex for the authored process in a non-packaged
+   * headless run, so this still crosses every production boundary and exercises the same
+   * command, stream channel, cancellation map, and renderer routing as a real turn. */
+  out("\nCHAT\n");
+  const conversationLog = process.env.CODEX_STUDIO_CONVERSATION_LOG || "";
+  const threadId = "smoke-thread-蝦餃";
+  const firstPrompt = 'Spaces, "quotes", C:\\path with spaces\\file.txt, 廣東話 🥟\nsecond line & | < > ^ % ! ( )';
+  const followPrompt = "Follow up on the same thread — 唔好斷線";
+  const failedPrompt = "[smoke:fail] keep this provisional answer visibly partial";
+  const cancelPrompt = "[smoke:cancel] wait for Stop and kill the descendant";
+
+  const chatState = () => win.webContents.executeJavaScript(
+    "(function(){var r=window.__cxRoot;if(!r)return null;var c=r.conversationFor(r.state.activeProfile,r.state.activeSession,r.sessionRecord(r.state.activeProfile,r.state.activeSession));" +
+    "return {profileId:r.state.activeProfile,sessionId:r.state.activeSession,threadId:c.threadId,runId:c.runId,thinking:r.state.thinking,messages:c.messages.map(function(m){return {role:m.role,text:m.text,status:m.status,out:m.out||''};})};})()",
+  );
+  const setComposer = (text) => win.webContents.executeJavaScript(
+    "(function(){var r=window.__cxRoot;r.setState({nav:'chat',chatInput:" + JSON.stringify(text) + "},function(){r.renderVals().sendChat();});return true;})()",
+  );
+  const sendAndWait = async (text, timeout = 15000) => {
+    await setComposer(text);
+    const started = await until(async () => {
+      const state = await chatState();
+      return state && state.messages.some((message) => message.role === "user" && message.text === text);
+    }, 3000);
+    if (!started) throw new Error("the renderer never added the submitted prompt to its session transcript");
+    const finished = await until(async () => {
+      const state = await chatState();
+      return state && !state.runId && !state.thinking;
+    }, timeout);
+    if (!finished) throw new Error("the renderer conversation did not settle");
+    return chatState();
+  };
+
+  try {
+    /* The authored CODEX_HOME contains rollout fixtures for catalog testing. Start the
+       conversation proof in a fresh Studio session so its first turn cannot inherit one
+       of those real-looking fixture thread ids and accidentally skip the initial grammar. */
+    await win.webContents.executeJavaScript(
+      "(function(){var r=window.__cxRoot,p=r.profile(),s={id:'smoke-conversation-session',threadId:'',name:'Conversation proof',cwd:" + JSON.stringify(ROOT) + ",updated:'now',turns:0,archived:false};" +
+      "var ps=r.state.profiles.map(function(x){return x.id===p.id?Object.assign({},x,{sessions:[s].concat(x.sessions.filter(function(old){return old.id!==s.id;}))}):x;});" +
+      "r.setState({profiles:ps},function(){r.activateConversation(p.id,s.id,{nav:'chat'});});return true;})()",
+    );
+    await until(async () => (await chatState()).sessionId === "smoke-conversation-session", 3000);
+    const initial = await sendAndWait(firstPrompt);
+    const firstMessages = initial.messages.slice(-2);
+    if (initial.threadId !== threadId) {
+      throw new Error("thread.started was not persisted on the Studio session: " + JSON.stringify(initial));
+    }
+    if (firstMessages[0].text !== firstPrompt) throw new Error("the composer changed the submitted prompt");
+    if (firstMessages[1].status !== "completed" || firstMessages[1].text !== "Initial answer from the authored conversation fixture.") {
+      throw new Error("the initial assistant reply was not rendered as completed semantic text");
+    }
+    if (firstMessages.some((message) => /\{\s*\"type\"/.test(message.text) || /authored diagnostic/.test(message.text))) {
+      throw new Error("raw JSONL or stderr appeared as conversation prose");
+    }
+
+    const resumed = await sendAndWait(followPrompt);
+    const resumedReply = resumed.messages[resumed.messages.length - 1];
+    if (resumed.threadId !== threadId || resumedReply.status !== "completed" || resumedReply.text !== "Follow-up answer resumed on the authored thread.") {
+      throw new Error("the follow-up did not resume and complete on the emitted thread id");
+    }
+
+    const failed = await sendAndWait(failedPrompt);
+    const failedReply = failed.messages[failed.messages.length - 1];
+    if (failedReply.status !== "failed" || failedReply.text !== "Partial dumpling answer — not completed." || !/authored failure/.test(failedReply.out)) {
+      throw new Error("provisional output was not retained and labelled as a failed turn");
+    }
+    if (/authored diagnostic/.test(failedReply.text)) throw new Error("stderr was rendered as assistant prose on failure");
+
+    /* Create a second local Studio session and start the slow turn there. Moving back to
+       the original tab before Stop proves both stream ownership and visible-session
+       cancellation: session A must stay intact while session B continues off-screen. */
+    const second = await win.webContents.executeJavaScript(
+      "(function(){var r=window.__cxRoot,p=r.profile(),s={id:'smoke-cancel-session',threadId:'',name:'Cancellation proof',cwd:" + JSON.stringify(ROOT) + ",updated:'now',turns:0,archived:false};" +
+      "var ps=r.state.profiles.map(function(x){return x.id===p.id?Object.assign({},x,{sessions:[s].concat(x.sessions)}):x;});r.setState({profiles:ps},function(){r.activateConversation(p.id,s.id,{nav:'chat'});});return {profileId:p.id,sessionId:s.id};})()",
+    );
+    const previousSession = initial.sessionId;
+    await until(async () => (await chatState()).sessionId === second.sessionId, 3000);
+    await setComposer(cancelPrompt);
+    const streaming = await until(async () => {
+      const state = await chatState();
+      const reply = state && state.messages[state.messages.length - 1];
+      return state && state.runId && reply && reply.text === "Partial answer before cancellation.";
+    }, 8000);
+    if (!streaming) throw new Error("the cancellable turn never reached provisional output");
+    await chatState();
+
+    await win.webContents.executeJavaScript(
+      "window.__cxRoot.activateConversation(" + JSON.stringify(second.profileId) + "," + JSON.stringify(previousSession) + ",{nav:'chat'})",
+    );
+    const switched = await chatState();
+    if (switched.messages.some((message) => message.text === "Partial answer before cancellation.")) {
+      throw new Error("an off-screen run leaked into the visible session transcript");
+    }
+    const visibleBeforeStop = JSON.stringify(switched.messages);
+    await win.webContents.executeJavaScript("window.__cxRoot.renderVals().stopChat()");
+    await wait(200);
+    if (!processAlive(readConversationLog(conversationLog).find((row) => row.kind === "tree")?.pid)) {
+      throw new Error("Stop on the unrelated visible session cancelled the off-screen run");
+    }
+
+    await win.webContents.executeJavaScript(
+      "window.__cxRoot.activateConversation(" + JSON.stringify(second.profileId) + "," + JSON.stringify(second.sessionId) + ",{nav:'chat'})",
+    );
+    await win.webContents.executeJavaScript("window.__cxRoot.renderVals().stopChat()");
+    const cancelled = await until(async () => {
+      const state = await chatState();
+      return state && !state.runId && !state.thinking;
+    }, 12000);
+    if (!cancelled) throw new Error("the cancelled renderer turn did not settle");
+    const cancelledState = await chatState();
+    const cancelledReply = cancelledState.messages[cancelledState.messages.length - 1];
+    if (cancelledReply.status !== "interrupted" || cancelledReply.text !== "Partial answer before cancellation.") {
+      throw new Error("cancellation did not preserve provisional text as an interrupted reply");
+    }
+
+    const rows = readConversationLog(conversationLog);
+    const invocations = rows.filter((row) => row.kind === "invocation");
+    const expectedInitial = ["exec"].concat(await win.webContents.executeJavaScript("window.__cxRoot.profileArgv()"), ["--json", firstPrompt]);
+    const expectedResume = ["exec"].concat(await win.webContents.executeJavaScript("window.__cxRoot.profileArgv()"), ["--json", "resume", threadId, followPrompt]);
+    if (JSON.stringify(invocations[0] && invocations[0].argv) !== JSON.stringify(expectedInitial)) {
+      throw new Error("the initial prompt was split or reordered across the native process boundary");
+    }
+    if (JSON.stringify(invocations[1] && invocations[1].argv) !== JSON.stringify(expectedResume)) {
+      throw new Error("resume did not carry the exact emitted thread id and prompt argv");
+    }
+    const tree = rows.find((row) => row.kind === "tree");
+    if (!tree || !Number.isInteger(tree.childPid)) throw new Error("the authored cancellable turn did not spawn its descendant");
+    if (!(await until(() => !processAlive(tree.pid), 8000)) || !(await until(() => !processAlive(tree.childPid), 8000))) {
+      throw new Error("cancellation left the fixture process or its descendant alive");
+    }
+    await win.webContents.executeJavaScript(
+      "window.__cxRoot.activateConversation(" + JSON.stringify(second.profileId) + "," + JSON.stringify(previousSession) + ",{nav:'chat'})",
+    );
+    if (JSON.stringify((await chatState()).messages) !== visibleBeforeStop) {
+      throw new Error("off-screen cancellation mutated the original session transcript");
+    }
+
+    report.conversation = {
+      status: "ok",
+      initialArgvItems: invocations[0].argv.length,
+      resumeArgvItems: invocations[1].argv.length,
+      threadPersisted: true,
+      semanticOnly: true,
+      partialFailure: true,
+      sessionIsolation: true,
+      treeCancelled: true,
+    };
+    out("  ok   exact initial/resume argv, semantic text, partial failure, session isolation, tree cancellation\n");
+  } catch (error) {
+    report.conversation = { status: "FAIL", error: String((error && error.message) || error).slice(0, 500) };
+    out("  FAIL " + report.conversation.error + "\n");
   }
 
   /* ---------------------------------------------------------------- PANELS */
@@ -399,6 +587,7 @@ async function main() {
     ipcSkipped: report.ipc.filter((r) => r.status === "skipped").length,
     ipcNoCli: report.ipc.filter((r) => r.status === "no-cli").length,
     ipcFailed: report.ipc.filter((r) => r.status === "FAIL").length,
+    conversationOk: report.conversation.status === "ok",
     panelsOk: report.panels.filter((r) => r.status === "ok").length,
     panelsFailed: report.panels.filter((r) => r.status === "FAIL").length,
     cliOk: !!report.cli.ok,
@@ -431,13 +620,14 @@ async function main() {
   out("  IPC      " + s.ipcOk + " ok, " + s.ipcRefused + " refused as designed, " + s.ipcSkipped + " skipped" +
       (s.ipcNoCli ? ", " + s.ipcNoCli + " need a CLI this build does not bundle" : "") +
       ", " + s.ipcFailed + " failed\n");
+  out("  Chat     " + (s.conversationOk ? "initial/resume/failure/cancellation proof passed" : "CONVERSATION PROOF FAILED") + "\n");
   out("  Panels   " + s.panelsOk + " ok, " + s.panelsFailed + " failed\n");
   out("  Overlays " + s.overlaysOk + " ok, " + s.overlaysFailed + " failed\n");
   out("  Language " + s.languagesOk + " ok, " + s.languagesFailed + " failed (en/yue/bi at funny level 5)\n");
   out("  Console  " + s.consoleErrors + " unexpected error(s)\n");
   out("  report   " + path.relative(ROOT, OUT).replace(/\\/g, "/") + "\n");
 
-  const bad = s.ipcFailed + s.panelsFailed + s.overlaysFailed + s.languagesFailed + s.consoleErrors + (s.cliOk || cliOptional ? 0 : 1);
+  const bad = s.ipcFailed + (s.conversationOk ? 0 : 1) + s.panelsFailed + s.overlaysFailed + s.languagesFailed + s.consoleErrors + (s.cliOk || cliOptional ? 0 : 1);
   out(bad === 0 ? "\nSMOKE TEST PASSED\n" : "\nSMOKE TEST FAILED — " + bad + " problem(s)\n");
   win.destroy();
   app.exit(bad === 0 ? 0 : 1);

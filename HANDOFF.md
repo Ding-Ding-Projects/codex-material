@@ -6,12 +6,55 @@ Nothing here is predicted, and nothing is claimed green that was not observed gr
 
 | | |
 | --- | --- |
-| **Snapshot commit** | `2e814fb` — *Replace every screenshot, move the fixture off the operator's disk, stop CI cancelling runs* |
-| **Branch** | `main` |
+| **Snapshot commit** | `5cdae86` plus the conversation repair commit that contains this file |
+| **Branch** | `fix/desktop-conversations` at capture time; merge and remote-default proof are recorded below after integration |
 | **Captured** | 2026-07-30 |
 | **Platform** | Windows-only Electron app (`electron/main.js`), no macOS or Linux target |
 | **Public repo** | `Ding-Ding-Projects/codex-material` |
 | **Newest release** | `v0.1.0+build.566` — non-draft, carrying a real NSIS `.exe` and `.msi` |
+
+## Interrupted desktop-conversation repair
+
+The Windows Chats defect reported as `invalid command` is repaired in the source change documented here. The local application proof is green; remote CI and release evidence for the pushed repair are recorded only after they actually exist.
+
+### Implemented locally
+
+- `electron/lib/cli.js` launches native executables with `shell: false`, prefers `codex.exe`, refuses `.cmd`/`.bat` shims that cannot preserve arbitrary Windows argv, and returns structured launch, timeout, cancellation, and exit outcomes.
+- `app/cx-conversation.js` owns exact initial/resume argv and normalizes Codex JSONL into thread, assistant-message, failure, completion, and diagnostic events. Prompts stay one argv item even when they contain spaces, quotes, newlines, Traditional Chinese, or shell metacharacters.
+- `electron/commands.js` streams semantic conversation events and returns one canonical final transcript while retaining generic raw console streaming for non-chat runs.
+- `app/index.html` keeps runtime transcripts and real Codex thread IDs per profile/session, routes late stream events to the reply that launched them, restores the correct transcript when tabs switch, and stops only the visible session's run. Slash text is no longer mis-spawned as a root CLI command.
+- Focused proof is green on this exact worktree:
+
+  | Command | Observed result |
+  | --- | --- |
+  | `node tools/test-frontend.mjs` | **35 passed, 0 failed**; 10 conversation-protocol tests |
+  | `node tools/test-backend.mjs` | **34 passed, 0 failed**; includes exact native argv, semantic `codex_run` integration, and strict doctor nonzero-JSON handling |
+
+### Complete local proof
+
+The authored **CHAT** phase passes end to end: exact hostile prompt argv, emitted thread persistence, exact resume grammar, semantic-only assistant prose, partial failure, profile/session isolation, and parent-plus-descendant cancellation are all observed green through renderer → preload → IPC → backend → native process.
+
+Codex 0.146.0 returns a valid machine-readable doctor report with exit 1 when one or more health checks fail. `catalog.doctor()` now explicitly accepts that documented health verdict while `runJson()` remains strict everywhere else. A regression test proves malformed or missing JSON is still rejected. After that compatibility repair, `npm run smoke` passed completely:
+
+```text
+CHAT: passed
+IPC: 40 ok, 7 refused as designed, 8 skipped, 0 failed
+Panels: 10/10
+Overlays: 7/7
+Languages: 3/3
+Console errors: 0
+SMOKE TEST PASSED
+```
+
+### Remaining product work
+
+1. Persist complete per-session message bodies across app restart and load prior rollout transcript bodies safely; this checkpoint persists thread identity but keeps newly streamed message bodies in memory.
+2. Route applicable slash-catalog entries to desktop actions instead of only showing truthful local guidance. Terminal-only commands must remain non-spawning.
+3. Capture the exact real Chats surface through the project harness and Lowlevel MCP headless mode, then update the affected README/site feature documentation in the next full product milestone.
+4. Continue to leave release-photo generation alone; another agent owns it.
+
+> [!WARNING]
+> The authored conversation fixture is gated to non-packaged headless runs and never reads the operator's Codex home, credentials, rollouts, or account. Preserve that boundary. Generated screenshots and `assets/audit/ui-audit.json` from failed attempts were restored rather than committed; `assets/smoke.json` records the final green run.
 
 ## Verification block
 

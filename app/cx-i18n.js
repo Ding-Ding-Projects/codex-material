@@ -1416,6 +1416,22 @@
       en: ["codex exited {code}", "codex exited with code {code}", "codex exited {code}", "codex exited {code} — the output above is what it said", "codex exited {code}. Whatever it printed above is the whole story."],
       yue: ["codex 收咗工，exit {code}", "codex 收咗工，exit code 係 {code}", "codex 行完，exit {code}", "codex exit {code} — 上面嗰啲就係佢講嘅嘢", "codex exit {code}，佢上面打咗乜就係乜，冇再多。"]
     },
+    "chat.interrupted": {
+      en: ["The turn was interrupted. Any text shown is partial.", "The turn was interrupted; any text shown is partial.", "The turn stopped before completion, so its text is partial.", "The turn was interrupted — keep the text if useful, but it is only partial.", "The turn got the stop sign before the finish line. Its text is partial, not a completed answer."],
+      yue: ["呢個回合中斷咗，顯示嘅文字只係部分內容。", "呢個回合中斷咗；顯示嘅文字係部分內容。", "呢個回合未完成就停咗，所以啲文字只係部分內容。", "呢個回合中斷咗 — 啲文字有用可以留低，但只係部分內容。", "呢個回合未到終點就食咗停牌；啲文字係 partial，唔係完整答案。"]
+    },
+    "chat.incomplete": {
+      en: ["Codex exited without confirming that the turn completed.", "Codex exited without a completed-turn event.", "Codex stopped without confirming completion.", "Codex left before reporting a completed turn; the text remains partial.", "Codex slipped out without the completed-turn receipt, so the text stays labelled partial."],
+      yue: ["Codex 離開前冇確認回合完成。", "Codex 離開前冇送出回合完成事件。", "Codex 停咗，但冇確認完成。", "Codex 未報告回合完成就走咗；啲文字繼續標做部分內容。", "Codex 冇交 completed-turn 張收據就閃咗，所以啲文字繼續標住 partial。"]
+    },
+    "chat.slashLocalTitle": {
+      en: ["/{command} is an interactive command.", "/{command} belongs to the interactive terminal.", "/{command} is handled by the interactive Codex terminal.", "/{command} is a terminal-only command, not a Codex CLI subcommand.", "/{command} lives inside the interactive terminal; pretending it is a root CLI command is how nonsense gets an exit code."],
+      yue: ["/{command} 係互動式指令。", "/{command} 屬於互動式 terminal。", "/{command} 由互動式 Codex terminal 處理。", "/{command} 只係 terminal 指令，唔係 Codex CLI 子指令。", "/{command} 住喺互動式 terminal 入面；扮佢係 root CLI 指令，只會俾荒謬攞到 exit code。"]
+    },
+    "chat.slashLocalBody": {
+      en: ["Use the matching desktop control or the command catalog; this text was not sent to Codex.", "Use the equivalent desktop control or open the command catalog. Nothing was sent to Codex.", "Open the matching desktop surface or the command catalog. The command was not spawned.", "Use the desktop control for this action or open its command-catalog wizard; Studio did not launch an invalid command.", "Use the proper desktop control or its catalog wizard. Studio kept this one away from the process launcher, where it cannot cosplay as a real subcommand."],
+      yue: ["請用對應嘅桌面控制項或者指令目錄；呢段文字冇送去 Codex。", "用對應嘅桌面控制項或者開指令目錄。冇嘢送咗去 Codex。", "開對應嘅桌面頁面或者指令目錄；個指令冇被執行。", "請用呢個操作嘅桌面控制項或者指令目錄 wizard；Studio 冇開一條無效指令。", "用正經嘅桌面控制項或者 catalog wizard 啦。Studio 冇俾佢走入 process launcher 扮真 subcommand。"]
+    },
     "err.run": {
       en: ["The run could not start: {detail}", "The run did not start: {detail}", "The run could not start — {detail}", "The run never started. It said: {detail}", "The run never even started. It said: {detail}"],
       yue: ["個 run 起唔到步：{detail}", "個 run 開唔到：{detail}", "行唔到 — {detail}", "個 run 根本冇開始過，佢話：{detail}", "個 run 連起步都冇，佢話：{detail}"]

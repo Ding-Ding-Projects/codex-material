@@ -16,6 +16,7 @@ const catalog = require("./lib/catalog");
 const wsl = require("./lib/wsl");
 const history = require("./lib/history");
 const editors = require("./lib/editors");
+const conversation = require(path.join(__dirname, "..", "app", "cx-conversation.js"));
 
 const APP_DIR = path.join(__dirname, "..", "app");
 
@@ -214,19 +215,32 @@ function killAllRuns() {
 app.on("before-quit", () => killAllRuns());
 
 /** Spawn the CLI, stream every line to the window as it arrives, and return the exit
- *  code with the full transcript. */
+ *  code with the full transcript. Conversation runs additionally carry one canonical
+ *  semantic transcript, so live events and the final result cannot disagree. */
 command("codex_run", async (a) => {
   const args = Array.isArray(a.args) ? a.args : [];
   if (!args.length) throw new Error("no arguments were composed for this run");
   const id = a.id || "";
   const channel = a.stream || null;
+  const semantic = a.protocol === "conversation" ? conversation.createTranscript() : null;
   let record = null;
   try {
-    const { code, lines } = await cli.stream(
-      cli.codexBin(),
-      args,
+    /* The end-to-end smoke replaces Codex with an authored, local JSONL process. This
+     * seam exists only in the headless harness: production cannot select a program,
+     * and the renderer still exercises the normal codex_run command and exact argv. */
+    const fixture =
+      semantic && !app.isPackaged && process.env.CODEX_STUDIO_HEADLESS === "1"
+        ? process.env.CODEX_STUDIO_CONVERSATION_FIXTURE
+        : "";
+    const fixtureRuntime = process.env.CODEX_STUDIO_CONVERSATION_RUNTIME || process.execPath;
+    const program = fixture ? fixtureRuntime : cli.codexBin();
+    const programArgs = fixture ? [fixture].concat(args) : args;
+    const outcome = await cli.stream(
+      program,
+      programArgs,
       {
         cwd: a.cwd,
+        timeout: a.timeout,
         // Recorded before the first line arrives: a run that is cancelled while it is
         // still thinking has printed nothing yet, and is the one most worth stopping.
         onSpawn: (child) => {
@@ -236,18 +250,39 @@ command("codex_run", async (a) => {
         },
       },
       (line) => {
+        const normalized = semantic ? conversation.accept(semantic, line) : null;
         if (channel && target && !target.isDestroyed()) {
-          target.webContents.send(channel, { id, level: line.level, text: line.text });
+          target.webContents.send(
+            channel,
+            semantic ? { id, protocol: "conversation", event: normalized } : { id, level: line.level, text: line.text },
+          );
         }
       },
     );
-    return { code, id, lines, cancelled: record ? record.cancelled : false };
+    const cancelled = (record ? record.cancelled : false) || outcome.cancelled;
+    return Object.assign({}, outcome, {
+      id,
+      cancelled,
+      conversation: semantic ? conversation.finish(semantic, Object.assign({}, outcome, { cancelled })) : null,
+    });
   } finally {
     // Also the error path — a run that never started is not a run anyone can cancel.
     // The identity check keeps a slow exit from evicting a newer run under the same id.
     if (id && Runs.get(id) === record) Runs.delete(id);
   }
 });
+
+/** A detached login still uses the same target classifier as every other process. */
+function spawnDetached(program, args) {
+  const spec = cli.launchSpec(program, args);
+  const { spawn } = require("node:child_process");
+  return spawn(spec.file, spec.args, {
+    detached: true,
+    stdio: "ignore",
+    shell: false,
+    windowsHide: true,
+  });
+}
 
 /** Stop a run for real. */
 command("codex_cancel", async (a) => cancelRun(a && a.id != null ? String(a.id) : ""));
@@ -303,13 +338,7 @@ command("codex_login", async (a) => {
       "API-key login reads the key from stdin. Run `codex login --with-api-key` in a terminal so the key never passes through the GUI.",
     );
   }
-  const { spawn } = require("node:child_process");
-  const child = spawn(cli.codexBin(), ["login"], {
-    detached: true,
-    stdio: "ignore",
-    shell: cli.WIN,
-    windowsHide: true,
-  });
+  const child = spawnDetached(cli.codexBin(), ["login"]);
   child.unref();
   return { started: true, pid: child.pid };
 });

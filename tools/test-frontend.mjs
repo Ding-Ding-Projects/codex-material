@@ -187,6 +187,169 @@ function suite(relative, body, dependencies) {
   body(ctx, relative);
 }
 
+/* ======================================================== conversation protocol */
+
+suite("app/cx-conversation.js", (ctx, file) => {
+  const conversation = ctx.CX_CONVERSATION;
+
+  unit(file, "keeps initial and resumed prompts as exactly one argv item", () => {
+    const prompt = 'review C:\Program Files\tea & dimsum | "%PATH%" — 蝦餃\nsecond line';
+    assert.deepEqual(
+      plain(conversation.buildArgv({
+        common: ["-C", "C:\Work tree", "--skip-git-repo-check", "-m", "gpt-5.1"],
+        prompt
+      })),
+      ["exec", "-C", "C:\Work tree", "--skip-git-repo-check", "-m", "gpt-5.1", "--json", prompt]
+    );
+    assert.deepEqual(
+      plain(conversation.buildArgv({
+        common: ["--skip-git-repo-check"],
+        threadId: "019c-thread-id",
+        prompt: "--follow up please"
+      })),
+      ["exec", "--skip-git-repo-check", "--json", "resume", "019c-thread-id", "--follow up please"]
+    );
+  });
+
+  unit(file, "rejects empty prompts and never mutates common options", () => {
+    const common = ["-C", "C:\Work"];
+    assert.throws(() => conversation.buildArgv({ prompt: "   " }), /cannot be empty/);
+    conversation.buildArgv({ common, prompt: "go" });
+    assert.deepEqual(common, ["-C", "C:\Work"]);
+  });
+
+  unit(file, "normalizes thread, assistant, completion, and failure events", () => {
+    const thread = conversation.normalizeLine({
+      level: "out",
+      text: '{"type":"thread.started","thread_id":"thread-123"}'
+    });
+    assert.equal(thread.kind, "thread");
+    assert.equal(thread.threadId, "thread-123");
+
+    const message = conversation.normalizeLine({
+      level: "out",
+      text: '{"type":"item.completed","item":{"id":"m1","type":"agent_message","text":"hello"}}'
+    });
+    assert.equal(message.kind, "message");
+    assert.equal(message.text, "hello");
+    assert.equal(message.itemId, "m1");
+
+    const complete = conversation.normalizeLine({
+      level: "out",
+      text: '{"type":"turn.completed","usage":{"input_tokens":2,"output_tokens":3}}'
+    });
+    assert.equal(complete.kind, "complete");
+    assert.deepEqual(plain(complete.usage), { input_tokens: 2, output_tokens: 3 });
+
+    const failed = conversation.normalizeLine({
+      level: "out",
+      text: '{"type":"turn.failed","error":{"message":"the turn failed"}}'
+    });
+    assert.equal(failed.kind, "failure");
+    assert.equal(failed.text, "the turn failed");
+    assert.equal(failed.terminal, true);
+  });
+
+  unit(file, "keeps protocol objects and stderr out of assistant prose", () => {
+    const transcript = conversation.createTranscript();
+    conversation.accept(transcript, { level: "out", text: '{"type":"thread.started","thread_id":"thread-9"}' });
+    conversation.accept(transcript, {
+      level: "out",
+      text: '{"type":"item.completed","item":{"id":"m1","type":"reasoning","text":"hidden"}}'
+    });
+    conversation.accept(transcript, {
+      level: "out",
+      text: '{"type":"item.completed","item":{"id":"m2","type":"agent_message","text":"visible answer"}}'
+    });
+    conversation.accept(transcript, { level: "error", text: "diagnostic only" });
+    conversation.accept(transcript, { level: "out", text: '{"type":"turn.completed","usage":{}}' });
+    const result = plain(conversation.finish(transcript, { code: 0 }));
+    assert.equal(result.threadId, "thread-9");
+    assert.equal(result.status, "completed");
+    assert.equal(result.text, "visible answer");
+    assert.equal(result.partial, "");
+    assert.deepEqual(result.diagnostics, ["diagnostic only"]);
+  });
+
+  unit(file, "replaces provisional messages and labels failed output partial", () => {
+    const transcript = conversation.createTranscript();
+    conversation.accept(transcript, {
+      level: "out",
+      text: '{"type":"item.completed","item":{"id":"m1","type":"agent_message","text":"stale draft"}}'
+    });
+    conversation.accept(transcript, {
+      level: "out",
+      text: '{"type":"item.completed","item":{"id":"m2","type":"agent_message","text":"partial answer"}}'
+    });
+    conversation.accept(transcript, {
+      level: "out",
+      text: '{"type":"turn.failed","error":{"message":"network left the steamer"}}'
+    });
+    const result = plain(conversation.finish(transcript, { code: 1 }));
+    assert.equal(result.status, "failed");
+    assert.equal(result.text, "");
+    assert.equal(result.partial, "partial answer");
+    assert.equal(result.error, "network left the steamer");
+  });
+
+  unit(file, "classifies cancellation and missing terminal events honestly", () => {
+    const partial = conversation.createTranscript();
+    conversation.accept(partial, {
+      level: "out",
+      text: '{"type":"item.completed","item":{"id":"m1","type":"agent_message","text":"halfway"}}'
+    });
+    const interrupted = plain(conversation.finish(partial, { code: -1, cancelled: true }));
+    assert.equal(interrupted.status, "interrupted");
+    assert.equal(interrupted.partial, "halfway");
+
+    const incomplete = plain(conversation.finish(conversation.createTranscript(), { code: 0 }));
+    assert.equal(incomplete.status, "incomplete");
+    assert.match(incomplete.error, /before reporting/);
+  });
+
+  unit(file, "uses stderr only as fallback detail for a transport failure", () => {
+    const transcript = conversation.createTranscript();
+    conversation.accept(transcript, { level: "error", text: "transport broke" });
+    const result = plain(conversation.finish(transcript, { code: 9 }));
+    assert.equal(result.status, "failed");
+    assert.equal(result.text, "");
+    assert.equal(result.error, "transport broke");
+  });
+
+  unit(file, "keeps malformed and unknown stdout out of assistant text", () => {
+    const transcript = conversation.createTranscript();
+    assert.equal(conversation.accept(transcript, { level: "out", text: "not-json" }).kind, "diagnostic");
+    assert.equal(
+      conversation.accept(transcript, { level: "out", text: '{"type":"future.event","value":1}' }).kind,
+      "event"
+    );
+    assert.equal(transcript.provisionalText, "");
+    assert.deepEqual(plain(transcript.diagnostics), ["not-json"]);
+  });
+
+  unit(file, "captures top-level and item errors without making them prose", () => {
+    const transcript = conversation.createTranscript();
+    conversation.accept(transcript, { level: "out", text: '{"type":"error","message":"top failure"}' });
+    conversation.accept(transcript, {
+      level: "out",
+      text: '{"type":"item.completed","item":{"id":"e1","type":"error","message":"item failure"}}'
+    });
+    const result = plain(conversation.finish(transcript, { code: 2 }));
+    assert.equal(result.text, "");
+    assert.equal(result.error, "item failure");
+  });
+
+  unit(file, "exports independent transcript snapshots", () => {
+    const transcript = conversation.createTranscript();
+    conversation.accept(transcript, { level: "error", text: "one" });
+    const result = conversation.finish(transcript, { code: 1 });
+    result.diagnostics.push("two");
+    result.events.length = 0;
+    assert.deepEqual(plain(transcript.diagnostics), ["one"]);
+    assert.equal(transcript.events.length, 1);
+  });
+});
+
 /* ------------------------------------------------------------ shape probing */
 
 /** Anything a module returns carries the vm realm's prototypes, so a structurally

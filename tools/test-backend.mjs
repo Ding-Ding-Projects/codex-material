@@ -10,7 +10,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-import { mkdtempSync, rmSync, mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
+import { mkdtempSync, rmSync, mkdirSync, writeFileSync, existsSync, readFileSync, copyFileSync, chmodSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -66,21 +66,47 @@ test("cli.parseLooseJson returns null rather than throwing on non-JSON", () => {
   assert.equal(cli.parseLooseJson("prefix { unterminated"), null);
 });
 
+test("cli.parseJsonOutcome accepts a nonzero doctor report only when explicitly allowed", () => {
+  const failedHealth = {
+    code: 1,
+    ok: false,
+    stdout: '{"overallStatus":"fail","checks":{"auth":{"status":"fail"}}}',
+    stderr: "",
+  };
+  assert.throws(
+    () => cli.parseJsonOutcome(["doctor", "--json", "--all"], failedHealth),
+    /exited 1/,
+  );
+  assert.deepEqual(
+    cli.parseJsonOutcome(["doctor", "--json", "--all"], failedHealth, { allowNonzeroJson: true }),
+    { overallStatus: "fail", checks: { auth: { status: "fail" } } },
+  );
+  assert.throws(
+    () => cli.parseJsonOutcome(
+      ["doctor", "--json", "--all"],
+      { ...failedHealth, stdout: "not json" },
+      { allowNonzeroJson: true },
+    ),
+    /exited 1/,
+  );
+});
+
 test("cli.codexSource explains where the binary came from", () => {
-  const previous = process.env.CODEX_BIN;
-  process.env.CODEX_BIN = "C:/somewhere/codex.exe";
-  try {
-    // The resolution is cached after the first call, so this only holds when the
-    // override is the first thing asked for — which is why it is asserted on the
-    // shape rather than on a specific answer.
-    const where = cli.codexSource();
-    assert.ok(typeof where.bin === "string" && where.bin.length > 0);
-    assert.ok(typeof where.source === "string" && where.source.length > 0);
-    assert.equal(typeof where.bundled, "boolean");
-  } finally {
-    if (previous === undefined) delete process.env.CODEX_BIN;
-    else process.env.CODEX_BIN = previous;
-  }
+  // Do not poison the module's process-wide resolution cache with an invented path:
+  // later tests exercise the same helper through the real IPC command.
+  const where = cli.codexSource();
+  assert.ok(typeof where.bin === "string" && where.bin.length > 0);
+  assert.ok(typeof where.source === "string" && where.source.length > 0);
+  assert.equal(typeof where.bundled, "boolean");
+  assert.ok(["native", "batch", "unsupported"].includes(where.kind));
+});
+
+test("cli.launchSpec refuses batch shims rather than shell-parsing user input", () => {
+  assert.throws(
+    () => cli.launchSpec("C:/tools/codex.cmd", ["hello & goodbye", "%PATH%"]),
+    (error) => error.code === "CODEX_UNSAFE_LAUNCHER" && /cannot preserve arbitrary Codex arguments/.test(error.message),
+  );
+  assert.equal(cli.launchSpec("C:/tools/codex.EXE", ["hello world"]).shell, false);
 });
 
 /* ------------------------------------------------------------------ config */
@@ -368,14 +394,27 @@ test("cli.killTree kills the process and everything under it", async () => {
   });
   const grandchild = await new Promise((resolve, reject) => {
     let buffer = "";
+    let settled = false;
+    const finish = (fn, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      fn(value);
+    };
+    const timer = setTimeout(
+      () => finish(reject, new Error("the child never reported its own child's pid")),
+      15000,
+    );
     parent.stdout.setEncoding("utf8");
     parent.stdout.on("data", (chunk) => {
       buffer += chunk;
       const nl = buffer.indexOf("\n");
-      if (nl !== -1) resolve(Number(buffer.slice(0, nl).trim()));
+      if (nl !== -1) finish(resolve, Number(buffer.slice(0, nl).trim()));
     });
-    parent.on("error", reject);
-    setTimeout(() => reject(new Error("the child never reported its own child's pid")), 15000);
+    parent.on("error", (error) => finish(reject, error));
+    parent.on("exit", (code) => {
+      if (!settled) finish(reject, new Error(`the child exited ${code} before reporting its child's pid`));
+    });
   });
 
   try {
@@ -391,22 +430,98 @@ test("cli.killTree kills the process and everything under it", async () => {
   }
 });
 
-test("cli.stream hands the caller the child the moment it starts", async () => {
+function argvFixture() {
+  const dir = mkdtempSync(join(tmpdir(), "codex argv fixture "));
+  const executable = join(dir, cli.WIN ? "node copy.exe" : "node copy");
+  const script = join(dir, "print argv.js");
+  copyFileSync(process.execPath, executable);
+  chmodSync(executable, 0o755);
+  writeFileSync(script, "process.stdout.write(JSON.stringify(process.argv.slice(2)) + '\\n');\n", "utf8");
+  return { dir, executable, script };
+}
+
+test("cli.stream preserves every argv item without shell interpretation", async () => {
+  const fixture = argvFixture();
   const child = { value: null };
-  // Quoted because stream() runs through a shell on Windows, where the node path
-  // contains a space.
-  const program = cli.WIN ? `"${process.execPath}"` : process.execPath;
+  const expected = [
+    "hello world",
+    "",
+    'a "quoted" value',
+    "trailing\\\\",
+    "廣東話 🥟",
+    "line one\nline two",
+    "-leading-option",
+    "a&b|c<d>e^f(g)h%i!j",
+    "%PATH%",
+  ];
   const lines = [];
-  const out = await cli.stream(
-    program,
-    ["-e", cli.WIN ? '"console.log(1)"' : "console.log(1)"],
-    { onSpawn: (c) => { child.value = c; } },
-    (line) => lines.push(line),
+  try {
+    const out = await cli.stream(
+      fixture.executable,
+      [fixture.script].concat(expected),
+      { onSpawn: (c) => { child.value = c; } },
+      (line) => lines.push(line),
+    );
+    assert.ok(child.value, "onSpawn should have been called");
+    assert.equal(typeof child.value.pid, "number");
+    assert.equal(out.code, 0);
+    assert.deepEqual(lines.map((line) => line.level), ["out"]);
+    assert.deepEqual(JSON.parse(lines[0].text), expected);
+  } finally {
+    rmSync(fixture.dir, { recursive: true, force: true });
+  }
+});
+
+test("cli.runProgram reports nonzero exits even when stdout is valid JSON", async () => {
+  const out = await cli.runProgram(
+    process.execPath,
+    ["-e", "process.stdout.write('{\\\"looks\\\":\\\"valid\\\"}'); process.stderr.write('nope'); process.exit(7);"],
+    { timeout: 5000 },
   );
-  assert.ok(child.value, "onSpawn should have been called");
-  assert.equal(typeof child.value.pid, "number");
-  assert.equal(out.code, 0);
-  assert.deepEqual(lines.map((l) => l.text), ["1"]);
+  assert.equal(out.ok, false);
+  assert.equal(out.code, 7);
+  assert.equal(out.exitCode, 7);
+  assert.equal(out.stdout, '{"looks":"valid"}');
+  assert.equal(out.stderr, "nope");
+  assert.equal(out.timedOut, false);
+});
+
+test("cli.runProgram distinguishes launch failures and timeouts", async () => {
+  const missing = join(tmpdir(), "codex-studio-no-such-program.exe");
+  const absent = await cli.runProgram(missing, [], { timeout: 1000 });
+  assert.equal(absent.ok, false);
+  assert.equal(absent.systemCode, "ENOENT");
+  assert.match(absent.stderr, /could not start/);
+
+  const slow = await cli.runProgram(
+    process.execPath,
+    ["-e", "setTimeout(() => {}, 120000);"],
+    { timeout: 100 },
+  );
+  assert.equal(slow.ok, false);
+  assert.equal(slow.timedOut, true);
+});
+
+test("cli.stream contains callback failures and reaps the child", async () => {
+  await assert.rejects(
+    cli.stream(
+      process.execPath,
+      ["-e", "console.log('ready'); setTimeout(() => {}, 120000);"],
+      {},
+      () => { throw new Error("line callback failed"); },
+    ),
+    /line callback failed/,
+  );
+
+  await assert.rejects(
+    cli.stream(
+      process.execPath,
+      ["-e", "setTimeout(() => {}, 120000);"],
+      { onSpawn: () => { throw new Error("spawn callback failed"); } },
+      () => {},
+    ),
+    /spawn callback failed/,
+  );
 });
 
 /** commands.js is Electron main-process code, but everything it does about runs is
@@ -441,6 +556,67 @@ function loadCommands() {
 
 const { commands: commandsModule, handlers: ipc, quitHooks } = loadCommands();
 const invoke = (name, args) => ipc.get(name)(null, args || {});
+
+test("codex_run conversation mode streams semantic events and returns the canonical transcript", async () => {
+  const previous = {
+    headless: process.env.CODEX_STUDIO_HEADLESS,
+    fixture: process.env.CODEX_STUDIO_CONVERSATION_FIXTURE,
+    runtime: process.env.CODEX_STUDIO_CONVERSATION_RUNTIME,
+    log: process.env.CODEX_STUDIO_CONVERSATION_LOG,
+  };
+  const dir = mkdtempSync(join(tmpdir(), "codex conversation fixture "));
+  const logFile = join(dir, "argv.jsonl");
+  const target = {
+    isDestroyed: () => false,
+    webContents: { send: (_channel, payload) => streamed.push(payload) },
+  };
+  const streamed = [];
+  const prompt = 'hello "quoted" & 廣東話\nline two %PATH%!';
+
+  try {
+    process.env.CODEX_STUDIO_HEADLESS = "1";
+    process.env.CODEX_STUDIO_CONVERSATION_FIXTURE = join(root, "tools", "conversation-fixture.cjs");
+    process.env.CODEX_STUDIO_CONVERSATION_RUNTIME = process.execPath;
+    process.env.CODEX_STUDIO_CONVERSATION_LOG = logFile;
+    commandsModule.setWindow(target);
+
+    const result = await invoke("codex_run", {
+      id: "conversation-initial",
+      args: ["exec", "--profile", "A B", "--json", prompt],
+      stream: "codex://stdout",
+      protocol: "conversation",
+    });
+
+    assert.equal(result.code, 0);
+    assert.equal(result.conversation.status, "completed");
+    assert.equal(result.conversation.threadId, "smoke-thread-蝦餃");
+    assert.equal(result.conversation.text, "Initial answer from the authored conversation fixture.");
+    assert.equal(result.conversation.partial, "");
+    assert.deepEqual(
+      streamed.map((entry) => entry.event.kind),
+      ["thread", "message", "complete"],
+    );
+    assert.ok(streamed.every((entry) => entry.protocol === "conversation"));
+    assert.ok(streamed.every((entry) => !entry.text), "conversation events should never carry raw JSON as prose");
+
+    const rows = readFileSync(logFile, "utf8").trim().split(/\r?\n/).map(JSON.parse);
+    assert.deepEqual(rows[0].argv, ["exec", "--profile", "A B", "--json", prompt]);
+  } finally {
+    commandsModule.setWindow(null);
+    for (const [key, value] of Object.entries(previous)) {
+      const env = key === "headless"
+        ? "CODEX_STUDIO_HEADLESS"
+        : key === "fixture"
+          ? "CODEX_STUDIO_CONVERSATION_FIXTURE"
+          : key === "runtime"
+            ? "CODEX_STUDIO_CONVERSATION_RUNTIME"
+            : "CODEX_STUDIO_CONVERSATION_LOG";
+      if (value === undefined) delete process.env[env];
+      else process.env[env] = value;
+    }
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 test("codex_cancel answers for a run that is not running instead of throwing", async () => {
   const unknown = await invoke("codex_cancel", { id: "run-never-existed" });

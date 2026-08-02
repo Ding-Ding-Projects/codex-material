@@ -3,12 +3,50 @@
    the sandbox or the config schema is reimplemented here — this module only knows
    how to find the binary, run it, and hand the output back verbatim. */
 
-const { spawn, execFile, execFileSync } = require("node:child_process");
+const { spawn, execFileSync } = require("node:child_process");
+const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
+const WIN = process.platform === "win32";
+const DEFAULT_TIMEOUT = 120_000;
+const MAX_BUFFER = 32 * 1024 * 1024;
+
 function codexHome() {
   return process.env.CODEX_HOME || path.join(os.homedir(), ".codex");
+}
+
+function launcherKind(program) {
+  if (!WIN) return "native";
+  const ext = path.extname(String(program || "")).toLowerCase();
+  if (ext === ".cmd" || ext === ".bat") return "batch";
+  if (!ext || ext === ".exe" || ext === ".com") return "native";
+  return "unsupported";
+}
+
+/** Describe an executable without asking a shell to reinterpret its arguments.
+ *
+ * Batch files are deliberately refused. There is no general cmd.exe quoting scheme
+ * that preserves arbitrary `%`, `!`, quotes, metacharacters and empty arguments through
+ * both cmd and batch expansion. Codex Studio ships a native executable and prefers a
+ * native installed copy, so silently weakening that boundary is unnecessary. */
+function launchSpec(program, args) {
+  const file = String(program || "");
+  if (!file) throw new Error("no executable was given");
+  const kind = launcherKind(file);
+  if (kind === "batch") {
+    const error = new Error(
+      `refusing to launch batch shim \`${file}\`: it cannot preserve arbitrary Codex arguments; install or select codex.exe`,
+    );
+    error.code = "CODEX_UNSAFE_LAUNCHER";
+    throw error;
+  }
+  if (kind === "unsupported") {
+    const error = new Error(`unsupported Codex launcher \`${file}\`; select a native .exe or .com executable`);
+    error.code = "CODEX_UNSUPPORTED_LAUNCHER";
+    throw error;
+  }
+  return { file, args: Array.isArray(args) ? args.map(String) : [], kind, shell: false };
 }
 
 /** Where the `codex` this process runs actually came from, and why. Resolved once —
@@ -17,37 +55,50 @@ let resolved = null;
 
 /** Search order, and the reasoning behind it:
  *
- *  1. `CODEX_BIN` — an explicit override always wins.
- *  2. The user's own install. It owns their login, their `~/.codex` and their update
- *     channel. Shadowing it with a bundled copy is how a machine ends up "logged
- *     out" in this app and logged in everywhere else.
- *  3. The copy bundled with the installer, so the app is useful on a machine that
- *     has never installed Codex.
+ *  1. `CODEX_BIN` — an explicit override always wins (and is validated at launch).
+ *  2. The user's native install. It owns their login, their `~/.codex` and their update
+ *     channel. A native candidate ranks ahead of a batch shim even when `where` lists
+ *     the shim first.
+ *  3. The native copy bundled with the installer, so the app is useful on a machine
+ *     that has never installed Codex and never needs a shell to carry user input.
+ *  4. A discovered batch shim only as an explanatory failure; it is never executed.
  */
 function resolveCodex() {
   if (resolved) return resolved;
 
   if (process.env.CODEX_BIN) {
-    resolved = { bin: process.env.CODEX_BIN, source: "CODEX_BIN", bundled: false };
+    const bin = process.env.CODEX_BIN;
+    resolved = {
+      bin,
+      source: "CODEX_BIN",
+      bundled: false,
+      kind: launcherKind(bin),
+    };
     return resolved;
   }
 
+  let discovered = [];
   try {
-    const out = require("node:child_process").execFileSync(
-      process.platform === "win32" ? "where" : "which",
-      ["codex"],
-      { encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "ignore"] },
-    );
-    const first = out.split(/\r?\n/).find((l) => l.trim());
-    if (first) {
-      resolved = { bin: first.trim(), source: "installed on this machine", bundled: false };
+    const out = execFileSync(process.platform === "win32" ? "where" : "which", ["codex"], {
+      encoding: "utf8",
+      windowsHide: true,
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    discovered = out.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const native = discovered.find((candidate) => launcherKind(candidate) === "native");
+    if (native) {
+      resolved = {
+        bin: native,
+        source: "installed on this machine",
+        bundled: false,
+        kind: "native",
+      };
       return resolved;
     }
   } catch {
     /* nothing on PATH — fall through to the bundled copy */
   }
 
-  const fs = require("node:fs");
   // Packaged: resources/codex-bin/. From a checkout: vendor/codex-bin/.
   const candidates = [
     process.resourcesPath ? path.join(process.resourcesPath, "codex-bin", "bin", "codex.exe") : null,
@@ -55,14 +106,29 @@ function resolveCodex() {
   ].filter(Boolean);
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) {
-      resolved = { bin: candidate, source: "bundled with Codex Studio", bundled: true };
+      resolved = {
+        bin: candidate,
+        source: "bundled with Codex Studio",
+        bundled: true,
+        kind: "native",
+      };
       return resolved;
     }
   }
 
+  if (discovered.length) {
+    resolved = {
+      bin: discovered[0],
+      source: "unsafe batch shim found on this machine",
+      bundled: false,
+      kind: launcherKind(discovered[0]),
+    };
+    return resolved;
+  }
+
   // Nothing found. Return the bare name so the failure message names the real
   // problem — "could not run `codex`" — rather than a path nobody recognises.
-  resolved = { bin: "codex", source: "not found", bundled: false };
+  resolved = { bin: "codex", source: "not found", bundled: false, kind: "native" };
   return resolved;
 }
 
@@ -74,35 +140,179 @@ function codexSource() {
   return resolveCodex();
 }
 
-/** Windows resolves `codex` to a .cmd shim, which `spawn` will not execute without
- *  a shell. Everything here goes through `shell: true` on win32 for that reason, so
- *  arguments must never be interpolated into a string — they stay an argv array. */
-const WIN = process.platform === "win32";
+function killTreeDetailed(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) {
+    return { killed: false, complete: false, reason: "invalid pid", systemCode: null };
+  }
 
-const DEFAULT_TIMEOUT = 120_000;
+  if (WIN) {
+    try {
+      execFileSync("taskkill", ["/pid", String(pid), "/T", "/F"], {
+        stdio: "ignore",
+        windowsHide: true,
+        timeout: 10_000,
+      });
+      return { killed: true, complete: true, reason: "process tree terminated", systemCode: null };
+    } catch (error) {
+      // A best-effort direct kill stops the process we can name, but it is not reported
+      // as a complete tree cancellation because descendants may have survived.
+      let killed = false;
+      try {
+        process.kill(pid, "SIGKILL");
+        killed = true;
+      } catch {
+        /* already gone or inaccessible */
+      }
+      return {
+        killed,
+        complete: false,
+        reason: killed ? "only the named process could be terminated" : "the process was already gone or could not be terminated",
+        systemCode: error && error.code ? String(error.code) : null,
+      };
+    }
+  }
+
+  try {
+    process.kill(pid, "SIGKILL");
+    return { killed: true, complete: true, reason: "process terminated", systemCode: null };
+  } catch (error) {
+    return {
+      killed: false,
+      complete: false,
+      reason: "the process was already gone or could not be terminated",
+      systemCode: error && error.code ? String(error.code) : null,
+    };
+  }
+}
+
+/** Kill a process and every descendant it spawned. Returns true only when the complete
+ *  tree-kill operation was confirmed. Synchronous on purpose: Electron's `before-quit`
+ *  does not await anything, so an asynchronous kill can lose the race against exit. */
+function killTree(pid) {
+  return killTreeDetailed(pid).complete;
+}
+
+function runProgram(program, args, opts = {}) {
+  return new Promise((resolve) => {
+    let spec;
+    try {
+      spec = launchSpec(program, args);
+    } catch (error) {
+      resolve({
+        code: -1,
+        exitCode: null,
+        signal: null,
+        systemCode: error.code || null,
+        stdout: "",
+        stderr: error.message,
+        ok: false,
+        killed: false,
+        timedOut: false,
+        cancelled: false,
+      });
+      return;
+    }
+
+    let child;
+    try {
+      child = spawn(spec.file, spec.args, {
+        cwd: opts.cwd || undefined,
+        windowsHide: true,
+        shell: false,
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+    } catch (error) {
+      resolve({
+        code: -1,
+        exitCode: null,
+        signal: null,
+        systemCode: error.code || null,
+        stdout: "",
+        stderr: `could not start \`${program}\`: ${error.message}`,
+        ok: false,
+        killed: false,
+        timedOut: false,
+        cancelled: false,
+      });
+      return;
+    }
+
+    let stdout = "";
+    let stderr = "";
+    let launchError = null;
+    let timedOut = false;
+    let cancelled = false;
+    let overflow = false;
+    let timer = null;
+    let settled = false;
+    const signal = opts.signal || null;
+
+    const stop = (reason) => {
+      if (child.exitCode !== null || child.signalCode !== null) return;
+      if (reason === "timeout") timedOut = true;
+      if (reason === "abort") cancelled = true;
+      killTreeDetailed(child.pid);
+    };
+    const onAbort = () => stop("abort");
+    if (signal) {
+      if (signal.aborted) cancelled = true;
+      else signal.addEventListener("abort", onAbort, { once: true });
+    }
+    const timeout = opts.timeout === undefined ? DEFAULT_TIMEOUT : Number(opts.timeout);
+    if (timeout > 0) timer = setTimeout(() => stop("timeout"), timeout);
+
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk;
+      if (stdout.length + stderr.length > MAX_BUFFER && !overflow) {
+        overflow = true;
+        stop("overflow");
+      }
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+      if (stdout.length + stderr.length > MAX_BUFFER && !overflow) {
+        overflow = true;
+        stop("overflow");
+      }
+    });
+    child.on("error", (error) => {
+      launchError = error;
+    });
+    child.on("close", (exitCode, closeSignal) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      if (signal) signal.removeEventListener("abort", onAbort);
+      const systemCode = overflow ? "ENOBUFS" : launchError && launchError.code ? String(launchError.code) : null;
+      const detail = overflow
+        ? `output exceeded ${MAX_BUFFER} bytes`
+        : launchError
+          ? `could not start \`${program}\`: ${launchError.message}`
+          : "";
+      if (!stderr && detail) stderr = detail;
+      const code = typeof exitCode === "number" ? exitCode : -1;
+      resolve({
+        code,
+        exitCode: typeof exitCode === "number" ? exitCode : null,
+        signal: closeSignal || null,
+        systemCode,
+        stdout,
+        stderr,
+        ok: code === 0 && !launchError && !timedOut && !cancelled && !overflow,
+        killed: !!child.killed,
+        timedOut,
+        cancelled,
+      });
+    });
+
+    if (cancelled) stop("abort");
+  });
+}
 
 function run(args, opts = {}) {
-  return new Promise((resolve) => {
-    execFile(
-      codexBin(),
-      args,
-      {
-        cwd: opts.cwd || undefined,
-        timeout: opts.timeout || DEFAULT_TIMEOUT,
-        maxBuffer: 32 * 1024 * 1024,
-        windowsHide: true,
-        shell: WIN,
-      },
-      (err, stdout, stderr) => {
-        resolve({
-          code: err && typeof err.code === "number" ? err.code : err ? -1 : 0,
-          stdout: String(stdout || ""),
-          stderr: String(stderr || (err ? err.message : "")),
-          ok: !err,
-        });
-      },
-    );
-  });
+  return runProgram(codexBin(), args, opts);
 }
 
 /** Some Codex subcommands print a human banner before the JSON body, so the parse
@@ -117,8 +327,7 @@ function parseLooseJson(text) {
   }
   const brace = trimmed.indexOf("{");
   const bracket = trimmed.indexOf("[");
-  const start =
-    brace === -1 ? bracket : bracket === -1 ? brace : Math.min(brace, bracket);
+  const start = brace === -1 ? bracket : bracket === -1 ? brace : Math.min(brace, bracket);
   if (start === -1) return null;
   try {
     return JSON.parse(trimmed.slice(start));
@@ -127,49 +336,84 @@ function parseLooseJson(text) {
   }
 }
 
-async function runJson(args, opts) {
-  const out = await run(args, opts);
+function parseJsonOutcome(args, out, opts = {}) {
+  const invocation = JSON.stringify(["codex"].concat(args || []));
   const parsed = parseLooseJson(out.stdout);
+  if (!out.ok && !(opts.allowNonzeroJson && parsed !== null)) {
+    throw new Error(`${invocation} exited ${out.code}: ${out.stderr.trim() || "no output"}`);
+  }
   if (parsed === null) {
-    if (!out.ok) {
-      throw new Error(
-        `\`codex ${args.join(" ")}\` exited ${out.code}: ${out.stderr.trim() || "no output"}`,
-      );
-    }
-    throw new Error(
-      `\`codex ${args.join(" ")}\` did not return JSON: ${out.stdout.slice(0, 200)}`,
-    );
+    throw new Error(`${invocation} did not return JSON: ${out.stdout.slice(0, 200)}`);
   }
   return parsed;
+}
+
+async function runJson(args, opts) {
+  const out = await run(args, opts);
+  return parseJsonOutcome(args, out, opts);
 }
 
 /** Spawn a program and stream every stdout/stderr line to `onLine` as it arrives.
  *  Both pipes are read concurrently — draining one to completion before touching
  *  the other deadlocks the moment a chatty process fills the pipe nobody is reading.
  *
- *  `opts.onSpawn` is called with the child the instant it exists, before any output
- *  has arrived. A caller that only wants the transcript can keep ignoring it; a caller
- *  that has to be able to stop the run needs the handle from the first moment, because
- *  a run the user cancels before it prints anything is exactly the one worth stopping. */
+ *  `opts.onSpawn` is called with the child the instant it exists. Callback exceptions
+ *  become controlled failures: the process tree is stopped and the promise rejects
+ *  once the child closes rather than escaping an EventEmitter callback. */
 function stream(program, args, opts, onLine) {
   const options = opts || {};
+  const receive = typeof onLine === "function" ? onLine : () => {};
   return new Promise((resolve, reject) => {
-    let child;
+    let spec;
     try {
-      child = spawn(program, args, {
-        cwd: options.cwd || undefined,
-        windowsHide: true,
-        shell: WIN,
-        stdio: ["ignore", "pipe", "pipe"],
-      });
-    } catch (e) {
-      reject(new Error(`could not start \`${program}\`: ${e.message}`));
+      spec = launchSpec(program, args);
+    } catch (error) {
+      reject(error);
       return;
     }
 
-    if (typeof options.onSpawn === "function") options.onSpawn(child);
+    let child;
+    try {
+      child = spawn(spec.file, spec.args, {
+        cwd: options.cwd || undefined,
+        windowsHide: true,
+        shell: false,
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+    } catch (error) {
+      reject(new Error(`could not start \`${program}\`: ${error.message}`));
+      return;
+    }
 
     const lines = [];
+    let callbackError = null;
+    let launchError = null;
+    let timedOut = false;
+    let cancelled = false;
+    let settled = false;
+    let timer = null;
+    const abortSignal = options.signal || null;
+
+    const stop = (reason) => {
+      if (child.exitCode !== null || child.signalCode !== null) return;
+      if (reason === "timeout") timedOut = true;
+      if (reason === "abort") cancelled = true;
+      killTreeDetailed(child.pid);
+    };
+    const failCallback = (error) => {
+      if (callbackError) return;
+      callbackError = error instanceof Error ? error : new Error(String(error));
+      stop("callback");
+    };
+    const emit = (line) => {
+      lines.push(line);
+      if (callbackError) return;
+      try {
+        receive(line);
+      } catch (error) {
+        failCallback(error);
+      }
+    };
     const pump = (streamHandle, level) => {
       let buffer = "";
       streamHandle.setEncoding("utf8");
@@ -179,74 +423,79 @@ function stream(program, args, opts, onLine) {
         while ((nl = buffer.indexOf("\n")) !== -1) {
           const text = buffer.slice(0, nl).replace(/\r$/, "");
           buffer = buffer.slice(nl + 1);
-          const line = { level, text };
-          lines.push(line);
-          onLine(line);
+          emit({ level, text });
         }
       });
       streamHandle.on("end", () => {
         if (!buffer) return;
-        const line = { level, text: buffer };
-        lines.push(line);
-        onLine(line);
+        emit({ level, text: buffer.replace(/\r$/, "") });
       });
     };
+
+    // Install all process and pipe listeners before exposing the child to callers.
     pump(child.stdout, "out");
     pump(child.stderr, "error");
-
-    child.on("error", (e) => reject(new Error(`could not start \`${program}\`: ${e.message}`)));
-    child.on("close", (code) => resolve({ code: code == null ? -1 : code, lines }));
-  });
-}
-
-/** Kill a process and every descendant it spawned. Returns whether anything was
- *  actually killed.
- *
- *  `child.kill()` is not enough here. Everything goes through `shell: true` on Windows
- *  (see WIN above), so the pid Node reports is the `cmd.exe` wrapper — signalling it
- *  leaves `codex` itself, and whatever `codex` spawned in turn, running to completion
- *  with nobody left reading the output. `/T` is the whole point: it walks the
- *  descendant tree. `/F` skips asking politely, which is what a Stop button means.
- *
- *  Synchronous on purpose. Electron's `before-quit` does not await anything, so an
- *  async kill would lose the race against the process exiting and the run would
- *  survive the app that started it. */
-function killTree(pid) {
-  if (!Number.isInteger(pid) || pid <= 0) return false;
-
-  if (WIN) {
-    try {
-      execFileSync("taskkill", ["/pid", String(pid), "/T", "/F"], {
-        stdio: "ignore",
-        windowsHide: true,
-        timeout: 10_000,
+    child.on("error", (error) => {
+      launchError = error;
+    });
+    child.on("close", (exitCode, closeSignal) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      if (abortSignal) abortSignal.removeEventListener("abort", onAbort);
+      if (callbackError) {
+        reject(callbackError);
+        return;
+      }
+      if (launchError) {
+        const error = new Error(`could not start \`${program}\`: ${launchError.message}`);
+        error.code = launchError.code;
+        reject(error);
+        return;
+      }
+      resolve({
+        code: typeof exitCode === "number" ? exitCode : -1,
+        exitCode: typeof exitCode === "number" ? exitCode : null,
+        signal: closeSignal || null,
+        lines,
+        killed: !!child.killed,
+        timedOut,
+        cancelled,
       });
-      return true;
-    } catch {
-      /* Exit 128 means the pid was already gone; ENOENT means this machine has no
-         taskkill. Both fall through to the signal below, which reports the truth
-         either way rather than claiming a kill that did not happen. */
-    }
-  }
+    });
 
-  try {
-    // No tree here — a single process, which is all a non-Windows host or a machine
-    // without taskkill can promise.
-    process.kill(pid, "SIGKILL");
-    return true;
-  } catch {
-    return false;
-  }
+    const onAbort = () => stop("abort");
+    if (abortSignal) {
+      if (abortSignal.aborted) cancelled = true;
+      else abortSignal.addEventListener("abort", onAbort, { once: true });
+    }
+    const timeout = Number(options.timeout || 0);
+    if (timeout > 0) timer = setTimeout(() => stop("timeout"), timeout);
+
+    if (typeof options.onSpawn === "function") {
+      try {
+        options.onSpawn(child);
+      } catch (error) {
+        failCallback(error);
+      }
+    }
+    if (cancelled) stop("abort");
+  });
 }
 
 module.exports = {
   codexHome,
   codexBin,
   codexSource,
+  launcherKind,
+  launchSpec,
+  runProgram,
   run,
   runJson,
+  parseJsonOutcome,
   parseLooseJson,
   stream,
   killTree,
+  killTreeDetailed,
   WIN,
 };

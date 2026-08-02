@@ -28,6 +28,7 @@
      template tag, for the same scanning reason. -->
 <script src="codex-data.js"></script>
 <script src="cx-i18n.js"></script>
+<script src="cx-conversation.js"></script>
 <script src="cx-dimsum.js"></script>
 <script src="cx-changelog.js"></script>
 <script src="cx-notify.js"></script>
@@ -1133,7 +1134,14 @@ class Component extends DCLogic {
 
   componentDidMount() {
     document.documentElement.setAttribute("data-theme", this.state.theme);
-    this.setState({ messages: this.seedMessages() });
+    const mountedProfile = this.profile();
+    const mountedSession = mountedProfile.sessions.find((session) => session.id === this.state.activeSession) || mountedProfile.sessions[0];
+    const mountedConversation = this.conversationFor(mountedProfile.id, mountedSession && mountedSession.id, mountedSession);
+    this.setState({
+      activeSession: mountedSession ? mountedSession.id : null,
+      messages: mountedConversation.messages.slice(),
+      thinking: !!mountedConversation.runId
+    });
     CX.bridge.invoke("codex_version")
       .then((v) => this.setState({ cliVersion: (v.version || "codex").replace(/^codex-cli /, "codex ") }))
       .catch((e) => CX.notifyBackendFailure("version", e));
@@ -1170,7 +1178,9 @@ class Component extends DCLogic {
       const line = event && event.payload ? event.payload : event;
       if (!line) return;
       const run = this._runs[line.id];
-      if (run) run.onLine(line);
+      if (!run) return;
+      if (line.protocol === "conversation") run.onEvent(line.event);
+      else run.onLine(line);
     });
 
     /* One draw per launch, never on a first run, never during an error path. */
@@ -1271,6 +1281,79 @@ class Component extends DCLogic {
 
   profile() { return this.state.profiles.find((p) => p.id === this.state.activeProfile) || this.state.profiles[0]; }
 
+  chatKey(profileId, sessionId) {
+    return String(profileId || "") + "\u0000" + String(sessionId || "");
+  }
+
+  /** Runtime transcript state belongs to the session that created it, never to whichever
+   *  tab happens to be visible when the next streamed event arrives. The real Codex
+   *  thread id is deliberately separate from Studio's local tab/session id: a new tab
+   *  has no thread until `thread.started` supplies one, while an imported rollout starts
+   *  with its existing id. */
+  conversationFor(profileId, sessionId, session) {
+    this._conversations = this._conversations || {};
+    const key = this.chatKey(profileId, sessionId);
+    if (!this._conversations[key]) {
+      this._conversations[key] = {
+        threadId: session && session.threadId ? String(session.threadId) : (session && session.path ? String(session.id) : ""),
+        messages: [],
+        runId: null,
+        diagnostics: []
+      };
+    }
+    return this._conversations[key];
+  }
+
+  sessionRecord(profileId, sessionId) {
+    const profile = this.state.profiles.find((item) => item.id === profileId);
+    return profile && profile.sessions.find((item) => item.id === sessionId);
+  }
+
+  projectConversation(profileId, sessionId, conversation, extra) {
+    const active = this.state.activeProfile === profileId && this.state.activeSession === sessionId;
+    if (!active) return;
+    this.setState(Object.assign({
+      messages: conversation.messages.slice(),
+      thinking: !!conversation.runId
+    }, extra || {}));
+  }
+
+  activateConversation(profileId, sessionId, extra) {
+    const profile = this.state.profiles.find((item) => item.id === profileId) || this.state.profiles[0];
+    const session = profile && profile.sessions.find((item) => item.id === sessionId);
+    const conversation = this.conversationFor(profile && profile.id, session && session.id, session);
+    if (profile) CX.store.set("activeProfile", profile.id);
+    this.setState(Object.assign({
+      activeProfile: profile ? profile.id : profileId,
+      activeSession: session ? session.id : sessionId,
+      messages: conversation.messages.slice(),
+      thinking: !!conversation.runId
+    }, extra || {}));
+  }
+
+  rememberThread(profileId, sessionId, threadId) {
+    if (!threadId) return;
+    const conversation = this.conversationFor(profileId, sessionId, this.sessionRecord(profileId, sessionId));
+    conversation.threadId = String(threadId);
+    const profiles = this.state.profiles.map((profile) => profile.id !== profileId ? profile : Object.assign({}, profile, {
+      sessions: profile.sessions.map((session) => session.id === sessionId ? Object.assign({}, session, { threadId: String(threadId) }) : session)
+    }));
+    CX.store.set("profiles", profiles);
+    this.setState({ profiles: profiles });
+  }
+
+  updateConversationMessage(profileId, sessionId, messageId, patch) {
+    const conversation = this.conversationFor(profileId, sessionId, this.sessionRecord(profileId, sessionId));
+    const index = conversation.messages.findIndex((message) => message.id === messageId);
+    if (index === -1) return;
+    conversation.messages[index] = Object.assign({}, conversation.messages[index], patch || {});
+    this.projectConversation(profileId, sessionId, conversation);
+  }
+
+  messageId(prefix) {
+    return String(prefix || "message") + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+  }
+
   /** Replace the seeded profiles and sessions with what is actually on this machine:
    *  `[profiles.*]` out of config.toml, and the real rollout files under CODEX_HOME.
    *  A machine with no saved sessions shows an empty list — which is the truth — and
@@ -1283,6 +1366,7 @@ class Component extends DCLogic {
 
     const toSession = (r) => ({
       id: r.id,
+      threadId: r.id,
       name: r.name || String(r.id).slice(0, 8),
       cwd: r.cwd || "",
       updated: r.updatedAt ? new Date(r.updatedAt * 1000).toTimeString().slice(0, 5) : "",
@@ -1352,11 +1436,13 @@ class Component extends DCLogic {
       });
     }
 
+    const conversation = this.conversationFor(activeProfile, activeSession, active.sessions[0]);
     this.setState({
       profiles: all,
       activeProfile: activeProfile,
       activeSession: activeSession,
-      messages: [],
+      messages: conversation.messages.slice(),
+      thinking: !!conversation.runId,
       tick: this.state.tick + 1
     });
   }
@@ -1449,8 +1535,8 @@ class Component extends DCLogic {
        palette is not captured or audited, so nothing noticed until the smoke test
        opened it. */
     NAV.forEach((n) => out.push({ group: "Go to", title: this.navLabel(n.id), subtitle: this.navHint(n.id), hint: "↵", run: () => this.setState({ nav: n.id, paletteOpen: false }) }));
-    st.profiles.forEach((pr) => out.push({ group: "Profile", title: pr.name, subtitle: pr.model + " · " + pr.approval + " · " + pr.sandbox, hint: "switch", run: () => { CX.store.set("activeProfile", pr.id); this.setState({ activeProfile: pr.id, paletteOpen: false }); } }));
-    p.sessions.forEach((s) => out.push({ group: "Session", title: s.name, subtitle: s.cwd, hint: "open", run: () => this.setState({ nav: "chat", activeSession: s.id, messages: this.seedMessages(), paletteOpen: false }) }));
+    st.profiles.forEach((pr) => out.push({ group: "Profile", title: pr.name, subtitle: pr.model + " · " + pr.approval + " · " + pr.sandbox, hint: "switch", run: () => this.activateConversation(pr.id, (pr.sessions[0] || {}).id, { paletteOpen: false }) }));
+    p.sessions.forEach((s) => out.push({ group: "Session", title: s.name, subtitle: s.cwd, hint: "open", run: () => this.activateConversation(p.id, s.id, { nav: "chat", paletteOpen: false }) }));
     DATA.SUBCOMMANDS.forEach((s) => out.push({ group: "Command", title: "codex " + (s.name === "(interactive)" ? "" : s.name), subtitle: s.desc, hint: "console", mono: true, run: () => this.setState({ nav: "console", consoleSub: s.name, flagValues: {}, paletteOpen: false }) }));
     DATA.SLASH.forEach((s) => out.push({ group: "Slash", title: "/" + s.name, subtitle: s.desc, hint: "wizard", mono: true, run: () => this.setState({ nav: "chat", slashOpen: true, slashPick: s.name, slashView: "wizard", paletteOpen: false }) }));
     DATA.SETTINGS.forEach((sec) => sec.fields.forEach((f) => out.push({ group: "Setting", title: f.label, subtitle: f.key, hint: sec.title, mono: true, run: () => this.setState({ nav: "settings", setSection: sec.id, setQuery: f.key, setRegex: null, paletteOpen: false }) })));
@@ -1657,17 +1743,26 @@ class Component extends DCLogic {
   }
 
   /** One place every streamed run funnels through, so the console, the chat and any
-   *  future surface all get live output rather than a wait-then-dump. */
+   *  future surface all get live output rather than a wait-then-dump. Conversation runs
+   *  receive normalized protocol events; generic console runs keep receiving raw lines. */
   startRun(argv, opts) {
     const id = "run-" + Math.random().toString(36).slice(2, 9);
     const o = opts || {};
     this._runs = this._runs || {};
-    this._runs[id] = { onLine: o.onLine || (() => {}) };
-    this._activeRun = id;
-    return CX.bridge
-      .invoke("codex_run", { id: id, args: argv, cwd: o.cwd || null, stream: "codex://stdout" })
-      .then((res) => { delete this._runs[id]; if (this._activeRun === id) this._activeRun = null; return Object.assign({ id: id }, res); })
-      .catch((e) => { delete this._runs[id]; if (this._activeRun === id) this._activeRun = null; throw e; });
+    this._runs[id] = { onLine: o.onLine || (() => {}), onEvent: o.onEvent || (() => {}) };
+    return {
+      id: id,
+      promise: CX.bridge
+        .invoke("codex_run", {
+          id: id,
+          args: argv,
+          cwd: o.cwd || null,
+          stream: "codex://stdout",
+          protocol: o.protocol || null
+        })
+        .then((res) => { delete this._runs[id]; return Object.assign({ id: id }, res); })
+        .catch((e) => { delete this._runs[id]; throw e; })
+    };
   }
   toggleRow(on) {
     return { track: on ? "var(--m3-primary)" : "transparent", trackBorder: on ? "var(--m3-primary)" : "var(--m3-outline)",
@@ -1903,9 +1998,9 @@ class Component extends DCLogic {
       const p = this.profile();
       return mk("Sessions · " + p.name, "Search sessions", "New", p.sessions.filter((s) => match(s.name + " " + s.cwd)).map((s) => ({
         key: s.id, title: s.name + (s.archived ? " (archived)" : ""), subtitle: s.cwd, meta: s.updated, initial: s.name[0].toUpperCase(), active: s.id === st.activeSession,
-        go: () => this.setState({ activeSession: s.id, messages: this.seedMessages() }),
+        go: () => this.activateConversation(p.id, s.id),
         context: (e) => this.menuAt(e, s.name, [
-          { key: "resume", icon: "▶", label: CX.i18n.t("opt.resumeSession"), click: () => { this.setState({ menu: null, activeSession: s.id }); this.toast("codex resume " + s.id); } },
+          { key: "resume", icon: "▶", label: CX.i18n.t("opt.resumeSession"), click: () => this.activateConversation(p.id, s.id, { menu: null }) },
           { key: "fork", icon: "⑂", label: "Fork session", click: () => { const ns = Object.assign({}, s, { id: "s" + Date.now(), name: s.name + " (fork)" }); this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => (x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.concat([ns]) }) : x)), "Fork session " + s.name); } },
           { key: "arch", icon: "🗄", label: s.archived ? "Unarchive" : "Archive", click: () => { this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => (x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.map((y) => (y.id === s.id ? Object.assign({}, y, { archived: !y.archived }) : y)) }) : x)), (s.archived ? "Unarchive" : "Archive") + " " + s.name); } },
           { key: "move", icon: "→", label: "Move to another profile", click: () => { const other = st.profiles.filter((x) => x.id !== p.id)[0]; if (!other) return; this.setState({ menu: null }); this.writeProfiles(st.profiles.map((x) => x.id === p.id ? Object.assign({}, x, { sessions: x.sessions.filter((y) => y.id !== s.id) }) : x.id === other.id ? Object.assign({}, x, { sessions: x.sessions.concat([s]) }) : x), "Move " + s.name + " to " + other.name); } },
@@ -1950,7 +2045,7 @@ class Component extends DCLogic {
         return {
           key: s.id, title: s.name, subtitle: inst ? inst.distro + " · " + inst.status : "no WSL instance",
           meta: inst && inst.status === "running" ? "●" : "", initial: "🐧", active: s.id === st.activeSession,
-          go: () => this.setState({ activeSession: s.id }),
+          go: () => this.activateConversation(p2.id, s.id),
           context: (e) => this.menuAt(e, s.name, [
             { key: "sp", icon: "▶", label: inst ? "Restart WSL instance" : "Spawn WSL instance", click: () => { this.setState({ menu: null }); this.wslSpawn(s); } },
             { key: "st", icon: "■", label: "Stop instance", click: () => { this.setState({ menu: null }); CX.bridge.invoke("codex_wsl_stop", { session: s.id }).then(() => this.setState({ tick: st.tick + 1 })); } },
@@ -2174,7 +2269,7 @@ class Component extends DCLogic {
         key: pr.id, name: pr.name, count: pr.sessions.length, dot: pr.color, hint: pr.model + " · " + pr.approval + " · " + pr.sandbox + " · " + pr.cwd,
         bg: pr.id === p.id ? "var(--m3-surface)" : "transparent",
         fg: pr.id === p.id ? "var(--m3-on-surface)" : "var(--m3-on-surface-variant)",
-        go: () => { CX.store.set("activeProfile", pr.id); this.setState({ activeProfile: pr.id, activeSession: (pr.sessions[0] || {}).id, messages: this.seedMessages() }); },
+        go: () => this.activateConversation(pr.id, (pr.sessions[0] || {}).id),
         context: (e) => this.menuAt(e, pr.name, [
           { key: "rename", icon: "✎", label: "Rename profile", click: () => { const name = prompt("Profile name", pr.name); this.setState({ menu: null }); if (name) this.writeProfiles(st.profiles.map((x) => (x.id === pr.id ? Object.assign({}, x, { name }) : x)), "Rename profile " + pr.name + " → " + name); } },
           { key: "dupe", icon: "⧉", label: "Duplicate profile", click: () => { const copy = JSON.parse(JSON.stringify(pr)); copy.id = "p" + Date.now(); copy.name = pr.name + " copy"; this.setState({ menu: null }); this.writeProfiles(st.profiles.concat([copy]), "Duplicate profile " + pr.name); } },
@@ -2204,9 +2299,12 @@ class Component extends DCLogic {
       listActionLabel: list.actionLabel,
       listAction: () => {
         if (st.nav === "chat") {
-          const s = { id: "s" + Date.now(), name: "New session", cwd: p.cwd, updated: "now", turns: 0, archived: false };
-          this.setState({ activeSession: s.id, messages: [] });
-          this.writeProfiles(st.profiles.map((x) => (x.id === p.id ? Object.assign({}, x, { sessions: [s].concat(x.sessions) }) : x)), "New session in " + p.name);
+          const s = { id: "s" + Date.now(), threadId: "", name: "New session", cwd: p.cwd, updated: "now", turns: 0, archived: false };
+          const profiles = st.profiles.map((x) => (x.id === p.id ? Object.assign({}, x, { sessions: [s].concat(x.sessions) }) : x));
+          CX.store.set("profiles", profiles);
+          const conversation = this.conversationFor(p.id, s.id, s);
+          this.setState({ profiles: profiles, activeSession: s.id, messages: conversation.messages.slice(), thinking: false, tick: st.tick + 1 });
+          CX.vcs.commit("New session in " + p.name, "profile");
         } else if (st.nav === "history") { v.undoLatest(); }
         else this.toast(list.actionLabel + " — routed to `codex " + (st.nav === "console" ? sub.name : st.nav) + "`");
       },
@@ -2267,7 +2365,7 @@ class Component extends DCLogic {
           setCwd: (e) => { const cwd = e.target.value; if (inst) CX.bridge.invoke("codex_wsl_set", { session: s.id, patch: { cwd } }).then(() => this.setState({ tick: st.tick + 1 })); },
           command: this.wslCommand(s, inst, "codex --profile " + p.id + " exec \"…\""),
           exec: () => CX.bridge.invoke("codex_wsl_exec", { session: s.id, command: "uname -sr && codex --version" }).then((r) => this.toast((r.lines || []).map((l) => l.text).join("  ·  "))),
-          open: () => this.setState({ nav: "chat", activeSession: s.id }),
+          open: () => this.activateConversation(p.id, s.id, { nav: "chat" }),
           context: (e) => this.menuAt(e, s.name, [
             { key: "sp", icon: "▶", label: running ? "Stop instance" : "Spawn instance", click: () => { this.setState({ menu: null }); running ? CX.bridge.invoke("codex_wsl_stop", { session: s.id }).then(() => this.setState({ tick: st.tick + 1 })) : this.wslSpawn(s); } },
             { key: "kill", icon: "🗑", label: "Remove instance", danger: true, click: () => { this.setState({ menu: null }); CX.bridge.invoke("codex_wsl_kill", { session: s.id }).then(() => this.setState({ tick: st.tick + 1 })); } },
@@ -2328,7 +2426,7 @@ class Component extends DCLogic {
       messages: st.messages.map((m, i) => {
         const mine = m.role === "user", tool = m.role === "tool", reasoning = m.role === "reasoning";
         return {
-          key: i, text: m.text, meta: (mine ? "you" : m.role) + " · " + m.at,
+          key: m.id || i, text: m.text, meta: (mine ? "you" : m.role) + " · " + m.at + (m.status && m.status !== "completed" ? " · " + m.status : ""),
           align: mine ? "flex-end" : "flex-start",
           maxWidth: mine ? "74%" : "88%",
           bg: mine ? "var(--m3-primary-container)" : reasoning ? "transparent" : tool ? "var(--m3-surface-dim)" : "var(--m3-surface-container)",
@@ -2418,80 +2516,117 @@ class Component extends DCLogic {
       slashInsert: () => this.setState({ chatInput: this.slashPreviewText() + " ", slashOpen: false }),
       slashRun: () => { this.setState({ chatInput: this.slashPreviewText(), slashOpen: false }, () => v.sendChat()); },
 
-      /** Runs the prompt through `codex exec` in the active profile's working
-       *  directory and streams the agent's output into the transcript as it arrives.
-       *  A slash command is forwarded as the subcommand it names. */
+      /** Runs one non-interactive Codex turn. The local Studio session id chooses the
+       *  transcript; the real `thread.started` id chooses whether the next invocation is
+       *  `exec` or `exec resume`. A streamed event is always applied to the profile,
+       *  session and reply that launched it, even after the visible tab changes. */
       sendChat: () => {
         const text = (this.state.chatInput || "").trim();
         if (!text) return;
-        if (this.state.thinking) {
+        const profileId = this.state.activeProfile;
+        const sessionId = this.state.activeSession;
+        const session = this.sessionRecord(profileId, sessionId);
+        const conversation = this.conversationFor(profileId, sessionId, session);
+        if (conversation.runId) {
           this.toast(CX.i18n.t("chat.busy"), "info");
           return;
         }
+        if (text.startsWith("/")) {
+          const command = text.slice(1).trim().split(/\s+/, 1)[0] || "command";
+          this.setState({ chatInput: "", slashOpen: false });
+          CX.notify.info(
+            CX.i18n.t("chat.slashLocalTitle", { command: command }),
+            CX.i18n.t("chat.slashLocalBody", { command: command })
+          );
+          return;
+        }
+
         const at = new Date().toTimeString().slice(0, 5);
-        const cwd = this.expandPath(p.cwd);
-        const slash = text.startsWith("/");
-        const argv = slash
-          ? text.slice(1).split(/\s+/).filter(Boolean).concat(this.profileArgv())
-          : ["exec"].concat(this.profileArgv(), [text]);
+        const userId = this.messageId("user");
+        const replyId = this.messageId("assistant");
+        const reply = { id: replyId, role: "assistant", text: "", out: "", at: at, status: "running" };
+        conversation.messages.push({ id: userId, role: "user", text: text, at: at, status: "completed" }, reply);
+        this.projectConversation(profileId, sessionId, conversation, { chatInput: "", slashOpen: false, thinking: true });
 
-        const base = this.state.messages.concat([{ role: "user", text: text, at: at }]);
-        /* The reply is appended empty and then grown line by line, so a long turn
-           shows its work instead of a spinner that finishes with a wall of text. */
-        const replyIndex = base.length;
-        const reply = { role: slash ? "tool" : "assistant", text: slash ? "codex " + text.slice(1) : "", out: "", at: at };
-        this.setState({ messages: base.concat([reply]), chatInput: "", slashOpen: false, thinking: true });
+        let argv;
+        try {
+          argv = CX_CONVERSATION.buildArgv({
+            common: this.profileArgv(),
+            threadId: conversation.threadId,
+            prompt: text
+          });
+        } catch (error) {
+          this.updateConversationMessage(profileId, sessionId, replyId, { status: "failed", text: error.message });
+          this.notifyError("run", error);
+          return;
+        }
 
-        let buffer = [];
+        let candidate = "";
         let paint = null;
         const flush = () => {
           paint = null;
-          const messages = this.state.messages.slice();
-          const target = Object.assign({}, messages[replyIndex]);
-          if (slash) target.out = buffer.join("\n");
-          else target.text = buffer.join("\n");
-          messages[replyIndex] = target;
-          this.setState({ messages: messages });
+          this.updateConversationMessage(profileId, sessionId, replyId, { text: candidate });
         };
-
-        this.startRun(argv, {
-          cwd: cwd,
-          onLine: (line) => {
-            buffer.push(line.text);
-            /* Repainting per line makes a chatty run janky; a short coalescing
-               window keeps it live without re-rendering hundreds of times a second. */
-            if (!paint) paint = setTimeout(flush, 90);
+        const run = this.startRun(argv, {
+          cwd: this.expandPath((session && session.cwd) || p.cwd),
+          protocol: "conversation",
+          onEvent: (event) => {
+            if (!event) return;
+            if (event.threadId) this.rememberThread(profileId, sessionId, event.threadId);
+            if (event.kind === "message") {
+              candidate = event.text || "";
+              if (!paint) paint = setTimeout(flush, 90);
+            }
+            if (event.kind === "failure" && event.text) conversation.diagnostics.push(event.text);
+            if (event.kind === "diagnostic" && event.text) conversation.diagnostics.push(event.text);
           }
-        })
+        });
+        conversation.runId = run.id;
+        this.projectConversation(profileId, sessionId, conversation, { thinking: true });
+
+        run.promise
           .then((res) => {
-            if (paint) clearTimeout(paint);
-            buffer = (res.lines || []).map((l) => l.text);
-            flush();
-            this.setState({ thinking: false });
-            if (res.code !== 0) {
-              CX.notify.error(
-                CX.i18n.t("chat.failed", { code: res.code }),
-                (res.lines || []).filter((l) => l.level === "error").map((l) => l.text).join("\n") || ("codex exited " + res.code)
-              );
+            if (paint) { clearTimeout(paint); paint = null; }
+            const result = res.conversation || {};
+            if (result.threadId) this.rememberThread(profileId, sessionId, result.threadId);
+            candidate = result.status === "completed" ? (result.text || candidate) : (result.partial || candidate);
+            const status = result.status || (res.code === 0 ? "incomplete" : "failed");
+            const patch = {
+              text: candidate,
+              status: status,
+              out: status === "completed" ? "" : (result.error || CX.i18n.t("chat.incomplete"))
+            };
+            this.updateConversationMessage(profileId, sessionId, replyId, patch);
+            conversation.runId = null;
+            conversation.diagnostics = (result.diagnostics || conversation.diagnostics || []).slice();
+            this.projectConversation(profileId, sessionId, conversation, { thinking: false });
+            if (status !== "completed") {
+              const body = result.error || conversation.diagnostics.join("\n") || CX.i18n.t("chat.incomplete");
+              const title = status === "interrupted" ? CX.i18n.t("chat.interrupted") : CX.i18n.t("chat.failed", { code: res.code });
+              CX.notify.error(title, body);
             }
           })
-          .catch((e) => {
+          .catch((error) => {
             if (paint) clearTimeout(paint);
-            this.setState({ thinking: false });
-            this.notifyError("run", e);
+            conversation.runId = null;
+            this.updateConversationMessage(profileId, sessionId, replyId, { text: candidate, status: "failed", out: error.message || String(error) });
+            this.projectConversation(profileId, sessionId, conversation, { thinking: false });
+            this.notifyError("run", error);
           });
       },
-      /** Stop now kills the process tree, not just the spinner. `codex` spawns its
-       *  own children — a bare kill on the parent leaves those running, which is why
-       *  the backend uses `taskkill /T`. A run that already finished is not an error:
-       *  pressing Stop a moment late should say so, not throw. */
+      /** Stop targets the run owned by the visible session. Other tabs can continue their
+       *  own work, and late events cannot be redirected into this transcript. */
       stopChat: () => {
-        const id = this._activeRun;
-        this.setState({ thinking: false });
-        if (!id) return;
+        const profileId = this.state.activeProfile;
+        const sessionId = this.state.activeSession;
+        const conversation = this.conversationFor(profileId, sessionId, this.sessionRecord(profileId, sessionId));
+        const id = conversation.runId;
+        if (!id) {
+          this.toast(CX.i18n.t("chat.alreadyDone"), "info");
+          return;
+        }
         CX.bridge.invoke("codex_cancel", { id: id })
           .then((r) => {
-            this._activeRun = null;
             if (r && r.cancelled) this.toast(CX.i18n.t("chat.stopped", { pid: r.pid }), "info");
             else this.toast(CX.i18n.t("chat.alreadyDone"), "info");
           })
@@ -2545,7 +2680,7 @@ class Component extends DCLogic {
             lines.push(line);
             if (!paint) paint = setTimeout(flush, 90);
           }
-        })
+        }).promise
           .then((res) => {
             if (paint) clearTimeout(paint);
             lines = (res.lines || []).concat([{ level: res.code === 0 ? "ok" : "error", text: "exit " + res.code }]);
@@ -3519,7 +3654,7 @@ class Component extends DCLogic {
     if (t.kind === "changelog") this.setState({ nav: "changelog" });
     else if (t.kind === "console") this.setState({ nav: "console" });
     else if (t.kind === "studio") this.setState({ nav: "studio" });
-    else this.setState({ nav: "chat", activeSession: (t.payload && t.payload.session) || this.state.activeSession, messages: this.seedMessages() });
+    else this.activateConversation(this.state.activeProfile, (t.payload && t.payload.session) || this.state.activeSession, { nav: "chat" });
   }
 
   closeTab(t) {
@@ -3688,7 +3823,7 @@ class Component extends DCLogic {
       onPick: (o) => {
         const parts = o.value.split(":");
         if (parts[0] === "tab") { CX.tabs.activate(parts[1]); const t = CX.tabs.get(parts[1]); if (t) this.openTabPayload(t); }
-        else { CX.store.set("activeProfile", parts[1]); this.setState({ activeProfile: parts[1], activeSession: parts[2], nav: "chat" }); }
+        else this.activateConversation(parts[1], parts[2], { nav: "chat" });
         this.setState({ dd: null });
       }
     });

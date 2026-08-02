@@ -527,7 +527,14 @@ async function authStatus() {
 /** `codex doctor --json` is a flat map of checks; the GUI renders them grouped by
  *  category, so regroup here rather than in the view layer. */
 async function doctor() {
-  const raw = await cli.runJson(["doctor", "--json", "--all"], { timeout: 180_000 });
+  // `doctor` uses its exit status as the health verdict. A valid JSON report can
+  // therefore accompany exit 1 when one of the checks fails (for example an authored
+  // smoke home with no credentials). Preserve that report; runJson remains strict for
+  // every command that does not opt into this documented doctor behavior.
+  const raw = await cli.runJson(["doctor", "--json", "--all"], {
+    timeout: 180_000,
+    allowNonzeroJson: true,
+  });
   const checks = raw.checks || {};
   const groups = [];
   for (const key of Object.keys(checks).sort()) {
